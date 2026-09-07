@@ -1,10 +1,10 @@
 import React from "react";
-import Field from "./Field";
-import SectionDivider from "./SectionDivider";
-import EmptyState from "./EmptyState";
-import FieldSkeleton from "./FieldSkeleton";
-import { IncomingMetadata, ExtractionStatus } from "./types";
 import ReactMarkdown from "react-markdown";
+import EmptyState from "./EmptyState";
+import Field from "./Field";
+import FieldSkeleton from "./FieldSkeleton";
+import SectionDivider from "./SectionDivider";
+import type { ExtractionStatus, IncomingMetadata } from "./types";
 
 interface Props {
   status: ExtractionStatus;
@@ -26,7 +26,10 @@ export default function IncomingExtractionPanel({
   const isReady = true;
 
   return (
-    <div className="flex flex-col gap-4" style={hasFile ? { height: "640px" } : undefined}>
+    <div
+      className="flex flex-col gap-4"
+      style={hasFile ? { height: "640px" } : undefined}
+    >
       {/* Header */}
       <div className="shrink-0">
         <h2 className="text-base font-semibold text-gray-800 dark:text-white/90">
@@ -129,7 +132,9 @@ export default function IncomingExtractionPanel({
                     {metadata.summary ? (
                       <ReactMarkdown
                         components={{
-                          p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+                          p: ({ children }) => (
+                            <p className="mb-2 last:mb-0">{children}</p>
+                          ),
                           strong: ({ children }) => (
                             <strong className="font-semibold text-gray-900 dark:text-white">
                               {children}
@@ -144,7 +149,9 @@ export default function IncomingExtractionPanel({
                         {metadata.summary}
                       </ReactMarkdown>
                     ) : (
-                      <p className="text-gray-400 dark:text-gray-600">No summary extracted.</p>
+                      <p className="text-gray-400 dark:text-gray-600">
+                        No summary extracted.
+                      </p>
                     )}
                   </div>
                 </div>

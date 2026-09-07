@@ -1,6 +1,6 @@
-import React from "react";
-import { Roles, userUser } from "../context/UserContext";
+import type React from "react";
 import { Navigate } from "react-router";
+import { type Roles, userUser } from "../context/UserContext";
 
 interface Props {
   children: React.ReactNode;

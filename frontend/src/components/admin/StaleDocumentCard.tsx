@@ -11,8 +11,7 @@ function formatDate(dateString: string): string {
 }
 
 function TierText({ tier }: { tier: string }) {
-  const colorClass =
-    tier === "Overdue" ? "text-danger" : "text-warning";
+  const colorClass = tier === "Overdue" ? "text-danger" : "text-warning";
   return <span className={`text-theme-sm font-semibold ${colorClass}`}>{tier}</span>;
 }
 
@@ -44,17 +43,16 @@ export default function StaleDocumentsCard() {
         </thead>
         <tbody className="divide-y divide-[#f1f5f9]">
           {rows.map((doc) => (
-            <tr
-              key={doc.trackingNo}
-              className="dark:border-white/[0.03]"
-            >
+            <tr key={doc.trackingNo} className="dark:border-white/[0.03]">
               <td className="text-theme-sm px-3 py-3 font-medium text-gray-800 dark:text-white/90">
                 {doc.trackingNo}
                 <p className="text-theme-xs mt-0.5 max-w-[220px] truncate font-normal text-gray-400 dark:text-gray-500">
                   {doc.subject}
                 </p>
               </td>
-              <td className="text-theme-sm px-3 py-3 text-gray-600 dark:text-gray-300">{doc.status}</td>
+              <td className="text-theme-sm px-3 py-3 text-gray-600 dark:text-gray-300">
+                {doc.status}
+              </td>
               <td className="text-theme-sm px-3 py-3 text-gray-600 dark:text-gray-300">
                 {formatDate(doc.lastStatusChange)}
               </td>
@@ -68,7 +66,10 @@ export default function StaleDocumentsCard() {
           ))}
           {rows.length === 0 && (
             <tr>
-              <td colSpan={5} className="text-theme-sm px-3 py-6 text-center text-gray-400">
+              <td
+                colSpan={5}
+                className="text-theme-sm px-3 py-6 text-center text-gray-400"
+              >
                 No stale documents to show.
               </td>
             </tr>

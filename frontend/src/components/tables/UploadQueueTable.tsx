@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import { Table, TableHeader, TableRow, TableCell, TableBody } from "../ui/table";
+import { Table, TableBody, TableCell, TableHeader, TableRow } from "../ui/table";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -260,7 +260,10 @@ export default function UploadQueueTable() {
               <TableBody className="dark:divide-white/[0.05]">
                 {filtered.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="text-theme-sm px-5 py-10 text-center text-gray-400">
+                    <td
+                      colSpan={4}
+                      className="text-theme-sm px-5 py-10 text-center text-gray-400"
+                    >
                       No records match your filters.
                     </td>
                   </tr>

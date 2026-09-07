@@ -1,13 +1,12 @@
 import { useMemo, useState } from "react";
-import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import ComponentCard from "../../components/common/ComponentCard";
+import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import PageMeta from "../../components/common/PageMeta";
-
-import { StatusType } from "../../components/ui/modal/document/StatusUpdateModal";
 import IncomingStatusMetrics from "../../components/division/IncommingStatusMetrics";
 import DivisionIncomingDocumentsTable, {
-  IncomingDocument,
+  type IncomingDocument,
 } from "../../components/tables/Division/AssigendDocumentsTable";
+import type { StatusType } from "../../components/ui/modal/document/StatusUpdateModal";
 
 // TODO: replace with the logged-in user's division (e.g. from an auth/session context)
 const CURRENT_DIVISION = "Maintenance Division";

@@ -1,10 +1,10 @@
 import { useState } from "react";
 import RoutedDivisionsModal from "../../ui/modal/document/RoutedDivisionsModal";
 import StatusUpdateModal, {
-  StatusType,
-  StatusUpdatePayload,
+  type StatusType,
+  type StatusUpdatePayload,
 } from "../../ui/modal/document/StatusUpdateModal";
-import { Table, TableHeader, TableRow, TableCell, TableBody } from "../../ui/table";
+import { Table, TableBody, TableCell, TableHeader, TableRow } from "../../ui/table";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -68,7 +68,11 @@ function RoutedDivisionsButton({ onClick }: { onClick: () => void }) {
         stroke="currentColor"
         strokeWidth={1.8}
       >
-        <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+        />
         <path
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -103,7 +107,11 @@ function KebabMenu({
           stroke="currentColor"
           strokeWidth={1.8}
         >
-          <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+          />
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -205,13 +213,17 @@ function MobileCard({
           <p className="text-theme-xs font-medium tracking-wide text-gray-400 uppercase dark:text-gray-500">
             From
           </p>
-          <p className="text-theme-xs mt-0.5 text-gray-700 dark:text-gray-300">{record.from}</p>
+          <p className="text-theme-xs mt-0.5 text-gray-700 dark:text-gray-300">
+            {record.from}
+          </p>
         </div>
         <div>
           <p className="text-theme-xs font-medium tracking-wide text-gray-400 uppercase dark:text-gray-500">
             To
           </p>
-          <p className="text-theme-xs mt-0.5 text-gray-700 dark:text-gray-300">{record.to}</p>
+          <p className="text-theme-xs mt-0.5 text-gray-700 dark:text-gray-300">
+            {record.to}
+          </p>
         </div>
         <div>
           <p className="text-theme-xs font-medium tracking-wide text-gray-400 uppercase dark:text-gray-500">
@@ -291,7 +303,9 @@ export default function DivisionIncomingDocumentsTable({
       payload.reason ? `Reason: ${payload.reason}` : "",
     );
     onRecordsChange(
-      records.map((r) => (r.id === selectedRecord.id ? { ...r, status: payload.newStatus } : r)),
+      records.map((r) =>
+        r.id === selectedRecord.id ? { ...r, status: payload.newStatus } : r,
+      ),
     );
   }
 
@@ -309,7 +323,9 @@ export default function DivisionIncomingDocumentsTable({
       divisions,
     );
     onRecordsChange(
-      records.map((r) => (r.id === routedRecord.id ? { ...r, routedDivisions: divisions } : r)),
+      records.map((r) =>
+        r.id === routedRecord.id ? { ...r, routedDivisions: divisions } : r,
+      ),
     );
   }
 
@@ -466,7 +482,9 @@ export default function DivisionIncomingDocumentsTable({
                 {filtered.length}
               </span>{" "}
               of{" "}
-              <span className="font-medium text-gray-600 dark:text-gray-300">{records.length}</span>{" "}
+              <span className="font-medium text-gray-600 dark:text-gray-300">
+                {records.length}
+              </span>{" "}
               records
             </p>
           )}
@@ -524,25 +542,36 @@ export default function DivisionIncomingDocumentsTable({
                         </TableCell>
 
                         <TableCell className="text-theme-sm px-3 py-3 font-medium text-gray-800 dark:text-white/90">
-                          <span className="block max-w-[160px] truncate" title={record.subject}>
+                          <span
+                            className="block max-w-[160px] truncate"
+                            title={record.subject}
+                          >
                             {record.subject}
                           </span>
                         </TableCell>
 
                         <TableCell className="text-theme-sm px-3 py-3 whitespace-nowrap text-gray-500 dark:text-gray-400">
-                          <span className="block max-w-[130px] truncate" title={record.from}>
+                          <span
+                            className="block max-w-[130px] truncate"
+                            title={record.from}
+                          >
                             {record.from}
                           </span>
                         </TableCell>
 
                         <TableCell className="text-theme-sm hidden px-3 py-3 text-gray-500 @4xl:table-cell dark:text-gray-400">
-                          <span className="block max-w-[130px] truncate" title={record.to}>
+                          <span
+                            className="block max-w-[130px] truncate"
+                            title={record.to}
+                          >
                             {record.to}
                           </span>
                         </TableCell>
 
                         <TableCell className="hidden px-3 py-3 whitespace-nowrap @4xl:table-cell">
-                          <RoutedDivisionsButton onClick={() => openRoutedModal(record)} />
+                          <RoutedDivisionsButton
+                            onClick={() => openRoutedModal(record)}
+                          />
                         </TableCell>
 
                         <TableCell className="text-theme-sm px-3 py-3 whitespace-nowrap text-gray-500 dark:text-gray-400">

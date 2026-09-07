@@ -11,7 +11,9 @@ function MetricCard({ label, value, icon, iconBg }: MetricCardProps) {
   return (
     <div className="rounded-2xl border border-[#fee8d6] bg-[#fffaf5] p-5 dark:border-gray-800 dark:bg-white/[0.03] md:p-6">
       <div className="flex items-center gap-4">
-        <div className={`flex items-center justify-center w-12 h-12 rounded-xl ${iconBg}`}>
+        <div
+          className={`flex items-center justify-center w-12 h-12 rounded-xl ${iconBg}`}
+        >
           {icon}
         </div>
         <div className="flex-1">
@@ -27,7 +29,13 @@ function MetricCard({ label, value, icon, iconBg }: MetricCardProps) {
 
 function UsersIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={1.8}
+    >
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -38,19 +46,35 @@ function UsersIcon({ className }: { className?: string }) {
 }
 function UserCheckIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={1.8}
+    >
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
         d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
       />
-      <path strokeLinecap="round" strokeLinejoin="round" d="M19 11l2 2 4-4m-6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M19 11l2 2 4-4m-6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+      />
     </svg>
   );
 }
 function UserXIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={1.8}
+    >
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -62,7 +86,13 @@ function UserXIcon({ className }: { className?: string }) {
 }
 function BuildingIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={1.8}
+    >
       <path
         strokeLinecap="round"
         strokeLinejoin="round"

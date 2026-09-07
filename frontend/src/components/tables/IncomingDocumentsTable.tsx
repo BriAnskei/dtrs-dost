@@ -1,12 +1,12 @@
-import { useState, useRef, useEffect } from "react";
-import { Table, TableBody, TableCell, TableHeader, TableRow } from "../ui/table";
-import StatusUpdateModal, {
-  StatusType,
-  StatusUpdatePayload,
-} from "../ui/modal/document/StatusUpdateModal";
+import { useEffect, useRef, useState } from "react";
+import QRCodeModal from "../receiver/QRCodeModal";
 import IncomingAuditModal from "../ui/modal/document/IncomingAuditModal";
 import RoutedDivisionsModal from "../ui/modal/document/RoutedDivisionsModal";
-import QRCodeModal from "../receiver/QRCodeModal";
+import StatusUpdateModal, {
+  type StatusType,
+  type StatusUpdatePayload,
+} from "../ui/modal/document/StatusUpdateModal";
+import { Table, TableBody, TableCell, TableHeader, TableRow } from "../ui/table";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -132,7 +132,11 @@ function RoutedDivisionsButton({ onClick }: { onClick: () => void }) {
         stroke="currentColor"
         strokeWidth={1.8}
       >
-        <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+        />
         <path
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -191,7 +195,11 @@ function KebabMenu({
           stroke="currentColor"
           strokeWidth={1.8}
         >
-          <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+          />
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -365,13 +373,17 @@ function MobileCard({
           <p className="text-theme-xs font-medium tracking-wide text-gray-400 uppercase dark:text-gray-500">
             From
           </p>
-          <p className="text-theme-xs mt-0.5 text-gray-700 dark:text-gray-300">{record.from}</p>
+          <p className="text-theme-xs mt-0.5 text-gray-700 dark:text-gray-300">
+            {record.from}
+          </p>
         </div>
         <div>
           <p className="text-theme-xs font-medium tracking-wide text-gray-400 uppercase dark:text-gray-500">
             To
           </p>
-          <p className="text-theme-xs mt-0.5 text-gray-700 dark:text-gray-300">{record.to}</p>
+          <p className="text-theme-xs mt-0.5 text-gray-700 dark:text-gray-300">
+            {record.to}
+          </p>
         </div>
         <div>
           <p className="text-theme-xs font-medium tracking-wide text-gray-400 uppercase dark:text-gray-500">
@@ -462,7 +474,9 @@ export default function IncomingDocumentsTable() {
       payload.reason ? `Reason: ${payload.reason}` : "",
     );
     setRecords((prev) =>
-      prev.map((r) => (r.id === selectedRecord.id ? { ...r, status: payload.newStatus } : r)),
+      prev.map((r) =>
+        r.id === selectedRecord.id ? { ...r, status: payload.newStatus } : r,
+      ),
     );
   }
 
@@ -480,7 +494,9 @@ export default function IncomingDocumentsTable() {
       divisions,
     );
     setRecords((prev) =>
-      prev.map((r) => (r.id === routedRecord.id ? { ...r, routedDivisions: divisions } : r)),
+      prev.map((r) =>
+        r.id === routedRecord.id ? { ...r, routedDivisions: divisions } : r,
+      ),
     );
   }
 
@@ -650,7 +666,9 @@ export default function IncomingDocumentsTable() {
                 {filtered.length}
               </span>{" "}
               of{" "}
-              <span className="font-medium text-gray-600 dark:text-gray-300">{records.length}</span>{" "}
+              <span className="font-medium text-gray-600 dark:text-gray-300">
+                {records.length}
+              </span>{" "}
               records
             </p>
           )}
@@ -710,28 +728,39 @@ export default function IncomingDocumentsTable() {
 
                         {/* Subject */}
                         <TableCell className="text-theme-sm px-3 py-3 font-medium text-gray-800 dark:text-white/90">
-                          <span className="block max-w-[160px] truncate" title={record.subject}>
+                          <span
+                            className="block max-w-[160px] truncate"
+                            title={record.subject}
+                          >
                             {record.subject}
                           </span>
                         </TableCell>
 
                         {/* From */}
                         <TableCell className="text-theme-sm px-3 py-3 whitespace-nowrap text-gray-500 dark:text-gray-400">
-                          <span className="block max-w-[130px] truncate" title={record.from}>
+                          <span
+                            className="block max-w-[130px] truncate"
+                            title={record.from}
+                          >
                             {record.from}
                           </span>
                         </TableCell>
 
                         {/* To */}
                         <TableCell className="text-theme-sm hidden px-3 py-3 text-gray-500 @4xl:table-cell dark:text-gray-400">
-                          <span className="block max-w-[130px] truncate" title={record.to}>
+                          <span
+                            className="block max-w-[130px] truncate"
+                            title={record.to}
+                          >
                             {record.to}
                           </span>
                         </TableCell>
 
                         {/* Routed To — view icon opens the divisions modal */}
                         <TableCell className="hidden px-3 py-3 whitespace-nowrap @4xl:table-cell">
-                          <RoutedDivisionsButton onClick={() => openRoutedModal(record)} />
+                          <RoutedDivisionsButton
+                            onClick={() => openRoutedModal(record)}
+                          />
                         </TableCell>
 
                         {/* Date Received */}

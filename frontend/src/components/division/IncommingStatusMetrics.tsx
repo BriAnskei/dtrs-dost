@@ -1,4 +1,4 @@
-import { StatusType } from "../ui/modal/document/StatusUpdateModal";
+import type { StatusType } from "../ui/modal/document/StatusUpdateModal";
 
 // ── Icons ────────────────────────────────────────────────────────────
 
@@ -162,11 +162,15 @@ export default function IncomingStatusMetrics({
             }`}
           >
             <div className="flex items-center gap-4">
-              <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${m.iconBg}`}>
+              <div
+                className={`flex h-12 w-12 items-center justify-center rounded-xl ${m.iconBg}`}
+              >
                 {m.icon}
               </div>
               <div className="flex-1">
-                <span className="text-sm text-gray-500 dark:text-gray-400">{m.label}</span>
+                <span className="text-sm text-gray-500 dark:text-gray-400">
+                  {m.label}
+                </span>
                 <h4 className="text-title-sm mt-2 font-bold text-gray-800 dark:text-white/90">
                   {m.value.toLocaleString()}
                 </h4>

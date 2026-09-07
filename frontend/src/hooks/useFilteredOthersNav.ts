@@ -1,6 +1,6 @@
 import { useMemo } from "react";
-import { NavItem, OTHERS_NAV_ITEMS } from "../config/navConfig";
-import { Roles, userUser } from "../context/UserContext";
+import { type NavItem, OTHERS_NAV_ITEMS } from "../config/navConfig";
+import { type Roles, userUser } from "../context/UserContext";
 
 /**
  * Mirrors useFilteredNav but operates on the "others" navigation items.
@@ -8,23 +8,21 @@ import { Roles, userUser } from "../context/UserContext";
  * that include the role in their `roles` array.
  */
 export const useFilteredOthersNav = (): NavItem[] => {
-	const { role } = userUser();
-	const currentRole = role as Roles | undefined;
+  const { role } = userUser();
+  const currentRole = role as Roles | undefined;
 
-	return useMemo(() => {
-		if (!currentRole) return [];
+  return useMemo(() => {
+    if (!currentRole) return [];
 
-		const filterItem = (item: NavItem): NavItem | null => {
-			if (!item.roles.includes(currentRole)) return null;
-			const filteredSub = item.subItems?.filter((sub) =>
-				sub.roles.includes(currentRole),
-			);
-			return {
-				...item,
-				subItems: filteredSub,
-			} as NavItem;
-		};
+    const filterItem = (item: NavItem): NavItem | null => {
+      if (!item.roles.includes(currentRole)) return null;
+      const filteredSub = item.subItems?.filter((sub) => sub.roles.includes(currentRole));
+      return {
+        ...item,
+        subItems: filteredSub,
+      } as NavItem;
+    };
 
-		return OTHERS_NAV_ITEMS.map(filterItem).filter(Boolean) as NavItem[];
-	}, [currentRole]);
+    return OTHERS_NAV_ITEMS.map(filterItem).filter(Boolean) as NavItem[];
+  }, [currentRole]);
 };

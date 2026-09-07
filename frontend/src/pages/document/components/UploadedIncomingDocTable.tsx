@@ -1,8 +1,14 @@
 // ─── MyUploadsTable.tsx ───────────────────────────────────────────────────────
 
-import { useState, useRef, useEffect } from "react";
-import { Table, TableHeader, TableRow, TableCell, TableBody } from "../../../components/ui/table";
+import { useEffect, useRef, useState } from "react";
 import QRCodeModal from "../../../components/receiver/QRCodeModal";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHeader,
+  TableRow,
+} from "../../../components/ui/table";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -198,7 +204,9 @@ function ArchiveConfirmModal({
             Archive document?
           </h2>
           <p className="text-theme-xs mt-1.5 leading-relaxed text-gray-500 dark:text-gray-400">
-            <span className="font-medium text-gray-700 dark:text-gray-300">{file.fileName}</span>{" "}
+            <span className="font-medium text-gray-700 dark:text-gray-300">
+              {file.fileName}
+            </span>{" "}
             will be moved to the archive. You can restore it later if needed.
           </p>
         </div>
@@ -248,7 +256,11 @@ function KebabActionMenu({
   }, []);
 
   if (disabled) {
-    return <span className="text-theme-xs text-gray-300 italic dark:text-gray-600">Archived</span>;
+    return (
+      <span className="text-theme-xs text-gray-300 italic dark:text-gray-600">
+        Archived
+      </span>
+    );
   }
 
   return (
@@ -503,7 +515,9 @@ export default function UploadedIncomingDocTable() {
                 {filtered.length}
               </span>{" "}
               of{" "}
-              <span className="font-medium text-gray-600 dark:text-gray-300">{records.length}</span>{" "}
+              <span className="font-medium text-gray-600 dark:text-gray-300">
+                {records.length}
+              </span>{" "}
               records
             </p>
           )}
@@ -530,7 +544,10 @@ export default function UploadedIncomingDocTable() {
               <TableBody className="dark:divide-white/[0.05]">
                 {filtered.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="text-theme-sm px-5 py-10 text-center text-gray-400">
+                    <td
+                      colSpan={5}
+                      className="text-theme-sm px-5 py-10 text-center text-gray-400"
+                    >
                       No records match your filters.
                     </td>
                   </tr>

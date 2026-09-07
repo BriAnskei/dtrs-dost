@@ -1,6 +1,6 @@
 // components/admin/QuickActions.tsx
 import { useNavigate } from "react-router";
-import { PlugInIcon, Document, ArrowRightIcon } from "../../icons";
+import { ArrowRightIcon, Document, PlugInIcon } from "../../icons";
 
 export default function QuickActions() {
   const navigate = useNavigate();
@@ -25,7 +25,9 @@ export default function QuickActions() {
 
   return (
     <section className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] sm:p-6">
-      <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">Quick Actions</h3>
+      <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
+        Quick Actions
+      </h3>
       <p className="text-theme-sm mt-1 text-gray-500 dark:text-gray-400">
         Jump straight into common tasks
       </p>

@@ -9,13 +9,13 @@ import { ThemeProvider } from "./context/ThemeContext.tsx";
 import { UserProvider } from "./context/UserContext.tsx";
 
 createRoot(document.getElementById("root")!).render(
-	<StrictMode>
-		<ThemeProvider>
-			<UserProvider>
-				<AppWrapper>
-					<App />
-				</AppWrapper>
-			</UserProvider>
-		</ThemeProvider>
-	</StrictMode>,
+  <StrictMode>
+    <ThemeProvider>
+      <UserProvider>
+        <AppWrapper>
+          <App />
+        </AppWrapper>
+      </UserProvider>
+    </ThemeProvider>
+  </StrictMode>,
 );

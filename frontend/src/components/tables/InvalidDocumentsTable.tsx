@@ -1,8 +1,8 @@
-import { useState, useRef, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
-import { Table, TableHeader, TableRow, TableCell, TableBody } from "../ui/table";
 import { useNotifications } from "../../context/NotificationsContext";
 import MissingFieldsModal from "../ui/modal/document/MissingFieldsModal";
+import { Table, TableBody, TableCell, TableHeader, TableRow } from "../ui/table";
 
 // ─── Types ─────────────────────────────────────────────────────────────
 
@@ -419,20 +419,17 @@ export default function InvalidDocumentsTable() {
             <Table>
               <TableHeader className="dark:border-white/[0.05]">
                 <TableRow>
-                  {[
-                    "Uploaders Name",
-                    "Missing Field",
-                    "Uploaded At",
-                    "Actions",
-                  ].map((col) => (
-                    <TableCell
-                      key={col}
-                      isHeader
-                      className="text-primary text-theme-xs px-3 py-3 text-start font-semibold whitespace-nowrap dark:text-gray-300"
-                    >
-                      {col}
-                    </TableCell>
-                  ))}
+                  {["Uploaders Name", "Missing Field", "Uploaded At", "Actions"].map(
+                    (col) => (
+                      <TableCell
+                        key={col}
+                        isHeader
+                        className="text-primary text-theme-xs px-3 py-3 text-start font-semibold whitespace-nowrap dark:text-gray-300"
+                      >
+                        {col}
+                      </TableCell>
+                    ),
+                  )}
                 </TableRow>
               </TableHeader>
 
@@ -508,9 +505,7 @@ export default function InvalidDocumentsTable() {
       {showRejectConfirm && (
         <div
           className="fixed inset-0 z-[999999] flex items-center justify-center bg-black/50 px-4"
-          onClick={(e) =>
-            e.target === e.currentTarget && handleRejectCancel()
-          }
+          onClick={(e) => e.target === e.currentTarget && handleRejectCancel()}
         >
           <div className="w-full max-w-sm rounded-xl border border-gray-200 bg-white dark:border-white/[0.08] dark:bg-gray-900">
             <div className="px-6 py-5">
@@ -535,9 +530,8 @@ export default function InvalidDocumentsTable() {
               </h2>
               <p className="text-theme-xs mt-1.5 leading-relaxed text-gray-500 dark:text-gray-400">
                 This will send the document back to the receiver with a{" "}
-                <span className="font-medium text-danger">Rejected</span>{" "}
-                status. The receiver will be notified and can fix the missing
-                metadata and re-upload.
+                <span className="font-medium text-danger">Rejected</span> status. The
+                receiver will be notified and can fix the missing metadata and re-upload.
               </p>
 
               <div className="mt-4">

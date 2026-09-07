@@ -1,6 +1,6 @@
-import React from "react";
-import GridShape from "../../components/common/GridShape";
+import type React from "react";
 import { Link } from "react-router";
+import GridShape from "../../components/common/GridShape";
 import ThemeTogglerTwo from "../../components/common/ThemeTogglerTwo";
 import CompanyLogo from "../../components/logo/CompanyLogo";
 
@@ -26,7 +26,8 @@ export default function AuthLayout({
                 Document Tracking System
               </h2>
               <p className="text-center text-sm text-white/70">
-                Provincial Engineering Office — internal records and document routing portal
+                Provincial Engineering Office — internal records and document routing
+                portal
               </p>
             </div>
           </div>

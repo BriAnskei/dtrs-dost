@@ -129,7 +129,13 @@ const STAGE_BADGE_CLS: Record<Stage, string> = {
 
 function InboxIcon() {
   return (
-    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <svg
+      className="h-4 w-4"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={2}
+    >
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -141,7 +147,13 @@ function InboxIcon() {
 
 function DocumentIcon() {
   return (
-    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <svg
+      className="h-4 w-4"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={2}
+    >
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -153,7 +165,13 @@ function DocumentIcon() {
 
 function ClockIcon() {
   return (
-    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <svg
+      className="h-4 w-4"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={2}
+    >
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -165,7 +183,13 @@ function ClockIcon() {
 
 function RefreshIcon() {
   return (
-    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <svg
+      className="h-4 w-4"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={2}
+    >
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -224,7 +248,11 @@ function ChevronIcon({ open }: { open: boolean }) {
       stroke="currentColor"
       strokeWidth={2}
     >
-      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M19.5 8.25l-7.5 7.5-7.5-7.5"
+      />
     </svg>
   );
 }
@@ -321,7 +349,9 @@ export default function PublicTrackingPage() {
   const currentStage = record.history[record.history.length - 1].stage;
   const [expanded, setExpanded] = useState(false);
 
-  const visibleEntries = expanded ? record.history : [record.history[record.history.length - 1]];
+  const visibleEntries = expanded
+    ? record.history
+    : [record.history[record.history.length - 1]];
 
   return (
     <>
@@ -336,7 +366,9 @@ export default function PublicTrackingPage() {
           <Link to="/" className="flex items-center gap-3">
             <CompanyLogo size={36} />
             <div className="leading-tight">
-              <p className="text-theme-sm font-semibold text-gray-800">Document Tracking System</p>
+              <p className="text-theme-sm font-semibold text-gray-800">
+                Document Tracking System
+              </p>
               <p className="text-[11px] text-gray-400">Provincial Engineering Office</p>
             </div>
           </Link>
@@ -362,7 +394,9 @@ export default function PublicTrackingPage() {
               <p className="text-[11px] font-medium tracking-wide text-gray-400 uppercase">
                 Subject
               </p>
-              <p className="text-theme-md mt-1 font-medium text-gray-800">{record.subject}</p>
+              <p className="text-theme-md mt-1 font-medium text-gray-800">
+                {record.subject}
+              </p>
             </div>
 
             {/* Dates */}
@@ -415,8 +449,8 @@ export default function PublicTrackingPage() {
           </div>
 
           <p className="text-theme-xs mt-4 text-center text-gray-400">
-            This is a read-only tracking view. For concerns regarding this document, please contact
-            the Provincial Engineering Office.
+            This is a read-only tracking view. For concerns regarding this document,
+            please contact the Provincial Engineering Office.
           </p>
         </main>
       </div>

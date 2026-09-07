@@ -1,8 +1,9 @@
 // components/admin/AnalyticsSection.tsx
+
+import type { ApexOptions } from "apexcharts";
 import { useState } from "react";
-import { useNavigate } from "react-router";
 import Chart from "react-apexcharts";
-import { ApexOptions } from "apexcharts";
+import { useNavigate } from "react-router";
 import { ArrowRightIcon } from "../../icons";
 
 // ── Mock data (shared across tabs) ────────────────────────────────────────────
@@ -32,13 +33,31 @@ const divisions: Division[] = [
 ];
 
 const queueStats = [
-  { label: "Pending Extraction", value: 20, sub: "awaiting processing", color: "text-[#f59e0b]", bg: "bg-[#fef3c7]" },
-  { label: "Routed Today", value: 50, sub: "sent to recipients", color: "text-[#10b981]", bg: "bg-[#d1fae5]" },
+  {
+    label: "Pending Extraction",
+    value: 20,
+    sub: "awaiting processing",
+    color: "text-[#f59e0b]",
+    bg: "bg-[#fef3c7]",
+  },
+  {
+    label: "Routed Today",
+    value: 50,
+    sub: "sent to recipients",
+    color: "text-[#10b981]",
+    bg: "bg-[#d1fae5]",
+  },
 ];
 
 function BuildingIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={1.8}
+    >
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -50,16 +69,36 @@ function BuildingIcon({ className }: { className?: string }) {
 
 function UploadIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 16V4m0 0L7 9m5-5l5 5M5 20h14" />
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={1.8}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M12 16V4m0 0L7 9m5-5l5 5M5 20h14"
+      />
     </svg>
   );
 }
 
 function RouteIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={1.8}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+      />
     </svg>
   );
 }
@@ -76,7 +115,9 @@ export default function AnalyticsSection() {
     <section className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] sm:p-6">
       <div className="mb-5 flex items-start justify-between gap-4">
         <div>
-          <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">Analytics</h3>
+          <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
+            Analytics
+          </h3>
           <p className="text-theme-sm mt-1 text-gray-500 dark:text-gray-400">
             Status, division workload &amp; upload flow
           </p>
@@ -113,7 +154,12 @@ function OverviewTab() {
   const labels = statusData.map((d) => d.label);
 
   const options: ApexOptions = {
-    chart: { fontFamily: "Outfit, sans-serif", type: "donut", height: 240, toolbar: { show: false } },
+    chart: {
+      fontFamily: "Outfit, sans-serif",
+      type: "donut",
+      height: 240,
+      toolbar: { show: false },
+    },
     colors,
     labels,
     legend: { show: false },
@@ -133,7 +179,13 @@ function OverviewTab() {
               color: "var(--color-gray-400)",
               formatter: () => `${statusTotal.toLocaleString()}`,
             },
-            value: { show: true, fontSize: "24px", fontWeight: 700, color: "var(--color-text)", offsetY: 4 },
+            value: {
+              show: true,
+              fontSize: "24px",
+              fontWeight: 700,
+              color: "var(--color-text)",
+              offsetY: 4,
+            },
           },
         },
       },
@@ -146,14 +198,25 @@ function OverviewTab() {
       {/* Donut + legend */}
       <div>
         <div className="flex items-center justify-center">
-          <Chart options={options} series={series} type="donut" height={240} width="100%" />
+          <Chart
+            options={options}
+            series={series}
+            type="donut"
+            height={240}
+            width="100%"
+          />
         </div>
         <div className="mt-4 space-y-2.5 border-t border-gray-100 pt-4 dark:border-white/[0.05]">
           {statusData.map((d) => (
             <div key={d.label} className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <span className="block h-3 w-3 rounded-full flex-shrink-0" style={{ backgroundColor: d.color }} />
-                <span className="text-theme-sm text-gray-600 dark:text-gray-300">{d.label}</span>
+                <span
+                  className="block h-3 w-3 rounded-full flex-shrink-0"
+                  style={{ backgroundColor: d.color }}
+                />
+                <span className="text-theme-sm text-gray-600 dark:text-gray-300">
+                  {d.label}
+                </span>
               </div>
               <span className="text-theme-sm font-semibold text-gray-800 dark:text-white/90">
                 {d.count}
@@ -173,15 +236,36 @@ function OverviewTab() {
             key={f.label}
             className="flex items-center gap-4 rounded-xl border border-gray-100 bg-gray-50 p-4 dark:border-white/[0.05] dark:bg-white/[0.03]"
           >
-            <div className={`flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl ${f.bg}`}>
-
+            <div
+              className={`flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl ${f.bg}`}
+            >
               {f.label === "Incoming" ? (
-                <svg className={`size-5 ${f.color}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v8m0-8l-4 4m4-4l4 4M5 20h14" />
+                <svg
+                  className={`size-5 ${f.color}`}
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={1.8}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M12 8v8m0-8l-4 4m4-4l4 4M5 20h14"
+                  />
                 </svg>
               ) : (
-                <svg className={`size-5 ${f.color}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 16V8m0 8l-4-4m4 4l4-4M5 4h14" />
+                <svg
+                  className={`size-5 ${f.color}`}
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={1.8}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M12 16V8m0 8l-4-4m4 4l4-4M5 4h14"
+                  />
                 </svg>
               )}
             </div>
@@ -210,7 +294,9 @@ function DivisionsTab() {
           <BuildingIcon className="size-5 text-primary dark:text-secondary" />
         </div>
         <div>
-          <p className="text-theme-xs text-gray-500 dark:text-gray-400">Total assigned documents</p>
+          <p className="text-theme-xs text-gray-500 dark:text-gray-400">
+            Total assigned documents
+          </p>
           <p className="text-lg font-bold text-gray-800 dark:text-white/90">{total}</p>
         </div>
       </div>
@@ -221,13 +307,26 @@ function DivisionsTab() {
             <div key={div.name} className="space-y-1.5">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
-                  <span className="block h-2.5 w-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: div.dotColor }} />
-                  <span className="text-theme-sm font-medium text-gray-700 dark:text-gray-300">{div.name}</span>
+                  <span
+                    className="block h-2.5 w-2.5 rounded-full flex-shrink-0"
+                    style={{ backgroundColor: div.dotColor }}
+                  />
+                  <span className="text-theme-sm font-medium text-gray-700 dark:text-gray-300">
+                    {div.name}
+                  </span>
                 </div>
-                <span className="text-theme-sm font-semibold text-gray-800 dark:text-white/90">{div.count}</span>
+                <span className="text-theme-sm font-semibold text-gray-800 dark:text-white/90">
+                  {div.count}
+                </span>
               </div>
               <div className="h-1.5 w-full overflow-hidden rounded-full bg-gray-100 dark:bg-white/[0.06]">
-                <div className="h-full rounded-full transition-all duration-500" style={{ width: `${percent}%`, backgroundColor: "var(--color-primary)" }} />
+                <div
+                  className="h-full rounded-full transition-all duration-500"
+                  style={{
+                    width: `${percent}%`,
+                    backgroundColor: "var(--color-primary)",
+                  }}
+                />
               </div>
             </div>
           );
@@ -247,7 +346,9 @@ function UploadsTab({ onViewQueue }: { onViewQueue: () => void }) {
             key={s.label}
             className="flex items-center gap-4 rounded-xl border border-gray-100 bg-gray-50 p-4 dark:border-white/[0.05] dark:bg-white/[0.03]"
           >
-            <div className={`flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl ${s.bg}`}>
+            <div
+              className={`flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl ${s.bg}`}
+            >
               {s.label === "Pending Extraction" ? (
                 <UploadIcon className={`size-5 ${s.color}`} />
               ) : (

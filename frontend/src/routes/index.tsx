@@ -1,34 +1,32 @@
 import { createBrowserRouter } from "react-router";
-import SignIn from "../pages/AuthPages/SignIn";
-import NotFound from "../pages/OtherPage/NotFound";
-import ProtectedRoute from "./protectedRoute";
-import Home from "../pages/Dashboard/Home";
-
-import RoleRoute from "./RoleRoutes";
-import NotificationPage from "../pages/notification/NotificationPage";
-import IncomingDocPage from "../pages/document/IncomingDocPage";
-import DocumentUploadPage from "../pages/document/DocumentUploadPage";
-import AppLayout from "../layout/AppLayout";
-import { DashboardRedirect, UploadRedirect } from "./Redirect";
-import Unauthorized from "../pages/OtherPage/Unauthorized";
-import OutgoingDocPage from "../pages/document/OutgoingDocPage";
-import ValudationQueue from "../pages/document/UploadQueue";
-import InvalidDocumentsPage from "../pages/document/InvalidDocumentsPage";
-import IncomingDocumentUploadPage from "../pages/document/IncomingDocumentUploadPage";
-import UploadedIncomingDoc from "../pages/document/UploadedIncomingDocPage";
-import UploadedIncomingDocPage from "../pages/document/UploadedIncomingDocPage";
-import InvalidDocumentPage from "../pages/document/InvalidDocumentPage";
 import UserManagementTable from "../components/tables/Administration/UserManagementTable";
-import UserManagementPage from "../pages/Administration/UserManagementPage";
+import AppLayout from "../layout/AppLayout";
 import AccessControlPage from "../pages/Administration/AcessControlPage";
-import SystemLogsPage from "../pages/Logs/SystemLogsPage";
-import ReceiverDashboard from "../pages/Dashboard/ReceiverDashboard";
+import UserManagementPage from "../pages/Administration/UserManagementPage";
+import SignIn from "../pages/AuthPages/SignIn";
 import AdminDashboard from "../pages/Dashboard/AdminDashboard";
+import Home from "../pages/Dashboard/Home";
+import ReceiverDashboard from "../pages/Dashboard/ReceiverDashboard";
 import StaleDocumentsPage from "../pages/Dashboard/StaleDocumentsPage";
 import SuperAdminDashboard from "../pages/Dashboard/SuperAdminDashboard";
-import PublicTrackingPage from "../pages/Public/PublicTrackingPage";
-
 import AssignedDocumentPage from "../pages/Division/AssignedDocumentPage";
+import DocumentUploadPage from "../pages/document/DocumentUploadPage";
+import IncomingDocPage from "../pages/document/IncomingDocPage";
+import IncomingDocumentUploadPage from "../pages/document/IncomingDocumentUploadPage";
+import InvalidDocumentPage from "../pages/document/InvalidDocumentPage";
+import InvalidDocumentsPage from "../pages/document/InvalidDocumentsPage";
+import OutgoingDocPage from "../pages/document/OutgoingDocPage";
+import UploadedIncomingDoc from "../pages/document/UploadedIncomingDocPage";
+import UploadedIncomingDocPage from "../pages/document/UploadedIncomingDocPage";
+import ValudationQueue from "../pages/document/UploadQueue";
+import SystemLogsPage from "../pages/Logs/SystemLogsPage";
+import NotificationPage from "../pages/notification/NotificationPage";
+import NotFound from "../pages/OtherPage/NotFound";
+import Unauthorized from "../pages/OtherPage/Unauthorized";
+import PublicTrackingPage from "../pages/Public/PublicTrackingPage";
+import ProtectedRoute from "./protectedRoute";
+import { DashboardRedirect, UploadRedirect } from "./Redirect";
+import RoleRoute from "./RoleRoutes";
 
 type RouteType = {
   path: string;

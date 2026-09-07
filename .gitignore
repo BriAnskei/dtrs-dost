@@ -1,1 +1,6 @@
-frontend/REJECTION_FLOW_PROGRESS.md
+
+package.json
+pnpm-lock.yaml
+biome.json
+node_modules/
+.zed/

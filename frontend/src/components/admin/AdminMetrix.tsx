@@ -12,12 +12,16 @@ function MetricCard({ label, value, icon, iconBg, valueClass }: MetricCardProps)
   return (
     <div className="rounded-2xl border border-[#fee8d6] bg-[#fffaf5] p-4 dark:border-gray-800 dark:bg-white/[0.03] sm:p-5">
       <div className="flex items-center gap-3">
-        <div className={`flex items-center justify-center w-10 h-10 rounded-xl ${iconBg}`}>
+        <div
+          className={`flex items-center justify-center w-10 h-10 rounded-xl ${iconBg}`}
+        >
           {icon}
         </div>
         <div className="flex-1">
           <span className="text-xs text-[#4b5563] dark:text-gray-400">{label}</span>
-          <h4 className={`mt-0.5 font-bold text-[#1f2937] text-title-sm dark:text-white/90 ${valueClass ?? ""}`}>
+          <h4
+            className={`mt-0.5 font-bold text-[#1f2937] text-title-sm dark:text-white/90 ${valueClass ?? ""}`}
+          >
             {value.toLocaleString()}
           </h4>
         </div>
@@ -30,7 +34,13 @@ function MetricCard({ label, value, icon, iconBg, valueClass }: MetricCardProps)
 
 function FolderIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={1.8}
+    >
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -42,7 +52,13 @@ function FolderIcon({ className }: { className?: string }) {
 
 function ClockIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={1.8}
+    >
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -54,7 +70,13 @@ function ClockIcon({ className }: { className?: string }) {
 
 function RefreshIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={1.8}
+    >
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -66,7 +88,13 @@ function RefreshIcon({ className }: { className?: string }) {
 
 function CheckCircleIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={1.8}
+    >
       <path
         strokeLinecap="round"
         strokeLinejoin="round"

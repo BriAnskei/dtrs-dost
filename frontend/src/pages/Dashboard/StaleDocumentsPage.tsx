@@ -1,8 +1,9 @@
 // pages/Dashboard/StaleDocumentsPage.tsx
-import PageBreadcrumb from "../../components/common/PageBreadCrumb";
-import ComponentCard from "../../components/common/ComponentCard";
-import PageMeta from "../../components/common/PageMeta";
+
 import StaleDocumentsCard from "../../components/admin/StaleDocumentCard";
+import ComponentCard from "../../components/common/ComponentCard";
+import PageBreadcrumb from "../../components/common/PageBreadCrumb";
+import PageMeta from "../../components/common/PageMeta";
 
 export default function StaleDocumentsPage() {
   return (

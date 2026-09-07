@@ -1,11 +1,11 @@
-import { useState } from "react";
 import type { FormEvent } from "react";
-import { EyeCloseIcon, EyeIcon } from "../../icons";
-import Label from "../form/Label";
-import Input from "../form/input/InputField";
-import Checkbox from "../form/input/Checkbox";
+import { useState } from "react";
 import { useNavigate } from "react-router";
 import { userUser } from "../../context/UserContext";
+import { EyeCloseIcon, EyeIcon } from "../../icons";
+import Checkbox from "../form/input/Checkbox";
+import Input from "../form/input/InputField";
+import Label from "../form/Label";
 
 const ROLES = [
   { value: "division", label: "Division" },

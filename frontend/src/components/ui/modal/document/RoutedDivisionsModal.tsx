@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 // ─── Mock Data ────────────────────────────────────────────────────────────────
 // Replace with an API-backed list once the divisions endpoint is available.

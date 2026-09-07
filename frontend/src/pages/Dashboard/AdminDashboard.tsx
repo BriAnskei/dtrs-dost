@@ -2,12 +2,11 @@
 import { useState } from "react";
 import AdminMetrics from "../../components/admin/AdminMetrix";
 import AnalyticsSection from "../../components/admin/AnalyticsSection";
-import StaleDocumentsSummary from "../../components/admin/StaleDocumentsSummary";
+import NeedsAttentionStrip from "../../components/admin/NeedsAttention";
 import QuickActions from "../../components/admin/QuickActions";
 import RecentActivity from "../../components/admin/RecentActivity";
-
+import StaleDocumentsSummary from "../../components/admin/StaleDocumentsSummary";
 import PageMeta from "../../components/common/PageMeta";
-import NeedsAttentionStrip from "../../components/admin/NeedsAttention";
 
 function greeting(): string {
   const h = new Date().getHours();
@@ -16,7 +15,11 @@ function greeting(): string {
   return "Good evening";
 }
 
-const TABS = ["Overview", "Operations", "Activity"] as const;
+// Reduced from 3 tabs to 2: Quick Actions and Stale Documents don't meet the
+// bar for hiding content behind a tab (short, frequently-needed content per
+// NN/g's tab-usage heuristic). Activity remains separate since it's a growing
+// log users don't need to see simultaneously with the KPI/chart view.
+const TABS = ["Overview", "Activity"] as const;
 type Tab = (typeof TABS)[number];
 
 export default function AdminDashboard() {
@@ -28,7 +31,6 @@ export default function AdminDashboard() {
         title="Admin Dashboard | Document Tracking System"
         description="Monitor system-wide document flow, validation queue, and division workload across the Provincial Engineer's Office."
       />
-
       {/* Fills the parent route container's height — no page-level scroll */}
       <div className="flex h-full flex-col gap-4 overflow-hidden">
         {/* ── Pinned zone: greeting + attention strip ───────────────── */}
@@ -43,9 +45,8 @@ export default function AdminDashboard() {
               </p>
             </div>
           </div>
-
-              <NeedsAttentionStrip />
-            </div>
+          <NeedsAttentionStrip />
+        </div>
 
         {/* ── Tab pills ──────────────────────────────────────────────── */}
         <div className="flex-shrink-0 inline-flex w-fit rounded-lg border border-gray-200 bg-gray-50 p-1 dark:border-white/[0.05] dark:bg-white/[0.02]">
@@ -71,23 +72,21 @@ export default function AdminDashboard() {
               <div className="flex-shrink-0">
                 <AdminMetrics />
               </div>
-              <div className="min-h-0 flex-1 overflow-hidden">
-                <AnalyticsSection />
+              {/* 12-col grid, consistent with the rest of the app.
+                  Analytics gets primary weight (left, 8 cols); Quick Actions
+                  and Stale Documents live in a secondary column (4 cols) so
+                  they're always visible instead of gated behind a tab click. */}
+              <div className="grid min-h-0 flex-1 grid-cols-12 gap-4 overflow-hidden md:gap-6">
+                <div className="col-span-12 min-h-0 xl:col-span-8">
+                  <AnalyticsSection />
+                </div>
+                <div className="col-span-12 flex min-h-0 flex-col gap-4 overflow-y-auto xl:col-span-4">
+                  <StaleDocumentsSummary />
+                  <QuickActions />
+                </div>
               </div>
             </div>
           )}
-
-          {tab === "Operations" && (
-            <div className="grid h-full grid-cols-12 gap-4 md:gap-6">
-              <div className="col-span-12 xl:col-span-5">
-                <StaleDocumentsSummary />
-              </div>
-              <div className="col-span-12 xl:col-span-7">
-                <QuickActions />
-              </div>
-            </div>
-          )}
-
           {tab === "Activity" && (
             <div className="h-full">
               <RecentActivity />

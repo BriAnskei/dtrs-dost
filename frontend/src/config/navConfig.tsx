@@ -1,18 +1,18 @@
-import { Roles } from "../context/UserContext";
+import type { Roles } from "../context/UserContext";
 import {
+  AccessControlIcon,
+  AdministrationIcon,
+  AssignedDocumentsIcon,
+  BoxCubeIcon,
+  Document,
   GridIcon,
   Notification,
-  Upload,
   PieChartIcon,
-  BoxCubeIcon,
   PlugInIcon,
-  UserManagementIcon,
-  AccessControlIcon,
-  Document,
-  SystemLogsIcon,
-  AssignedDocumentsIcon,
   SettingIcon,
-  AdministrationIcon,
+  SystemLogsIcon,
+  Upload,
+  UserManagementIcon,
 } from "../icons";
 
 export interface NavItem {

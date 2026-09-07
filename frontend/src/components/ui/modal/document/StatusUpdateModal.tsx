@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Badge from "../../badge/Badge";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -39,27 +39,29 @@ function getBadgeColor(status: StatusType) {
   return "error";
 }
 
-const STATUS_META: Record<StatusType, { label: string; dot: string; ring: string; text: string }> =
-  {
-    Completed: {
-      label: "Completed",
-      dot: "bg-success",
-      ring: "ring-success/20",
-      text: "text-success",
-    },
-    "On-Going": {
-      label: "On-Going",
-      dot: "bg-warning",
-      ring: "ring-warning/20",
-      text: "text-warning",
-    },
-    Pending: {
-      label: "Pending",
-      dot: "bg-danger",
-      ring: "ring-danger/20",
-      text: "text-danger",
-    },
-  };
+const STATUS_META: Record<
+  StatusType,
+  { label: string; dot: string; ring: string; text: string }
+> = {
+  Completed: {
+    label: "Completed",
+    dot: "bg-success",
+    ring: "ring-success/20",
+    text: "text-success",
+  },
+  "On-Going": {
+    label: "On-Going",
+    dot: "bg-warning",
+    ring: "ring-warning/20",
+    text: "text-warning",
+  },
+  Pending: {
+    label: "Pending",
+    dot: "bg-danger",
+    ring: "ring-danger/20",
+    text: "text-danger",
+  },
+};
 
 // ─── Arrow Icon ───────────────────────────────────────────────────────────────
 
@@ -192,7 +194,11 @@ export default function StatusUpdateModal({
               stroke="currentColor"
               strokeWidth={2.5}
             >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         </div>
@@ -281,8 +287,8 @@ export default function StatusUpdateModal({
                 <p className="text-theme-xs leading-relaxed text-amber-700 dark:text-amber-400">
                   You are rolling back the status from{" "}
                   <span className="font-semibold">{currentStatus}</span> to{" "}
-                  <span className="font-semibold">{selectedStatus}</span>. Remarks are required for
-                  audit purposes.
+                  <span className="font-semibold">{selectedStatus}</span>. Remarks are
+                  required for audit purposes.
                 </p>
               </div>
               <div className="space-y-1.5">

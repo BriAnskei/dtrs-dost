@@ -1,6 +1,6 @@
-import { useState, useRef, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
-import { Table, TableHeader, TableRow, TableCell, TableBody } from "../ui/table";
+import { Table, TableBody, TableCell, TableHeader, TableRow } from "../ui/table";
 
 // ─── Types ─────────────────────────────────────────────────────────────
 
@@ -173,9 +173,7 @@ export default function InvalidDocumentsTable() {
 
   const filtered = activeData.filter((r) => {
     const q = search.toLowerCase();
-    const matchesSearch =
-      !q ||
-      r.fileName.toLowerCase().includes(q);
+    const matchesSearch = !q || r.fileName.toLowerCase().includes(q);
     const date = new Date(r.uploadedAt);
     const matchesFrom = !filterDateFrom || date >= new Date(filterDateFrom);
     const matchesTo = !filterDateTo || date <= new Date(filterDateTo);
@@ -399,9 +397,7 @@ export default function InvalidDocumentsTable() {
       {showDeleteConfirm && (
         <div
           className="fixed inset-0 z-[999999] flex items-center justify-center bg-black/50 px-4"
-          onClick={(e) =>
-            e.target === e.currentTarget && handleDeleteCancel()
-          }
+          onClick={(e) => e.target === e.currentTarget && handleDeleteCancel()}
         >
           <div className="w-full max-w-sm rounded-xl border border-gray-200 bg-white dark:border-white/[0.08] dark:bg-gray-900">
             <div className="px-6 py-5">
@@ -425,8 +421,8 @@ export default function InvalidDocumentsTable() {
                 Delete draft?
               </h2>
               <p className="text-theme-xs mt-1.5 leading-relaxed text-gray-500 dark:text-gray-400">
-                This will permanently remove the rejected document from your
-                submissions. You can re-upload it later if needed.
+                This will permanently remove the rejected document from your submissions.
+                You can re-upload it later if needed.
               </p>
             </div>
 

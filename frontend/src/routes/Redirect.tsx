@@ -1,5 +1,5 @@
 import { Navigate } from "react-router";
-import { Roles, userUser } from "../context/UserContext";
+import { type Roles, userUser } from "../context/UserContext";
 
 function createRolePath(paths: {
   superAdmin?: string;
@@ -10,7 +10,9 @@ function createRolePath(paths: {
   return {
     ...(paths.superAdmin && { 1: `/super-admin/${paths.superAdmin}` }),
     ...(paths.admin && { 2: `/admin/${paths.admin}` }),
-    ...(paths.receiving_officer && { 3: `/receiving-officer/${paths.receiving_officer}` }),
+    ...(paths.receiving_officer && {
+      3: `/receiving-officer/${paths.receiving_officer}`,
+    }),
     ...(paths.division && { 4: `/division/${paths.division}` }),
   };
 }

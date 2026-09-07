@@ -2,26 +2,23 @@ import { useCallback, useState } from "react";
 import { pdfjs } from "react-pdf";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
+import axios from "axios";
 import * as pdfjsLib from "pdfjs-dist";
 import Tesseract from "tesseract.js";
-import axios from "axios";
-import PageMeta from "../../components/common/PageMeta";
-import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import ComponentCard from "../../components/common/ComponentCard";
-
+import PageBreadcrumb from "../../components/common/PageBreadCrumb";
+import PageMeta from "../../components/common/PageMeta";
+import DocumentTypeToggle from "./components/DocumentTypeToggle";
 // Components extracted to separate files
 import DropZone from "./components/DropZone";
-import PdfPreviewPanel from "./components/PdfPreviewPanel";
 import IncomingExtractionPanel from "./components/IncomingExtractionPanel";
 import OutgoingExtractionPanel from "./components/OutgoingExtractionPanel";
-import DocumentTypeToggle from "./components/DocumentTypeToggle";
-
+import PdfPreviewPanel from "./components/PdfPreviewPanel";
+// Types
+import type { DocumentType } from "./components/types";
 // Hooks extracted
 import { useIncomingExtraction } from "./components/useIncomingExtraction";
 import { useOutgoingExtraction } from "./components/useOutgoingExtraction";
-
-// Types
-import { DocumentType } from "./components/types";
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
 pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
