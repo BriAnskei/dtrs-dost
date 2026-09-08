@@ -1,27 +1,18 @@
 import { useCallback, useState } from "react";
-import { pdfjs } from "react-pdf";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
-import axios from "axios";
-import * as pdfjsLib from "pdfjs-dist";
-import Tesseract from "tesseract.js";
 import ComponentCard from "../../components/common/ComponentCard";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import PageMeta from "../../components/common/PageMeta";
+import { extractPdf } from "../../module/pdf-extraction";
 import DocumentTypeToggle from "./components/DocumentTypeToggle";
-// Components extracted to separate files
 import DropZone from "./components/DropZone";
 import IncomingExtractionPanel from "./components/IncomingExtractionPanel";
 import OutgoingExtractionPanel from "./components/OutgoingExtractionPanel";
 import PdfPreviewPanel from "./components/PdfPreviewPanel";
-// Types
-import type { DocumentType } from "./components/types";
-// Hooks extracted
 import { useIncomingExtraction } from "./components/useIncomingExtraction";
 import { useOutgoingExtraction } from "./components/useOutgoingExtraction";
 
-pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
-pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 export default function DocumentUploadPage() {
   const [docType, setDocType] = useState<DocumentType>("incoming");
@@ -30,141 +21,12 @@ export default function DocumentUploadPage() {
   const incoming = useIncomingExtraction();
   const outgoing = useOutgoingExtraction();
 
-  // ---------------------------------------------------------------------------
-  // PDF text extraction helpers (kept here as they are page‑specific)
-  // ---------------------------------------------------------------------------
-  const extractPdfText = useCallback(async (file: File) => {
-    try {
-      const arrBuffer = await file.arrayBuffer();
-      const pdf = await pdfjsLib.getDocument({ data: arrBuffer }).promise;
-      let text = "";
-      for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-        const page = await pdf.getPage(pageNum);
-        const content = await page.getTextContent();
-        const pageText = content.items.map((item: any) => item.str).join(" ");
-        text += `\n\n--- PAGE ${pageNum} ---\n${pageText}`;
-      }
-      return text;
-    } catch (error) {
-      console.error(error);
-    }
-  }, []);
-
-  const extractOCR = async (file: File) => {
-    try {
-      const arrBuffer = await file.arrayBuffer();
-      const pdf = await pdfjsLib.getDocument({ data: arrBuffer }).promise;
-      let fullText = "";
-      for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-        const page = await pdf.getPage(pageNum);
-        const viewport = page.getViewport({ scale: 2 });
-        const canvas = document.createElement("canvas");
-        const context = canvas.getContext("2d");
-        if (!context) continue;
-        canvas.width = viewport.width;
-        canvas.height = viewport.height;
-        await page.render({ canvasContext: context, canvas, viewport }).promise;
-        const image = canvas.toDataURL("image/png");
-        const result = await Tesseract.recognize(image, "eng", {
-          logger: (m) => console.log(m),
-        });
-        fullText += `\n\n--- PAGE ${pageNum} ---\n` + result.data.text;
-      }
-      return fullText;
-    } catch (error) {
-      console.error("OCR error:", error);
-    }
-  };
-
-  const extractMetadataAi = async (documentText: string) => {
-    try {
-      // const res = await axios.post(
-      // 	"https://openrouter.ai/api/v1/chat/completions",
-      // 	{
-      // 		model: "openai/gpt-oss-120b:free",
-      // 		messages: [
-      // 			{
-      // 				role: "system",
-      // 				content: `
-      //             You are a document information extraction assistant.
-
-      //             Extract the following information from the document:
-
-      //             - Subject
-      //             - From
-      //             - To
-      //             - Date recieved
-      //             - Time recieved
-
-      //            - Summary:
-      //              Write exactly 3 sentences summarizing the document.
-      //              The summary must explain:
-      //              1. What the document is about.
-      //              2. The main purpose, request, announcement, instruction, or action stated in the document.
-      //              3. What the document represents.
-      //              4. Highlight important information by making key words or phrases bold using Markdown format:
-      //              - Use **bold** for important names, organizations, dates, actions, requests, decisions, or main topics.
-      //              - Do not bold every word; only highlight the most relevant information.
-
-      //             Return JSON only.
-      //             Do not include explanations, markdown, or additional text.
-
-      //             Use this exact JSON format:
-
-      //             {
-      //               "subject": "string",
-      //               "from": "string",
-      //               "to": "string",
-      //               "date_received": "YYYY-MM-DD",
-      //               "time_received": "HH:mm"
-      //               "summary": "string"
-      //             }
-
-      //             If any field cannot be found in the document, return an empty string.
-      //             `,
-      // 			},
-      // 			{
-      // 				role: "user",
-      // 				content: `Extract the information from this document:\n\n${documentText}`,
-      // 			},
-      // 		],
-      // 	},
-      // 	{
-      // 		headers: {
-      // 			Authorization: `Bearer ${import.meta.env.VITE_OPENROUTER_KEY}`,
-      // 			"Content-Type": "application/json",
-      // 		},
-      // 	},
-      // );
-      return JSON.parse(res.data.choices[0].message.content) as any;
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  // ---------------------------------------------------------------------------
-  // Handlers
-  // ---------------------------------------------------------------------------
   const handleFileDrop = useCallback(
     async (file: File) => {
       setUploadedFile(file);
-      if (docType === "incoming") incoming.extract(file);
-      else outgoing.extract(file);
+      const res = await extractPdf(file);
 
-      let text = await extractPdfText(file);
-      incoming.setStatus("extracting");
-
-      if (!text || text.length <= 50) {
-        text = await extractOCR(file);
-      }
-
-      // const extractionRes = await extractMetadataAi(text!);
-
-      console.log("extracted: ", extractionRes);
-      if (extractionRes) {
-        incoming.setExtractionField(extractionRes);
-        incoming.setStatus("done");
-      }
+      console.log("res: ", res);
     },
     [docType, incoming, outgoing],
   );

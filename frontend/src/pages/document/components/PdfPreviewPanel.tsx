@@ -1,8 +1,10 @@
+import workerSrc from "pdfjs-dist/build/pdf.worker.min.mjs?url";
 import type React from "react";
 import { useMemo, useState } from "react";
-import { Document, Page } from "react-pdf";
+import { Document, Page, pdfjs } from "react-pdf";
 import { PANEL_HEIGHT, PDF_PAGE_WIDTH } from "./constants";
 
+pdfjs.GlobalWorkerOptions.workerSrc = workerSrc;
 interface PdfPreviewPanelProps {
   file: File;
   onClear: () => void;

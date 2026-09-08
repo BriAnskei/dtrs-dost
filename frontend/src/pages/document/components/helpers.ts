@@ -1,4 +1,3 @@
-/** Utility helpers used across DocumentUploadPage */
 export const generateIdCode = () => {
   const now = new Date();
   const yyyy = now.getFullYear();
