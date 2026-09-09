@@ -368,6 +368,15 @@ layer(base);
   background-color: #344054;
 }
 
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
 @layer utilities {
   /* For Remove Date Icon */
   input[type="date"]::-webkit-inner-spin-button,

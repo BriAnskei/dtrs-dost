@@ -1,97 +1,71 @@
-import { useEffect, useRef, useState } from "react";
-import QRCodeModal from "../receiver/QRCodeModal";
+import { useState, useRef, useEffect } from "react";
+import axios from "axios";
 import IncomingAuditModal from "../ui/modal/document/IncomingAuditModal";
 import RoutedDivisionsModal from "../ui/modal/document/RoutedDivisionsModal";
 import StatusUpdateModal, {
   type StatusType,
   type StatusUpdatePayload,
 } from "../ui/modal/document/StatusUpdateModal";
+import QRCodeModal from "../receiver/QRCodeModal";
 import { Table, TableBody, TableCell, TableHeader, TableRow } from "../ui/table";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
+interface RoutedDivision {
+  id: string;
+  divisionId: string;
+  divisionName: string;
+}
+
+interface DivisionListItem {
+  id: string;
+  name: string;
+}
+
 interface IncomingDocument {
-  id: number;
+  id: string;
+  uniqueId: string | null;
   code: string;
   subject: string;
   from: string;
   to: string;
-  routedDivisions: string[];
+  routedDivisions: RoutedDivision[];
   status: StatusType;
   fileUrl: string;
+  fileName: string;
   dateReceived: string;
+  remarks: string | null;
 }
 
-// ─── Mock Data ────────────────────────────────────────────────────────────────
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
-const mockData: IncomingDocument[] = [
-  {
-    id: 1,
-    code: "INC-2024-001",
-    subject: "Budget Proposal FY2024",
-    from: "Finance Department",
-    to: "Executive Office",
-    routedDivisions: ["Finance Division", "Office of the Provincial Engineer"],
-    status: "Completed",
-    fileUrl: "/files/budget-proposal-2024.pdf",
-    dateReceived: "2024-01-10",
-  },
-  {
-    id: 2,
-    code: "INC-2024-002",
-    subject: "Infrastructure Maintenance Request",
-    from: "Facilities Management",
-    to: "Operations Division",
-    routedDivisions: ["Maintenance Division"],
-    status: "On-Going",
-    fileUrl: "/files/maintenance-request.pdf",
-    dateReceived: "2024-01-14",
-  },
-  {
-    id: 3,
-    code: "INC-2024-003",
-    subject: "Staff Regularization Endorsement",
-    from: "HR Department",
-    to: "Director's Office",
-    routedDivisions: ["Human Resources Division", "Legal Division"],
-    status: "Pending",
-    fileUrl: "/files/regularization-endorsement.pdf",
-    dateReceived: "2024-01-18",
-  },
-  {
-    id: 4,
-    code: "INC-2024-004",
-    subject: "Procurement of Office Supplies",
-    from: "Administrative Office",
-    to: "Procurement Division",
-    routedDivisions: ["Procurement Division"],
-    status: "Pending",
-    fileUrl: "/files/procurement-supplies.pdf",
-    dateReceived: "2024-01-22",
-  },
-  {
-    id: 5,
-    code: "INC-2024-005",
-    subject: "Annual Performance Review Results",
-    from: "HR Department",
-    to: "Department Heads",
-    routedDivisions: ["Human Resources Division"],
-    status: "Completed",
-    fileUrl: "/files/performance-review.pdf",
-    dateReceived: "2024-01-25",
-  },
-  {
-    id: 6,
-    code: "INC-2024-006",
-    subject: "Legal Compliance Audit Report",
-    from: "Legal Affairs",
-    to: "Compliance Office",
-    routedDivisions: ["Legal Division", "Administrative Division"],
-    status: "On-Going",
-    fileUrl: "/files/audit-report.pdf",
-    dateReceived: "2024-02-01",
-  },
-];
+function mapBackendStatus(
+  status: 'pending' | 'ongoing' | 'complete',
+): StatusType {
+  const map: Record<string, StatusType> = {
+    pending: 'Pending',
+    ongoing: 'On-Going',
+    complete: 'Completed',
+  };
+  return map[status] ?? 'Pending';
+}
+
+function mapToBackendStatus(status: StatusType): 'pending' | 'ongoing' | 'complete' {
+  const map: Record<string, 'pending' | 'ongoing' | 'complete'> = {
+    Pending: 'pending',
+    'On-Going': 'ongoing',
+    Completed: 'complete',
+  };
+  return map[status] ?? 'pending';
+}
+
+function formatDate(iso: string) {
+  return new Date(iso).toLocaleDateString('en-PH', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
+}
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -108,13 +82,6 @@ function StatusText({ status }: { status: StatusType }) {
   return <span className={`text-theme-xs font-semibold ${colorClass}`}>{status}</span>;
 }
 
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString("en-PH", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
-}
 
 // ─── Routed Divisions Icon Button ────────────────────────────────────────────
 
@@ -260,7 +227,7 @@ function KebabMenu({
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
-            d="M8.684 13.342a4 4 0 105.316 5.658m6.632-8.974a4 4 0 10-5.316 5.658m0 2.316L8.684 13.342m6.632 4.974a4 4 0 10-5.316 5.658m0 2.316L8.684 15.658m9.316-9.632a4 4 0 11-8 0 4 4 0 018 0zm0 12a4 4 0 11-8 0 4 4 0 018 0zM7 12a4 4 0 11-8 0 4 4 0 018 0z"
+            d="M8.684 13.342a4 4 0 105.316 5.658m6.632-8.974a4 4 0 10-5.316 5.658m0 2.316L8.684 13.342m6.632 4.974a4 4 0 105.316 5.658m0 2.316L8.684 15.658m9.316-9.632a4 4 0 11-8 0 4 4 0 018 0zm0 12a4 4 0 11-8 0 4 4 0 018 0zM7 12a4 4 0 11-8 0 4 4 0 018 0z"
           />
         </svg>
       ),
@@ -279,7 +246,7 @@ function KebabMenu({
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
-            d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"
+            d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 010 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"
           />
         </svg>
       ),
@@ -434,7 +401,9 @@ function MobileCard({
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function IncomingDocumentsTable() {
-  const [records, setRecords] = useState<IncomingDocument[]>(mockData);
+  const [records, setRecords] = useState<IncomingDocument[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<StatusType | "All">("All");
   const [filterDateFrom, setFilterDateFrom] = useState("");
@@ -450,6 +419,45 @@ export default function IncomingDocumentsTable() {
 
   // Share / QR modal state
   const [shareTarget, setShareTarget] = useState<IncomingDocument | null>(null);
+
+  // Fetch incoming documents from API
+  useEffect(() => {
+    let cancelled = false;
+
+    async function fetchData() {
+      setLoading(true);
+      setFetchError(null);
+      try {
+        const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
+        const response = await axios.get<IncomingDocument[]>(`${apiUrl}/incoming`);
+        if (!cancelled) {
+          const mapped = response.data.map((doc) => ({
+            ...doc,
+            code: doc.uniqueId || doc.code || '',
+            fileUrl: doc.fileUrl
+              ? `${apiUrl}${doc.fileUrl}`
+              : '',
+            status: mapBackendStatus(doc.status),
+          }));
+          setRecords(mapped);
+        }
+      } catch (error: any) {
+        if (!cancelled) {
+          console.error("Failed to fetch incoming documents:", error);
+          setFetchError(
+            error?.response?.data?.message || "Failed to load incoming documents.",
+          );
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    fetchData();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   function handleShare(record: IncomingDocument) {
     setShareTarget(record);
@@ -467,17 +475,28 @@ export default function IncomingDocumentsTable() {
     setModalOpen(true);
   }
 
-  function handleStatusUpdate(payload: StatusUpdatePayload) {
+  async function handleStatusUpdate(payload: StatusUpdatePayload) {
     if (!selectedRecord) return;
-    console.log(
-      `[Status Update] Record ${selectedRecord.code}: ${selectedRecord.status} → ${payload.newStatus}`,
-      payload.reason ? `Reason: ${payload.reason}` : "",
-    );
-    setRecords((prev) =>
-      prev.map((r) =>
-        r.id === selectedRecord.id ? { ...r, status: payload.newStatus } : r,
-      ),
-    );
+
+    try {
+      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
+      const backendStatus = mapToBackendStatus(payload.newStatus);
+
+      await axios.patch(`${apiUrl}/incoming/${selectedRecord.id}/status`, {
+        status: backendStatus,
+        remarks: payload.reason || null,
+      });
+
+      setRecords((prev) =>
+        prev.map((r) =>
+          r.id === selectedRecord.id
+            ? { ...r, status: payload.newStatus, remarks: payload.reason || r.remarks }
+            : r,
+        ),
+      );
+    } catch (error: any) {
+      console.error("Failed to update status:", error);
+    }
   }
 
   function openRoutedModal(record: IncomingDocument) {
@@ -485,23 +504,75 @@ export default function IncomingDocumentsTable() {
     setRoutedModalOpen(true);
   }
 
-  function handleRoutingUpdate(divisions: string[]) {
+  async function handleRoutingUpdate(divisionNames: string[]) {
     if (!routedRecord) return;
-    console.log(
-      `[Routing Update] Record ${routedRecord.code}:`,
-      routedRecord.routedDivisions,
-      "→",
-      divisions,
-    );
-    setRecords((prev) =>
-      prev.map((r) =>
-        r.id === routedRecord.id ? { ...r, routedDivisions: divisions } : r,
-      ),
-    );
+
+    const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
+
+    try {
+      // Fetch divisions to map names to IDs
+      const allDivisions = await axios.get<DivisionListItem[]>(`${apiUrl}/divisions`);
+      const nameToId = new Map(
+        allDivisions.data.map((d: DivisionListItem) => [d.name, d.id]),
+      );
+      const idToName = new Map(
+        allDivisions.data.map((d: DivisionListItem) => [d.id, d.name]),
+      );
+
+      const currentDivisionNames = routedRecord.routedDivisions.map(
+        (d) => d.divisionName,
+      );
+
+      // Find divisions to add (by name → id)
+      const toAdd = divisionNames.filter((name) => !currentDivisionNames.includes(name));
+      // Find divisions to remove (by name)
+      const toRemove = currentDivisionNames.filter(
+        (name) => !divisionNames.includes(name),
+      );
+
+      // Add new divisions
+      for (const name of toAdd) {
+        const divId = nameToId.get(name);
+        if (divId) {
+          await axios.post(`${apiUrl}/incoming/${routedRecord.id}/routing`, {
+            divisionId: divId,
+          });
+        }
+      }
+
+      // Remove divisions
+      for (const name of toRemove) {
+        const divId = nameToId.get(name);
+        if (divId) {
+          await axios.delete(
+            `${apiUrl}/incoming/${routedRecord.id}/routing/${divId}`,
+          );
+        }
+      }
+
+      // Update local state with new division names
+      const updatedRoutedDivisions = divisionNames.map((name) => ({
+        id: crypto.randomUUID ? crypto.randomUUID() : '',
+        divisionId: nameToId.get(name) || '',
+        divisionName: name,
+      }));
+
+      setRecords((prev) =>
+        prev.map((r) =>
+          r.id === routedRecord.id
+            ? { ...r, routedDivisions: updatedRoutedDivisions }
+            : r,
+        ),
+      );
+    } catch (error) {
+      console.error("Failed to update routing:", error);
+    }
   }
 
   function handleViewFile(record: IncomingDocument) {
-    console.log("[View File] Opening PDF for record:", record.code, record.fileUrl);
+    if (record.fileUrl) {
+      window.open(record.fileUrl, '_blank');
+    }
   }
 
   const filtered = records.filter((r) => {
@@ -538,7 +609,7 @@ export default function IncomingDocumentsTable() {
           onClose={() => setRoutedModalOpen(false)}
           documentCode={routedRecord.code}
           documentSubject={routedRecord.subject}
-          routedDivisions={routedRecord.routedDivisions}
+          routedDivisions={routedRecord.routedDivisions.map((d) => d.divisionName)}
           onSave={handleRoutingUpdate}
         />
       )}
@@ -555,6 +626,20 @@ export default function IncomingDocumentsTable() {
       )}
 
       <div className="space-y-4">
+        {/* ── Loading state ── */}
+        {loading && (
+          <div className="text-theme-sm rounded-xl border border-gray-200 bg-white px-5 py-10 text-center text-gray-400 dark:border-white/[0.08] dark:bg-white/[0.03]">
+            Loading incoming documents…
+          </div>
+        )}
+
+        {/* ── Error state ── */}
+        {fetchError && !loading && (
+          <div className="border-danger/20 bg-danger/5 text-theme-xs text-danger rounded-lg border px-3 py-2">
+            ⚠️ {fetchError}
+          </div>
+        )}
+
         {/* ── Filters ── */}
         <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
           {/* Search */}
@@ -570,7 +655,7 @@ export default function IncomingDocumentsTable() {
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z"
+                  d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 1112 0z"
                 />
               </svg>
             </span>

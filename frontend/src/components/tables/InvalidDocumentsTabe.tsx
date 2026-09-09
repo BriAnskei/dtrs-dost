@@ -1,64 +1,25 @@
-import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router";
-import { Table, TableBody, TableCell, TableHeader, TableRow } from "../ui/table";
+import { useState, useEffect, useRef } from "react";
+import { Table, TableHeader, TableRow, TableCell, TableBody } from "../ui/table";
+import axios from "axios";
+import { userUser } from "../../context/UserContext";
 
-// ─── Types ─────────────────────────────────────────────────────────────
+// ─── Types ─────────────────────────────────────────────────────
 
-interface RejectedDocument {
-  id: number;
+export interface InvalidDocument {
+  id: string;
   fileName: string;
-  from: string;
-  uploadedAt: string;
-  missingFields: string[];
+  uploaderName: string;
   fileUrl: string;
+  documentFileId: string;
+  missingFields: string[];
+  createdAt: string;
+  isMarkInvalid: boolean;
+  remarks?: string;
 }
 
-// ─── Mock Data ─────────────────────────────────────────────────────────
+type StatusFilter = "all" | "invalid" | "incomplete";
 
-const mockData: RejectedDocument[] = [
-  {
-    id: 1,
-    fileName: "memo-budget-allocation.pdf",
-    from: "Barangay Hall",
-    uploadedAt: "2024-01-10T09:14:00",
-    missingFields: ["Subject", "Date Received"],
-    fileUrl: "/files/doc-001.pdf",
-  },
-  {
-    id: 2,
-    fileName: "construction-proposal.pdf",
-    from: "Engineering Division",
-    uploadedAt: "2024-01-14T14:30:00",
-    missingFields: ["To"],
-    fileUrl: "/files/doc-002.pdf",
-  },
-  {
-    id: 3,
-    fileName: "inspection-report.pdf",
-    from: "City Mayor's Office",
-    uploadedAt: "2024-01-18T11:05:00",
-    missingFields: ["Subject", "From", "Date Received"],
-    fileUrl: "/files/doc-003.pdf",
-  },
-  {
-    id: 4,
-    fileName: "fund-release-order.pdf",
-    from: "Treasury Office",
-    uploadedAt: "2024-01-22T08:47:00",
-    missingFields: ["To", "Date Received"],
-    fileUrl: "/files/doc-004.pdf",
-  },
-  {
-    id: 5,
-    fileName: "permit-application.pdf",
-    from: "Planning Office",
-    uploadedAt: "2024-01-25T16:20:00",
-    missingFields: ["Subject"],
-    fileUrl: "/files/doc-005.pdf",
-  },
-];
-
-// ─── Helpers ────────────────────────────────────────────────────────────
+// ─── Helpers ──────────────────────────────────────────────────
 
 function formatDateTime(iso: string) {
   return new Date(iso).toLocaleString("en-PH", {
@@ -71,24 +32,37 @@ function formatDateTime(iso: string) {
   });
 }
 
-// ── Kebab Action Menu ───────────────────────────────────────────────────
+type Status = "invalid" | "on-review";
 
-function KebabIcon({ className }: { className?: string }) {
+const STATUS_CONFIG: Record<Status, { label: string; className: string }> = {
+  invalid: { label: "Marked Invalid", className: "text-danger" },
+  "on-review": { label: "On Review", className: "text-warning" },
+};
+
+function getStatusKey(record: InvalidDocument): Status {
+  return record.isMarkInvalid ? "invalid" : "on-review";
+}
+
+function StatusBadge({ record }: { record: InvalidDocument }) {
+  const { label, className } = STATUS_CONFIG[getStatusKey(record)];
   return (
-    <svg className={className} fill="currentColor" viewBox="0 0 20 20">
-      <circle cx="10" cy="4" r="1.75" />
-      <circle cx="10" cy="10" r="1.75" />
-      <circle cx="10" cy="16" r="1.75" />
-    </svg>
+    <span
+      className={`text-theme-xs inline-flex items-center rounded-full px-2.5 py-0.5 font-medium ${className}`}
+    >
+      {label}
+    </span>
   );
 }
 
-function KebabActionMenu({
+// ─── Kebab Menu ───────────────────────────────────────────────
+function KebabMenu({
+  record,
   onView,
   onDelete,
 }: {
+  record: InvalidDocument;
   onView: () => void;
-  onDelete: () => void;
+  onDelete: (record: InvalidDocument) => void;
 }) {
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -107,33 +81,35 @@ function KebabActionMenu({
     <div className="relative inline-block text-left" ref={containerRef}>
       <button
         onClick={() => setOpen((prev) => !prev)}
-        className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 transition-colors hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/[0.08]"
-        title="Actions"
+        className="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/[0.05] dark:hover:text-gray-300"
+        aria-label="Actions"
         aria-haspopup="true"
         aria-expanded={open}
       >
-        <KebabIcon className="h-4 w-4" />
+        <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M12 6a2 2 0 100-4 2 2 0 000 4zM12 14a2 2 0 100-4 2 2 0 000 4zM12 22a2 2 0 100-4 2 2 0 000 4z" />
+        </svg>
       </button>
 
       {open && (
-        <div className="absolute right-0 z-50 mt-1 w-40 origin-top-right overflow-hidden rounded-lg border border-gray-200 bg-white shadow-lg dark:border-white/[0.08] dark:bg-gray-900">
+        <div className="absolute right-0 z-[999999] mt-1 w-36 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-lg dark:border-white/[0.08] dark:bg-gray-900">
           <button
             onClick={() => {
               setOpen(false);
               onView();
             }}
-            className="text-theme-xs flex w-full items-center gap-2 px-3 py-2 text-gray-600 transition-colors hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-white/[0.05]"
+            className="text-theme-xs block w-full px-4 py-2 text-left text-gray-700 transition-colors hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-white/[0.05]"
           >
             View
           </button>
           <button
             onClick={() => {
               setOpen(false);
-              onDelete();
+              onDelete(record);
             }}
-            className="text-theme-xs flex w-full items-center gap-2 border-t border-gray-100 px-3 py-2 text-danger transition-colors hover:bg-danger/5 dark:border-white/[0.05] dark:text-danger"
+            className="text-theme-xs text-danger hover:bg-danger/10 block w-full border-t border-gray-100 px-4 py-2 text-left transition-colors dark:border-white/[0.05] dark:hover:bg-white/[0.05]"
           >
-            Delete Draft
+            Delete
           </button>
         </div>
       )}
@@ -141,46 +117,146 @@ function KebabActionMenu({
   );
 }
 
-// ─── Main Component ─────────────────────────────────────────────────────
+// ─── Delete Confirmation Modal ────────────────────────────────
+
+function DeleteConfirmModal({
+  record,
+  onClose,
+  onConfirm,
+  isDeleting,
+  error,
+}: {
+  record: InvalidDocument;
+  onClose: () => void;
+  onConfirm: () => void;
+  isDeleting: boolean;
+  error: string | null;
+}) {
+  return (
+    // NOTE: bumped from z-50 -> z-[999999] to match the pattern used
+    // elsewhere in the app, guaranteeing it sits above any layout chrome.
+    <div className="fixed inset-0 z-[999999] flex items-center justify-center bg-black/40 px-4">
+      <div className="w-full max-w-md rounded-xl border border-gray-200 bg-white p-5 shadow-xl dark:border-white/[0.08] dark:bg-gray-900">
+        <h3 className="text-theme-sm font-semibold text-gray-800 dark:text-white/90">
+          Delete "{record.fileName}"?
+        </h3>
+
+        <div className="mt-3">
+          <p className="text-theme-xs font-medium tracking-wide text-gray-400 uppercase dark:text-gray-500">
+            Remarks
+          </p>
+          <p className="text-theme-sm mt-1 text-gray-600 dark:text-gray-300">
+            {record.remarks && record.remarks.trim() ? record.remarks : "No remarks provided."}
+          </p>
+        </div>
+
+        <p className="text-theme-xs mt-4 text-gray-400 dark:text-gray-500">
+          This will permanently delete the document and its uploaded file. This action cannot be
+          undone.
+        </p>
+
+        {error && <p className="text-theme-xs text-danger mt-2">{error}</p>}
+
+        <div className="mt-5 flex justify-end gap-2">
+          <button
+            onClick={onClose}
+            disabled={isDeleting}
+            className="text-theme-xs rounded-lg border border-gray-200 px-3 py-1.5 text-gray-600 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/[0.08] dark:text-gray-300 dark:hover:bg-white/[0.05]"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={isDeleting}
+            className="text-theme-xs bg-danger hover:bg-danger/90 rounded-lg px-3 py-1.5 font-medium text-white transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {isDeleting ? "Deleting…" : "Delete"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Main Component ──────────────────────────────────────────
 
 export default function InvalidDocumentsTable() {
+  const { userId } = userUser();
   const [search, setSearch] = useState("");
   const [filterDateFrom, setFilterDateFrom] = useState("");
   const [filterDateTo, setFilterDateTo] = useState("");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
 
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
-  const [deletedIds, setDeletedIds] = useState<number[]>([]);
+  const [data, setData] = useState<InvalidDocument[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const navigate = useNavigate();
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<InvalidDocument | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
-  const hasFilters = search || filterDateFrom || filterDateTo;
+  const hasFilters = search || filterDateFrom || filterDateTo || statusFilter !== "all";
 
-  // Only show documents that haven't been deleted
-  const activeData = mockData.filter((r) => !deletedIds.includes(r.id));
+  const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
-  function handleDeleteConfirm() {
-    if (pendingDeleteId === null) return;
-    setDeletedIds((prev) => [...prev, pendingDeleteId]);
-    setShowDeleteConfirm(false);
-    setPendingDeleteId(null);
+  useEffect(() => {
+    async function fetchData() {
+      if (!userId) return;
+      try {
+        const response = await axios.get<{ data: InvalidDocument[]; total: number }>(
+          `${apiUrl}/invalid-documents/receiver`,
+        );
+        setData(response.data.data);
+      } catch (error) {
+        console.error("Failed to fetch invalid documents:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, [userId]);
+
+  function openDeleteModal(record: InvalidDocument) {
+    console.log("delete modal");
+    setDeleteError(null);
+    setDeleteTarget(record);
   }
 
-  function handleDeleteCancel() {
-    setShowDeleteConfirm(false);
-    setPendingDeleteId(null);
+  function closeDeleteModal() {
+    if (isDeleting) return;
+    setDeleteTarget(null);
+    setDeleteError(null);
   }
 
-  const filtered = activeData.filter((r) => {
+  async function handleConfirmDelete() {
+    if (!deleteTarget) return;
+    setIsDeleting(true);
+    setDeleteError(null);
+    try {
+      await axios.delete(`${apiUrl}/invalid-documents/${deleteTarget.id}`);
+      setData((prev) => prev.filter((r) => r.id !== deleteTarget.id));
+      setDeleteTarget(null);
+    } catch (error) {
+      console.error("Failed to delete document:", error);
+      setDeleteError("Failed to delete document. Please try again.");
+    } finally {
+      setIsDeleting(false);
+    }
+  }
+
+  const filtered = data.filter((r) => {
     const q = search.toLowerCase();
     const matchesSearch = !q || r.fileName.toLowerCase().includes(q);
-    const date = new Date(r.uploadedAt);
+    const date = new Date(r.createdAt);
     const matchesFrom = !filterDateFrom || date >= new Date(filterDateFrom);
     const matchesTo = !filterDateTo || date <= new Date(filterDateTo);
-    return matchesSearch && matchesFrom && matchesTo;
+    const matchesStatus =
+      statusFilter === "all" ||
+      (statusFilter === "invalid" && r.isMarkInvalid) ||
+      (statusFilter === "incomplete" && !r.isMarkInvalid);
+    return matchesSearch && matchesFrom && matchesTo && matchesStatus;
   });
 
-  // ── Shared class strings ──
   const inputCls =
     "px-3 py-2 text-theme-sm rounded-lg border border-gray-200 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-secondary/40 focus:border-secondary dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-gray-200 transition";
 
@@ -189,9 +265,7 @@ export default function InvalidDocumentsTable() {
   return (
     <>
       <div className="space-y-4">
-        {/* ── Filters ── */}
         <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
-          {/* Search */}
           <div className="relative w-full sm:min-w-[200px] sm:flex-1">
             <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-gray-400">
               <svg
@@ -217,9 +291,20 @@ export default function InvalidDocumentsTable() {
             />
           </div>
 
-          {/* Date filters + Clear */}
           <div className="flex flex-wrap items-end gap-3">
-            {/* Date From */}
+            <div className="flex flex-col gap-1">
+              <label className={labelCls}>Status</label>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
+                className={inputCls}
+              >
+                <option value="all">All</option>
+                <option value="invalid">Marked Invalid</option>
+                <option value="incomplete">On Review</option>
+              </select>
+            </div>
+
             <div className="flex flex-col gap-1">
               <label className={labelCls}>From</label>
               <input
@@ -230,7 +315,6 @@ export default function InvalidDocumentsTable() {
               />
             </div>
 
-            {/* Date To */}
             <div className="flex flex-col gap-1">
               <label className={labelCls}>To</label>
               <input
@@ -241,13 +325,13 @@ export default function InvalidDocumentsTable() {
               />
             </div>
 
-            {/* Clear */}
             {hasFilters && (
               <button
                 onClick={() => {
                   setSearch("");
                   setFilterDateFrom("");
                   setFilterDateTo("");
+                  setStatusFilter("all");
                 }}
                 className="text-theme-sm hover:text-danger hover:border-danger/40 dark:hover:text-danger rounded-lg border border-gray-200 px-3 py-2 whitespace-nowrap text-gray-500 transition-colors dark:border-white/[0.08] dark:text-gray-400"
               >
@@ -257,49 +341,63 @@ export default function InvalidDocumentsTable() {
           </div>
         </div>
 
-        {/* ── Mobile Cards (< md) ── */}
         <div className="space-y-3 md:hidden">
-          {filtered.length === 0 ? (
+          {loading ? (
             <div className="text-theme-sm rounded-xl border border-gray-200 bg-white px-5 py-10 text-center text-gray-400 dark:border-white/[0.08] dark:bg-white/[0.03]">
-              No rejected documents match your filters.
+              Loading…
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="text-theme-sm rounded-xl border border-gray-200 bg-white px-5 py-10 text-center text-gray-400 dark:border-white/[0.08] dark:bg-white/[0.03]">
+              No invalid documents match your filters.
             </div>
           ) : (
-            filtered.map((record) => (
-              <div
-                key={record.id}
-                className="space-y-3 rounded-xl border border-gray-200 bg-white p-4 dark:border-white/[0.08] dark:bg-white/[0.03]"
-              >
-                <div className="flex items-start justify-between">
-                  <p className="text-theme-sm font-semibold text-gray-800 dark:text-white/90">
-                    {record.fileName}
-                  </p>
-                  <span className="text-[10px] font-semibold text-danger">
-                    {record.missingFields.length}
-                  </span>
-                </div>
+            filtered.map((record) => {
+              return (
+                <div
+                  key={record.id}
+                  className="space-y-3 rounded-xl border border-gray-200 bg-white p-4 dark:border-white/[0.08] dark:bg-white/[0.03]"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="text-theme-sm font-semibold text-gray-800 dark:text-white/90">
+                      {record.fileName}
+                    </p>
+                    <KebabMenu
+                      record={record}
+                      openMenuId={openMenuId}
+                      setOpenMenuId={setOpenMenuId}
+                      onDelete={openDeleteModal}
+                    />
+                  </div>
 
-                <div className="flex flex-col gap-1.5">
-                  <div>
-                    <p className="text-theme-xs font-medium tracking-wide text-gray-400 uppercase dark:text-gray-500">
-                      Uploaded At
-                    </p>
-                    <p className="text-theme-xs mt-0.5 text-gray-700 dark:text-gray-300">
-                      {formatDateTime(record.uploadedAt)}
-                    </p>
+                  <div className="flex flex-col gap-1.5">
+                    <div>
+                      <p className="text-theme-xs font-medium tracking-wide text-gray-400 uppercase dark:text-gray-500">
+                        Uploaded At
+                      </p>
+                      <p className="text-theme-xs mt-0.5 text-gray-700 dark:text-gray-300">
+                        {formatDateTime(record.createdAt)}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-theme-xs font-medium tracking-wide text-gray-400 uppercase dark:text-gray-500">
+                        Missing Fields
+                      </p>
+                      <p className="text-theme-xs text-danger dark:text-danger mt-0.5 font-medium">
+                        {record.missingFields.length}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-theme-xs font-medium tracking-wide text-gray-400 uppercase dark:text-gray-500">
+                        Status
+                      </p>
+                      <div className="mt-0.5">
+                        <StatusBadge record={record} />
+                      </div>
+                    </div>
                   </div>
                 </div>
-
-                <div className="flex justify-end border-t border-gray-100 pt-1 dark:border-white/[0.05]">
-                  <KebabActionMenu
-                    onView={() => navigate("/upload-direct")}
-                    onDelete={() => {
-                      setPendingDeleteId(record.id);
-                      setShowDeleteConfirm(true);
-                    }}
-                  />
-                </div>
-              </div>
-            ))
+              );
+            })
           )}
 
           {filtered.length > 0 && (
@@ -308,22 +406,18 @@ export default function InvalidDocumentsTable() {
               <span className="font-medium text-gray-600 dark:text-gray-300">
                 {filtered.length}
               </span>{" "}
-              of{" "}
-              <span className="font-medium text-gray-600 dark:text-gray-300">
-                {activeData.length}
-              </span>{" "}
+              of <span className="font-medium text-gray-600 dark:text-gray-300">{data.length}</span>{" "}
               records
             </p>
           )}
         </div>
 
-        {/* ── Desktop Table (≥ md) ── */}
         <div className="hidden rounded-xl border border-gray-200 bg-white md:block dark:border-white/[0.05] dark:bg-white/[0.03]">
           <div className="w-full overflow-x-auto">
             <Table>
               <TableHeader className="dark:border-white/[0.05]">
                 <TableRow>
-                  {["Missing Field", "Uploaded At", "Actions"].map((col) => (
+                  {["File Name", "Uploaded At", "Missing Fields", "Status", "Action"].map((col) => (
                     <TableCell
                       key={col}
                       isHeader
@@ -336,40 +430,52 @@ export default function InvalidDocumentsTable() {
               </TableHeader>
 
               <TableBody className="dark:divide-white/[0.05]">
-                {filtered.length === 0 ? (
+                {loading ? (
                   <tr>
-                    <td
-                      colSpan={3}
-                      className="text-theme-sm px-5 py-10 text-center text-gray-400"
-                    >
-                      No rejected documents match your filters.
+                    <td colSpan={5} className="text-theme-sm px-5 py-10 text-center text-gray-400">
+                      Loading…
+                    </td>
+                  </tr>
+                ) : filtered.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="text-theme-sm px-5 py-10 text-center text-gray-400">
+                      No invalid documents match your filters.
                     </td>
                   </tr>
                 ) : (
-                  filtered.map((record) => (
-                    <TableRow
-                      key={record.id}
-                      className="transition-colors hover:bg-gray-50/60 dark:hover:bg-white/[0.02]"
-                    >
-                      <TableCell className="text-theme-sm px-3 py-3 text-left font-semibold text-danger dark:text-danger">
-                        {record.missingFields.length}
-                      </TableCell>
+                  filtered.map((record) => {
+                    return (
+                      <TableRow
+                        key={record.id}
+                        className="transition-colors hover:bg-gray-50/60 dark:hover:bg-white/[0.02]"
+                      >
+                        <TableCell className="text-theme-sm px-3 py-3 font-medium whitespace-nowrap text-gray-800 dark:text-white/90">
+                          {record.fileName}
+                        </TableCell>
 
-                      <TableCell className="text-theme-sm px-3 py-3 whitespace-nowrap text-gray-500 dark:text-gray-400">
-                        {formatDateTime(record.uploadedAt)}
-                      </TableCell>
+                        <TableCell className="text-theme-sm px-3 py-3 whitespace-nowrap text-gray-500 dark:text-gray-400">
+                          {formatDateTime(record.createdAt)}
+                        </TableCell>
 
-                      <TableCell className="px-3 py-3">
-                        <KebabActionMenu
-                          onView={() => navigate("/upload-direct")}
-                          onDelete={() => {
-                            setPendingDeleteId(record.id);
-                            setShowDeleteConfirm(true);
-                          }}
-                        />
-                      </TableCell>
-                    </TableRow>
-                  ))
+                        <TableCell className="text-theme-sm text-danger dark:text-danger px-3 py-3 text-left font-medium whitespace-nowrap">
+                          {record.missingFields.length}
+                        </TableCell>
+
+                        <TableCell className="px-3 py-3">
+                          <StatusBadge record={record} />
+                        </TableCell>
+
+                        <TableCell className="px-3 py-3">
+                          <KebabMenu
+                            record={record}
+                            openMenuId={openMenuId}
+                            setOpenMenuId={setOpenMenuId}
+                            onDelete={openDeleteModal}
+                          />
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
                 )}
               </TableBody>
             </Table>
@@ -383,9 +489,7 @@ export default function InvalidDocumentsTable() {
                   {filtered.length}
                 </span>{" "}
                 of{" "}
-                <span className="font-medium text-gray-600 dark:text-gray-300">
-                  {activeData.length}
-                </span>{" "}
+                <span className="font-medium text-gray-600 dark:text-gray-300">{data.length}</span>{" "}
                 records
               </span>
             </div>
@@ -393,68 +497,14 @@ export default function InvalidDocumentsTable() {
         </div>
       </div>
 
-      {/* ── Delete Draft Confirm Modal ── */}
-      {showDeleteConfirm && (
-        <div
-          className="fixed inset-0 z-[999999] flex items-center justify-center bg-black/50 px-4"
-          onClick={(e) => e.target === e.currentTarget && handleDeleteCancel()}
-        >
-          <div className="w-full max-w-sm rounded-xl border border-gray-200 bg-white dark:border-white/[0.08] dark:bg-gray-900">
-            <div className="px-6 py-5">
-              <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-full bg-danger/10 dark:bg-danger/20">
-                <svg
-                  className="h-5 w-5 text-danger"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </div>
-
-              <h2 className="text-theme-sm font-semibold text-gray-900 dark:text-white/90">
-                Delete draft?
-              </h2>
-              <p className="text-theme-xs mt-1.5 leading-relaxed text-gray-500 dark:text-gray-400">
-                This will permanently remove the rejected document from your submissions.
-                You can re-upload it later if needed.
-              </p>
-            </div>
-
-            <div className="flex items-center justify-end gap-2 border-t border-gray-100 px-6 py-4 dark:border-white/[0.05]">
-              <button
-                onClick={handleDeleteCancel}
-                className="text-theme-sm rounded-lg border border-gray-200 px-3 py-2 text-gray-500 transition-colors hover:bg-gray-50 dark:border-white/[0.08] dark:text-gray-400 dark:hover:bg-white/[0.04]"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleDeleteConfirm}
-                className="text-theme-sm inline-flex items-center gap-1.5 rounded-lg bg-danger px-3 py-2 font-medium text-white transition-colors hover:bg-danger/90"
-              >
-                <svg
-                  className="h-4 w-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-                Delete Draft
-              </button>
-            </div>
-          </div>
-        </div>
+      {deleteTarget && (
+        <DeleteConfirmModal
+          record={deleteTarget}
+          onClose={closeDeleteModal}
+          onConfirm={handleConfirmDelete}
+          isDeleting={isDeleting}
+          error={deleteError}
+        />
       )}
     </>
   );

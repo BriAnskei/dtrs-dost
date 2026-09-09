@@ -1,6 +1,9 @@
-
 package.json
 pnpm-lock.yaml
 biome.json
 node_modules/
 .zed/
+frontend/REJECTION_FLOW_PROGRESS.md
+backend/.env
+backend/uploads/
+backend/.env.save

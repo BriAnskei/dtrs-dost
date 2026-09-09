@@ -1,13 +1,19 @@
-import type { InvalidDocument } from "./InvalidDocumentsTable";
-
 // ─── Field Requirements ─────────────────────────────────────────────────
+import { InvalidDocument } from "../../../tables/InvalidDocumentsTable";
 
-const REQUIRED_FIELDS = ["Subject", "From", "To", "Date Received"] as const;
+const REQUIRED_FIELDS = [
+  { label: "Subject", key: "subject" },
+  { label: "From", key: "from" },
+  { label: "To", key: "to" },
+  { label: "Date Received", key: "date_received" },
+] as const;
 
 // ─── Helpers ────────────────────────────────────────────────────────────
-
-function formatDateTime(iso: string) {
-  return new Date(iso).toLocaleString("en-PH", {
+function formatDateTime(iso: string | null | undefined) {
+  if (!iso) return "—";
+  const date = new Date(iso);
+  if (isNaN(date.getTime())) return "—";
+  return date.toLocaleString("en-PH", {
     year: "numeric",
     month: "short",
     day: "numeric",
@@ -23,14 +29,16 @@ function getSummary(record: InvalidDocument): string {
     missing.length === 1
       ? missing[0]
       : `${missing.slice(0, -1).join(", ")} and ${missing[missing.length - 1]}`;
-
   return `Missing ${missingList} — the document was flagged invalid because ${
     missing.length > 1 ? "these fields are" : "this field is"
   } required before it can be routed.`;
 }
 
-// ─── Icons ──────────────────────────────────────────────────────────────
+function isFieldMissing(record: InvalidDocument, key: string) {
+  return record.missingFields.includes(key);
+}
 
+// ─── Icons ──────────────────────────────────────────────────────────────
 function CheckIcon({ className }: { className?: string }) {
   return (
     <svg
@@ -110,34 +118,29 @@ function ExternalLinkIcon({ className }: { className?: string }) {
 }
 
 // ─── Props ──────────────────────────────────────────────────────────────
-
 interface MissingFieldsModalProps {
   document: InvalidDocument | null;
   isOpen: boolean;
   onClose: () => void;
-  onReject: (id: number) => void;
-  onProcess: (id: number) => void;
+  onMarkInvalid: (id: string) => void;
+  onProcess: (id: string) => void;
 }
 
 // ─── Main Component ─────────────────────────────────────────────────────
-
 export default function MissingFieldsModal({
   document: record,
   isOpen,
   onClose,
-  onReject,
+  onMarkInvalid,
   onProcess,
 }: MissingFieldsModalProps) {
   if (!isOpen || !record) return null;
 
   const missingCount = record.missingFields.length;
 
-  function isFieldMissing(field: string) {
-    return record!.missingFields.includes(field);
-  }
-
   function handleViewDocument() {
-    window.open(record!.fileUrl, "_blank", "noopener,noreferrer");
+    const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
+    window.open(`${apiUrl}${record!.fileUrl}`, "_blank", "noopener,noreferrer");
   }
 
   return (
@@ -149,15 +152,15 @@ export default function MissingFieldsModal({
         {/* ── Header ── */}
         <div className="flex items-start justify-between gap-3 border-b border-gray-100 px-6 py-5 dark:border-white/[0.05]">
           <div className="flex items-start gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 dark:bg-primary/20">
-              <DocumentIcon className="h-5 w-5 text-primary" />
+            <div className="bg-primary/10 dark:bg-primary/20 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg">
+              <DocumentIcon className="text-primary h-5 w-5" />
             </div>
             <div className="min-w-0">
               <h2 className="text-theme-sm truncate font-semibold text-gray-900 dark:text-white/90">
                 {record.fileName}
               </h2>
               <p className="text-theme-xs mt-0.5 text-gray-500 dark:text-gray-400">
-                From {record.from} · {formatDateTime(record.uploadedAt)}
+                From {record.from} · {formatDateTime(record.createdAt)}
               </p>
             </div>
           </div>
@@ -183,17 +186,17 @@ export default function MissingFieldsModal({
             <p className="text-theme-xs font-medium tracking-wide text-gray-400 uppercase dark:text-gray-500">
               Required Fields
             </p>
-            <span className="inline-flex items-center gap-1 rounded-full bg-danger/10 px-2 py-0.5 text-[10px] font-semibold text-danger">
+            <span className="bg-danger/10 text-danger inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold">
               {missingCount} missing
             </span>
           </div>
 
           <ul className="space-y-2">
-            {REQUIRED_FIELDS.map((field) => {
-              const missing = isFieldMissing(field);
+            {REQUIRED_FIELDS.map(({ label, key }) => {
+              const missing = isFieldMissing(record, key);
               return (
                 <li
-                  key={field}
+                  key={key}
                   className={`flex items-center justify-between rounded-lg border px-3.5 py-2.5 ${
                     missing
                       ? "border-danger/20 bg-danger/5 dark:border-danger/20 dark:bg-danger/10"
@@ -201,10 +204,10 @@ export default function MissingFieldsModal({
                   }`}
                 >
                   <span className="text-theme-sm font-medium text-gray-700 dark:text-gray-200">
-                    {field}
+                    {label}
                   </span>
                   <span
-                    className={`inline-flex items-center gap-1 text-theme-xs font-semibold ${
+                    className={`text-theme-xs inline-flex items-center gap-1 font-semibold ${
                       missing ? "text-danger" : "text-success"
                     }`}
                   >
@@ -243,14 +246,14 @@ export default function MissingFieldsModal({
             Cancel
           </button>
           <button
-            onClick={() => onReject(record.id)}
-            className="text-theme-sm rounded-lg border border-danger/30 px-3 py-2 font-medium text-danger transition-colors hover:bg-danger/5 dark:border-danger/30 dark:hover:bg-danger/10"
+            onClick={() => onMarkInvalid(record.id)}
+            className="text-theme-sm border-danger/30 text-danger hover:bg-danger/5 dark:border-danger/30 dark:hover:bg-danger/10 rounded-lg border px-3 py-2 font-medium transition-colors"
           >
-            Reject
+            Mark as Invalid
           </button>
           <button
             onClick={() => onProcess(record.id)}
-            className="text-theme-sm rounded-lg bg-primary px-3 py-2 font-medium text-white transition-colors hover:bg-primary/90"
+            className="text-theme-sm bg-primary hover:bg-primary/90 rounded-lg px-3 py-2 font-medium text-white transition-colors"
           >
             Process Document
           </button>

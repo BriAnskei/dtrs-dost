@@ -1,21 +1,12 @@
-import { useEffect, useState } from "react";
-
-// ─── Mock Data ────────────────────────────────────────────────────────────────
-// Replace with an API-backed list once the divisions endpoint is available.
-export const AVAILABLE_DIVISIONS = [
-  "Office of the Provincial Engineer",
-  "Administrative Division",
-  "Finance Division",
-  "Planning and Design Division",
-  "Construction Division",
-  "Maintenance Division",
-  "Equipment Management Division",
-  "Procurement Division",
-  "Legal Division",
-  "Human Resources Division",
-];
+import { useState, useEffect } from "react";
+import axios from "axios";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
+
+interface DivisionListItem {
+  id: string;
+  name: string;
+}
 
 interface RoutedDivisionsModalProps {
   isOpen: boolean;
@@ -39,6 +30,26 @@ export default function RoutedDivisionsModal({
   const [mode, setMode] = useState<"view" | "edit">("view");
   const [draftDivisions, setDraftDivisions] = useState<string[]>(routedDivisions);
   const [selectedToAdd, setSelectedToAdd] = useState("");
+  const [availableDivisions, setAvailableDivisions] = useState<DivisionListItem[]>([]);
+  const [loadingDivisions, setLoadingDivisions] = useState(false);
+
+  // Fetch divisions from API on mount
+  useEffect(() => {
+    async function fetchDivisions() {
+      setLoadingDivisions(true);
+      try {
+        const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
+        const response = await axios.get<DivisionListItem[]>(`${apiUrl}/divisions`);
+        setAvailableDivisions(response.data);
+      } catch (error) {
+        console.error("Failed to fetch divisions:", error);
+      } finally {
+        setLoadingDivisions(false);
+      }
+    }
+
+    fetchDivisions();
+  }, []);
 
   // Reset local state whenever the modal opens (or a different record is targeted)
   useEffect(() => {
@@ -52,7 +63,9 @@ export default function RoutedDivisionsModal({
 
   if (!isOpen) return null;
 
-  const availableToAdd = AVAILABLE_DIVISIONS.filter((d) => !draftDivisions.includes(d));
+  const availableToAdd = availableDivisions
+    .filter((d) => !draftDivisions.includes(d.name))
+    .map((d) => d.name);
 
   function handleRemove(division: string) {
     setDraftDivisions((prev) => prev.filter((d) => d !== division));
@@ -77,7 +90,6 @@ export default function RoutedDivisionsModal({
   }
 
   function handleClose() {
-    // Editing without saving discards the draft
     setDraftDivisions(routedDivisions);
     setMode("view");
     onClose();
@@ -172,25 +184,31 @@ export default function RoutedDivisionsModal({
 
               {/* Add new division */}
               <div className="flex items-center gap-2 border-t border-gray-100 pt-3 dark:border-white/[0.05]">
-                <select
-                  value={selectedToAdd}
-                  onChange={(e) => setSelectedToAdd(e.target.value)}
-                  className="text-theme-xs focus:ring-secondary/40 focus:border-secondary flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-gray-700 transition focus:ring-2 focus:outline-none dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-gray-200"
-                >
-                  <option value="">Select a division to add…</option>
-                  {availableToAdd.map((division) => (
-                    <option key={division} value={division}>
-                      {division}
-                    </option>
-                  ))}
-                </select>
-                <button
-                  onClick={handleAdd}
-                  disabled={!selectedToAdd}
-                  className="bg-secondary text-theme-xs rounded-lg px-3 py-2 font-medium text-white transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
-                >
-                  Add
-                </button>
+                {loadingDivisions ? (
+                  <div className="text-theme-xs text-gray-400">Loading divisions…</div>
+                ) : (
+                  <>
+                    <select
+                      value={selectedToAdd}
+                      onChange={(e) => setSelectedToAdd(e.target.value)}
+                      className="text-theme-xs focus:ring-secondary/40 focus:border-secondary flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-gray-700 transition focus:ring-2 focus:outline-none dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-gray-200"
+                    >
+                      <option value="">Select a division to add…</option>
+                      {availableToAdd.map((division) => (
+                        <option key={division} value={division}>
+                          {division}
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      onClick={handleAdd}
+                      disabled={!selectedToAdd}
+                      className="bg-secondary text-theme-xs rounded-lg px-3 py-2 font-medium text-white transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      Add
+                    </button>
+                  </>
+                )}
               </div>
             </>
           )}

@@ -8,13 +8,13 @@ export default function InvalidDocumentPage() {
     <>
       <PageMeta
         title="Invalid Documents | Document Tracking System"
-        description="View and manage documents that were rejected by admin review. Revier and resubmit."
+        description="View documents with missing or incomplete metadata that were flagged during AI processing."
       />
       <PageBreadcrumb pageTitle="Invalid Documents" />
       <div className="space-y-6">
         <ComponentCard
           title="Invalid Documents"
-          desc="Documents Invalid by admin review. View details, and resubmit."
+          desc="Documents flagged by AI for missing or incomplete metadata. Review and resubmit with corrections."
         >
           <InvalidDocumentsTable />
         </ComponentCard>

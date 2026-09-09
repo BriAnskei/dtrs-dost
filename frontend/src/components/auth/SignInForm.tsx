@@ -1,15 +1,12 @@
 import type { FormEvent } from "react";
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import { userUser } from "../../context/UserContext";
-import { EyeCloseIcon, EyeIcon } from "../../icons";
-import Checkbox from "../form/input/Checkbox";
-import Input from "../form/input/InputField";
+import { userUser, type RoleName } from "../../context/UserContext";
 import Label from "../form/Label";
 
-const ROLES = [
+const ROLES: { value: RoleName; label: string }[] = [
   { value: "division", label: "Division" },
-  { value: "receiver", label: "Receiver" },
+  { value: "receiver_officer", label: "Receiver Officer" },
   { value: "admin", label: "Admin" },
   { value: "super_admin", label: "Super Admin" },
 ] as const;
@@ -23,11 +20,11 @@ export default function SignInForm() {
 
   const [showPassword, setShowPassword] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
-  const [role, setRole] = useState("");
+  const [role, setRole] = useState<RoleName>("");
 
   const handleSignin = (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setCurrUser(role);
+    setCurrUser(role as RoleName);
 
     navigate("/");
   };

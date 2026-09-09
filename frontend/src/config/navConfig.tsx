@@ -129,7 +129,7 @@ export const NAV_ITEMS: NavItem[] = [
       },
       {
         name: "Invalid Docs",
-        path: "/rejected-documents",
+        path: "/invalid-documents",
         roles: [3],
       },
     ],

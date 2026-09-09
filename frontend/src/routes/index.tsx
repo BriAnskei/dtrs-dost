@@ -168,7 +168,7 @@ const RECEIVING_OFFICER_ROUTES: RouteType[] = [
     element: <UploadedIncomingDocPage />,
   },
   {
-    path: "/rejected-documents",
+    path: "/invalid-documents",
     element: <InvalidDocumentPage />,
   },
 ];
