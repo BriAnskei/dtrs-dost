@@ -1,8 +1,6 @@
 import { type SubmitEventHandler, useState } from "react";
 import { useNavigate } from "react-router";
-import { EyeCloseIcon, EyeIcon } from "../../icons";
-import Checkbox from "../form/input/Checkbox";
-import Input from "../form/input/InputField";
+import { type RoleName, userUser } from "../../context/UserContext";
 import Label from "../form/Label";
 
 export default function SignInForm() {

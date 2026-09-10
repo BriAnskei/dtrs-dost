@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router";
 import axios from "axios";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router";
 import { Table, TableBody, TableCell, TableHeader, TableRow } from "../ui/table";
 
 // ─── Types ────────────────────────────────────────────────────────────
@@ -32,7 +32,7 @@ function formatDateTime(iso: string) {
 
 export default function UploadQueueTable() {
   const navigate = useNavigate();
-  const { userId } = userUser();
+  // const { userId } = useryUser();
   const [search, setSearch] = useState("");
   const [filterDateFrom, setFilterDateFrom] = useState("");
   const [filterDateTo, setFilterDateTo] = useState("");
@@ -63,7 +63,9 @@ export default function UploadQueueTable() {
   const filtered = data.filter((r) => {
     const q = search.toLowerCase();
     const matchesSearch =
-      !q || r.fileName.toLowerCase().includes(q) || r.uploaderName.toLowerCase().includes(q);
+      !q ||
+      r.fileName.toLowerCase().includes(q) ||
+      r.uploaderName.toLowerCase().includes(q);
     const date = new Date(r.createdAt);
     const matchesFrom = !filterDateFrom || date >= new Date(filterDateFrom);
     const matchesTo = !filterDateTo || date <= new Date(filterDateTo);
@@ -225,7 +227,10 @@ export default function UploadQueueTable() {
               <span className="font-medium text-gray-600 dark:text-gray-300">
                 {filtered.length}
               </span>{" "}
-              of <span className="font-medium text-gray-600 dark:text-gray-300">{data.length}</span>{" "}
+              of{" "}
+              <span className="font-medium text-gray-600 dark:text-gray-300">
+                {data.length}
+              </span>{" "}
               records
             </p>
           )}
@@ -252,13 +257,19 @@ export default function UploadQueueTable() {
               <TableBody className="dark:divide-white/[0.05]">
                 {loading ? (
                   <tr>
-                    <td colSpan={4} className="text-theme-sm px-5 py-10 text-center text-gray-400">
+                    <td
+                      colSpan={4}
+                      className="text-theme-sm px-5 py-10 text-center text-gray-400"
+                    >
                       Loading…
                     </td>
                   </tr>
                 ) : filtered.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="text-theme-sm px-5 py-10 text-center text-gray-400">
+                    <td
+                      colSpan={4}
+                      className="text-theme-sm px-5 py-10 text-center text-gray-400"
+                    >
                       No queued documents match your filters.
                     </td>
                   </tr>
@@ -316,7 +327,9 @@ export default function UploadQueueTable() {
                   {filtered.length}
                 </span>{" "}
                 of{" "}
-                <span className="font-medium text-gray-600 dark:text-gray-300">{data.length}</span>{" "}
+                <span className="font-medium text-gray-600 dark:text-gray-300">
+                  {data.length}
+                </span>{" "}
                 records
               </span>
             </div>

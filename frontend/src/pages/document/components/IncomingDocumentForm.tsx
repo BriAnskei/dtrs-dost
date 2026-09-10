@@ -2,13 +2,13 @@
 // Receiver upload form with client-side PDF text extraction and
 // backend AI field extraction.
 
-import { useState, useRef, DragEvent, ChangeEvent } from "react";
+import { type ChangeEvent, type DragEvent, useRef, useState } from "react";
 import { pdfjs } from "react-pdf";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
+import axios from "axios";
 import * as pdfjsLib from "pdfjs-dist";
 import Tesseract from "tesseract.js";
-import axios from "axios";
 import QRCodeModal from "../../../components/receiver/QRCodeModal";
 import { userUser } from "../../../context/UserContext";
 
@@ -206,15 +206,19 @@ export default function IncomingDocumentForm() {
 
       const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
-      const response = await axios.post<UploadResult>(`${apiUrl}/upload/receiver`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-        onUploadProgress: (event) => {
-          if (event.total) {
-            const pct = Math.round((event.loaded / event.total) * 40) + 60;
-            setProgress(Math.min(pct, 95));
-          }
+      const response = await axios.post<UploadResult>(
+        `${apiUrl}/upload/receiver`,
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+          onUploadProgress: (event) => {
+            if (event.total) {
+              const pct = Math.round((event.loaded / event.total) * 40) + 60;
+              setProgress(Math.min(pct, 95));
+            }
+          },
         },
-      });
+      );
 
       setProgress(100);
 
@@ -244,7 +248,9 @@ export default function IncomingDocumentForm() {
     } catch (error: any) {
       console.error("Upload error:", error);
       setExtractionStatus("error");
-      setExtractionMessage(error?.response?.data?.message || "An error occurred during upload");
+      setExtractionMessage(
+        error?.response?.data?.message || "An error occurred during upload",
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -339,7 +345,9 @@ export default function IncomingDocumentForm() {
           </p>
         </div>
 
-        <p className="text-theme-xs text-gray-400 dark:text-gray-500">PDF only — max {MAX_MB} MB</p>
+        <p className="text-theme-xs text-gray-400 dark:text-gray-500">
+          PDF only — max {MAX_MB} MB
+        </p>
       </div>
 
       {fileError && <p className="text-theme-xs text-danger font-medium">{fileError}</p>}
@@ -411,10 +419,14 @@ export default function IncomingDocumentForm() {
       {extractionStatus !== "idle" && (
         <div className="text-theme-xs flex items-center gap-2 rounded-lg border px-3 py-2">
           {extractionStatus === "extracting" && (
-            <span className="text-blue-600 dark:text-blue-400">📄 {extractionMessage}</span>
+            <span className="text-blue-600 dark:text-blue-400">
+              📄 {extractionMessage}
+            </span>
           )}
           {extractionStatus === "ai-processing" && (
-            <span className="text-purple-600 dark:text-purple-400">🤖 {extractionMessage}</span>
+            <span className="text-purple-600 dark:text-purple-400">
+              🤖 {extractionMessage}
+            </span>
           )}
           {extractionStatus === "done" && (
             <span className="text-success">✅ {extractionMessage}</span>
@@ -474,7 +486,9 @@ export default function IncomingDocumentForm() {
                     d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
                   />
                 </svg>
-                {missingFields.length > 0 ? "Flagged — Missing Fields" : "Queued for Processing"}
+                {missingFields.length > 0
+                  ? "Flagged — Missing Fields"
+                  : "Queued for Processing"}
               </span>
               <button
                 onClick={() => setShowQrModal(true)}

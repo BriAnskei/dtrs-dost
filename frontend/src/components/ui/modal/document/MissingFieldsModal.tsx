@@ -1,5 +1,5 @@
 // ─── Field Requirements ─────────────────────────────────────────────────
-import { InvalidDocument } from "../../../tables/InvalidDocumentsTable";
+import type { InvalidDocument } from "../../../tables/InvalidDocumentsTable";
 
 const REQUIRED_FIELDS = [
   { label: "Subject", key: "subject" },

@@ -1,11 +1,11 @@
-import { z } from 'zod';
 import {
-  SchemaType,
-  type Schema,
-  type ObjectSchema,
-  type StringSchema,
   type ArraySchema,
-} from '@google/generative-ai';
+  type ObjectSchema,
+  type Schema,
+  SchemaType,
+  type StringSchema,
+} from "@google/generative-ai";
+import { z } from "zod";
 
 // ── Zod schemas (for response validation) ──────────────────────
 
@@ -28,16 +28,12 @@ export const CreateExtractionResponseSchema = GeminiExtractionSchema.extend({
   actionTaken: z.string().optional(),
 });
 
-export type CreateExtractionResponseType = z.infer<
-  typeof CreateExtractionResponseSchema
->;
+export type CreateExtractionResponseType = z.infer<typeof CreateExtractionResponseSchema>;
 
 // ── Gemini SDK schemas (for responseSchema) ────────────────────
 // Built per-request now, since the division enum depends on live DB data.
 
-export function buildGeminiExtractionSchema(
-  divisionNames: string[],
-): ObjectSchema {
+export function buildGeminiExtractionSchema(divisionNames: string[]): ObjectSchema {
   return {
     type: SchemaType.OBJECT,
     properties: {
@@ -55,6 +51,6 @@ export function buildGeminiExtractionSchema(
         } as StringSchema,
       } as ArraySchema,
     },
-    required: ['subject', 'from', 'to', 'date_received'],
+    required: ["subject", "from", "to", "date_received"],
   };
 }

@@ -1,6 +1,6 @@
-import { useCallback, useState } from "react";
 import axios from "axios";
-import { ExtractionStatus, IncomingMetadata, ExtractionResponseType } from "./types";
+import { useCallback, useState } from "react";
+import type { ExtractionResponseType, ExtractionStatus, IncomingMetadata } from "./types";
 
 interface SaveParams {
   queueId: string;

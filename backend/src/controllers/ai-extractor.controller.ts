@@ -1,12 +1,12 @@
-import { Controller, Post, Body, HttpCode, HttpStatus } from '@nestjs/common';
+import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import type { Repository } from 'typeorm';
+import { Division } from '../entities/division.entity';
 import {
-  CreateExtractionResponseSchema,
   buildGeminiExtractionSchema,
+  CreateExtractionResponseSchema,
 } from '../schema/Extraction.schema';
 import { getGenerativeModel } from '../util/ai';
-import { Division } from '../entities/division.entity';
 
 interface ExtractRequest {
   prompt: string;

@@ -1,22 +1,21 @@
 import {
   Controller,
-  Get,
-  Patch,
   Delete,
-  Param,
-  Query,
+  Get,
   HttpCode,
   HttpStatus,
   Inject,
   NotFoundException,
+  Param,
+  Patch,
+  Query,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { DataSource } from 'typeorm';
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { InvalidDocument } from '../entities/invalid-document.entity';
+import { DataSource, type Repository } from 'typeorm';
 import { IncomingDocumentFile } from '../entities/incoming-document-file.entity';
+import { InvalidDocument } from '../entities/invalid-document.entity';
 
 interface InvalidDocumentResponse {
   id: string;

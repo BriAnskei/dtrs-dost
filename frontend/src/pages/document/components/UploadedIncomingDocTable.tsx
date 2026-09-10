@@ -1,9 +1,15 @@
 // ─── MyUploadsTable.tsx ───────────────────────────────────────────────────────
 
-import { useState, useRef, useEffect } from "react";
 import axios from "axios";
-import { Table, TableHeader, TableRow, TableCell, TableBody } from "../../../components/ui/table";
+import { useEffect, useRef, useState } from "react";
 import QRCodeModal from "../../../components/receiver/QRCodeModal";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHeader,
+  TableRow,
+} from "../../../components/ui/table";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -146,7 +152,9 @@ function ArchiveConfirmModal({
             Archive document?
           </h2>
           <p className="text-theme-xs mt-1.5 leading-relaxed text-gray-500 dark:text-gray-400">
-            <span className="font-medium text-gray-700 dark:text-gray-300">{file.fileName}</span>{" "}
+            <span className="font-medium text-gray-700 dark:text-gray-300">
+              {file.fileName}
+            </span>{" "}
             will be moved to the archive. You can restore it later if needed.
           </p>
         </div>
@@ -196,7 +204,11 @@ function KebabActionMenu({
   }, []);
 
   if (disabled) {
-    return <span className="text-theme-xs text-gray-300 italic dark:text-gray-600">Archived</span>;
+    return (
+      <span className="text-theme-xs text-gray-300 italic dark:text-gray-600">
+        Archived
+      </span>
+    );
   }
 
   return (
@@ -270,7 +282,9 @@ export default function UploadedIncomingDocTable() {
       } catch (error: any) {
         if (!cancelled) {
           console.error("Failed to fetch queue documents:", error);
-          setFetchError(error?.response?.data?.message || "Failed to load uploaded documents.");
+          setFetchError(
+            error?.response?.data?.message || "Failed to load uploaded documents.",
+          );
         }
       } finally {
         if (!cancelled) setIsLoading(false);
@@ -514,15 +528,17 @@ export default function UploadedIncomingDocTable() {
                 <Table>
                   <TableHeader className="dark:border-white/[0.05]">
                     <TableRow>
-                      {["File Name", "From", "Uploaded At", "Status", "Action"].map((col) => (
-                        <TableCell
-                          key={col}
-                          isHeader
-                          className="text-primary text-theme-xs px-3 py-3 text-start font-semibold whitespace-nowrap dark:text-gray-300"
-                        >
-                          {col}
-                        </TableCell>
-                      ))}
+                      {["File Name", "From", "Uploaded At", "Status", "Action"].map(
+                        (col) => (
+                          <TableCell
+                            key={col}
+                            isHeader
+                            className="text-primary text-theme-xs px-3 py-3 text-start font-semibold whitespace-nowrap dark:text-gray-300"
+                          >
+                            {col}
+                          </TableCell>
+                        ),
+                      )}
                     </TableRow>
                   </TableHeader>
 

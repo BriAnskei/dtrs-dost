@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from "express";
+import type { NextFunction, Request, Response } from "express";
 
 export function withAuth(req: Request, res: Response, next: NextFunction) {
   const authHeader = req.headers.authorization;

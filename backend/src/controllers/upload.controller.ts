@@ -1,29 +1,28 @@
+import { GoogleGenAI } from '@google/genai';
 import {
-  Controller,
-  Post,
-  Get,
-  UploadedFile,
-  UseInterceptors,
+  BadRequestException,
   Body,
+  Controller,
+  Get,
   HttpCode,
   HttpStatus,
-  BadRequestException,
   NotFoundException,
+  Post,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import type { ConfigService } from '@nestjs/config';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { multerStorage } from '../config/multer.config';
-import { IncomingDocumentFile } from '../entities/incoming-document-file.entity';
-import { InvalidDocument } from '../entities/invalid-document.entity';
-import { IncomingDocQueue } from '../entities/incoming-doc-queue.entity';
-
-import { DocumentRouting } from '../entities/document-routing.entity';
-import { DataSource, Repository } from 'typeorm';
-import { InjectRepository, InjectDataSource } from '@nestjs/typeorm';
+import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
+import type { DataSource, Repository } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
-import { GoogleGenAI } from '@google/genai';
-import * as saveIncomingDocumentDto from '../entities/save-incoming-document.dto';
+import { multerStorage } from '../config/multer.config';
+import { DocumentRouting } from '../entities/document-routing.entity';
+import { IncomingDocQueue } from '../entities/incoming-doc-queue.entity';
+import { IncomingDocumentFile } from '../entities/incoming-document-file.entity';
 import { IncomingDocuments } from '../entities/incoming-documents.entity';
+import { InvalidDocument } from '../entities/invalid-document.entity';
+import type * as saveIncomingDocumentDto from '../entities/save-incoming-document.dto';
 
 interface AiExtractionResult {
   subject: string;

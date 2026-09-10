@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import type React from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 
 export type Roles = 1 | 2 | 3 | 4; // super_admin, admin, receiver_officer, division
 

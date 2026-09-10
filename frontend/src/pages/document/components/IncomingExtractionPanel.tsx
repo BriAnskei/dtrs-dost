@@ -1,16 +1,19 @@
 import ReactMarkdown from "react-markdown";
+import DivisionMultiSelect from "./DivisionMultiSelect";
+import EmptyState from "./EmptyState";
 import Field from "./Field";
 import FieldSkeleton from "./FieldSkeleton";
 import SectionDivider from "./SectionDivider";
-import EmptyState from "./EmptyState";
-import DivisionMultiSelect from "./DivisionMultiSelect";
 import type { ExtractionStatus, IncomingMetadata } from "./types";
 
 interface Props {
   status: ExtractionStatus;
   metadata: IncomingMetadata;
   hasFile: boolean;
-  onFieldChange: <K extends keyof IncomingMetadata>(field: K, value: IncomingMetadata[K]) => void;
+  onFieldChange: <K extends keyof IncomingMetadata>(
+    field: K,
+    value: IncomingMetadata[K],
+  ) => void;
   onSave?: () => void;
   saving?: boolean;
 }
@@ -172,9 +175,7 @@ export default function IncomingExtractionPanel({
                   {metadata.summary ? (
                     <ReactMarkdown
                       components={{
-                        p: ({ children }) => (
-                          <p className="mb-2 last:mb-0">{children}</p>
-                        ),
+                        p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
                         strong: ({ children }) => (
                           <strong className="font-semibold text-gray-900 dark:text-white">
                             {children}

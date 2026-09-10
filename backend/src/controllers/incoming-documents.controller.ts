@@ -1,23 +1,23 @@
 import {
-  Controller,
-  Get,
-  Patch,
-  Post,
-  Delete,
-  Param,
+  BadRequestException,
   Body,
+  Controller,
+  Delete,
+  Get,
   HttpCode,
   HttpStatus,
   Inject,
   NotFoundException,
-  BadRequestException,
+  Param,
+  Patch,
+  Post,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, DataSource } from 'typeorm';
-import { IncomingDocuments } from '../entities/incoming-documents.entity';
+import { DataSource, type Repository } from 'typeorm';
+import { Division } from '../entities/division.entity';
 import { DocumentRouting } from '../entities/document-routing.entity';
 import { IncomingDocumentFile } from '../entities/incoming-document-file.entity';
-import { Division } from '../entities/division.entity';
+import { IncomingDocuments } from '../entities/incoming-documents.entity';
 
 interface IncomingDocumentResponse {
   id: string;

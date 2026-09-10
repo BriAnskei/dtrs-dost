@@ -1,9 +1,9 @@
 import { createBrowserRouter } from "react-router";
 import UserManagementTable from "../components/tables/Administration/UserManagementTable";
+import SignIn from "../features/authentication/components/SignIn";
 import AppLayout from "../layout/AppLayout";
 import AccessControlPage from "../pages/Administration/AcessControlPage";
 import UserManagementPage from "../pages/Administration/UserManagementPage";
-import SignIn from "../pages/AuthPages/SignIn";
 import AdminDashboard from "../pages/Dashboard/AdminDashboard";
 import Home from "../pages/Dashboard/Home";
 import ReceiverDashboard from "../pages/Dashboard/ReceiverDashboard";

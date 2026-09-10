@@ -1,12 +1,12 @@
-import { useState, useRef, useEffect } from "react";
 import axios from "axios";
+import { useEffect, useRef, useState } from "react";
+import QRCodeModal from "../receiver/QRCodeModal";
 import IncomingAuditModal from "../ui/modal/document/IncomingAuditModal";
 import RoutedDivisionsModal from "../ui/modal/document/RoutedDivisionsModal";
 import StatusUpdateModal, {
   type StatusType,
   type StatusUpdatePayload,
 } from "../ui/modal/document/StatusUpdateModal";
-import QRCodeModal from "../receiver/QRCodeModal";
 import { Table, TableBody, TableCell, TableHeader, TableRow } from "../ui/table";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -39,31 +39,29 @@ interface IncomingDocument {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function mapBackendStatus(
-  status: 'pending' | 'ongoing' | 'complete',
-): StatusType {
+function mapBackendStatus(status: "pending" | "ongoing" | "complete"): StatusType {
   const map: Record<string, StatusType> = {
-    pending: 'Pending',
-    ongoing: 'On-Going',
-    complete: 'Completed',
+    pending: "Pending",
+    ongoing: "On-Going",
+    complete: "Completed",
   };
-  return map[status] ?? 'Pending';
+  return map[status] ?? "Pending";
 }
 
-function mapToBackendStatus(status: StatusType): 'pending' | 'ongoing' | 'complete' {
-  const map: Record<string, 'pending' | 'ongoing' | 'complete'> = {
-    Pending: 'pending',
-    'On-Going': 'ongoing',
-    Completed: 'complete',
+function mapToBackendStatus(status: StatusType): "pending" | "ongoing" | "complete" {
+  const map: Record<string, "pending" | "ongoing" | "complete"> = {
+    Pending: "pending",
+    "On-Going": "ongoing",
+    Completed: "complete",
   };
-  return map[status] ?? 'pending';
+  return map[status] ?? "pending";
 }
 
 function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString('en-PH', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
+  return new Date(iso).toLocaleDateString("en-PH", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
   });
 }
 
@@ -81,7 +79,6 @@ function StatusText({ status }: { status: StatusType }) {
         : "text-danger";
   return <span className={`text-theme-xs font-semibold ${colorClass}`}>{status}</span>;
 }
-
 
 // ─── Routed Divisions Icon Button ────────────────────────────────────────────
 
@@ -433,10 +430,8 @@ export default function IncomingDocumentsTable() {
         if (!cancelled) {
           const mapped = response.data.map((doc) => ({
             ...doc,
-            code: doc.uniqueId || doc.code || '',
-            fileUrl: doc.fileUrl
-              ? `${apiUrl}${doc.fileUrl}`
-              : '',
+            code: doc.uniqueId || doc.code || "",
+            fileUrl: doc.fileUrl ? `${apiUrl}${doc.fileUrl}` : "",
             status: mapBackendStatus(doc.status),
           }));
           setRecords(mapped);
@@ -544,16 +539,14 @@ export default function IncomingDocumentsTable() {
       for (const name of toRemove) {
         const divId = nameToId.get(name);
         if (divId) {
-          await axios.delete(
-            `${apiUrl}/incoming/${routedRecord.id}/routing/${divId}`,
-          );
+          await axios.delete(`${apiUrl}/incoming/${routedRecord.id}/routing/${divId}`);
         }
       }
 
       // Update local state with new division names
       const updatedRoutedDivisions = divisionNames.map((name) => ({
-        id: crypto.randomUUID ? crypto.randomUUID() : '',
-        divisionId: nameToId.get(name) || '',
+        id: crypto.randomUUID ? crypto.randomUUID() : "",
+        divisionId: nameToId.get(name) || "",
         divisionName: name,
       }));
 
@@ -571,7 +564,7 @@ export default function IncomingDocumentsTable() {
 
   function handleViewFile(record: IncomingDocument) {
     if (record.fileUrl) {
-      window.open(record.fileUrl, '_blank');
+      window.open(record.fileUrl, "_blank");
     }
   }
 

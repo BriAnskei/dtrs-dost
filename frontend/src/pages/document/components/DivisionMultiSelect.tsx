@@ -1,5 +1,6 @@
-import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
+import type React from "react";
+import { useEffect, useRef, useState } from "react";
 
 export interface Division {
   id: string;
@@ -53,7 +54,12 @@ const DivisionMultiSelect: React.FC<DivisionMultiSelectProps> = ({
   }, []);
 
   useEffect(() => {
-    console.log("[DivisionMultiSelect] divisions:", divisions.length, "value(ids):", value);
+    console.log(
+      "[DivisionMultiSelect] divisions:",
+      divisions.length,
+      "value(ids):",
+      value,
+    );
   }, [divisions, value]);
 
   useEffect(() => {
@@ -68,7 +74,9 @@ const DivisionMultiSelect: React.FC<DivisionMultiSelectProps> = ({
   }, []);
 
   const selected = divisions.filter((d) => value.includes(d.id));
-  const filtered = divisions.filter((d) => d.name.toLowerCase().includes(query.toLowerCase()));
+  const filtered = divisions.filter((d) =>
+    d.name.toLowerCase().includes(query.toLowerCase()),
+  );
 
   const toggle = (id: string) => {
     onChange(value.includes(id) ? value.filter((v) => v !== id) : [...value, id]);
@@ -94,7 +102,9 @@ const DivisionMultiSelect: React.FC<DivisionMultiSelectProps> = ({
           className={`text-theme-sm focus:border-secondary focus:ring-secondary/20 flex min-h-9 w-full flex-wrap items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-left text-gray-800 transition outline-none focus:ring-2 dark:border-gray-700 dark:bg-white/[0.03] dark:text-white/90 ${open ? "border-secondary ring-secondary/20 ring-2" : ""}`}
         >
           {selected.length === 0 ? (
-            <span className="text-gray-400 dark:text-gray-600">{loadError ?? placeholder}</span>
+            <span className="text-gray-400 dark:text-gray-600">
+              {loadError ?? placeholder}
+            </span>
           ) : (
             selected.map((d) => (
               <span
