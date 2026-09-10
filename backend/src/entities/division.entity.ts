@@ -1,13 +1,13 @@
-import { Entity, PrimaryColumn, Column } from 'typeorm';
+import { Column, Entity, PrimaryColumn } from "typeorm";
 
-@Entity('divisions')
+@Entity("divisions")
 export class Division {
-  @PrimaryColumn({ type: 'uuid' })
+  @PrimaryColumn({ type: "uuid" })
   id: string;
 
   @Column({
-    name: 'division_name',
-    type: 'varchar',
+    name: "division_name",
+    type: "varchar",
     length: 255,
   })
   division_name: string;

@@ -1,6 +1,6 @@
+import axios from "axios";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
-import axios from "axios";
 import { userUser } from "../../context/UserContext";
 import MissingFieldsModal from "../ui/modal/document/MissingFieldsModal";
 
@@ -166,7 +166,9 @@ export default function InvalidDocumentsTable() {
     setMarkingInvalid(true);
     try {
       const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
-      await axios.patch(`${apiUrl}/invalid-documents/${pendingMarkInvalidId}/mark-invalid`);
+      await axios.patch(
+        `${apiUrl}/invalid-documents/${pendingMarkInvalidId}/mark-invalid`,
+      );
 
       // Remove the marked-invalid item from local state
       setData((prev) => prev.filter((r) => r.id !== pendingMarkInvalidId));
@@ -380,7 +382,9 @@ export default function InvalidDocumentsTable() {
                 {filtered.length}
               </span>{" "}
               of{" "}
-              <span className="font-medium text-gray-600 dark:text-gray-300">{data.length}</span>{" "}
+              <span className="font-medium text-gray-600 dark:text-gray-300">
+                {data.length}
+              </span>{" "}
               records
             </p>
           )}
@@ -392,30 +396,40 @@ export default function InvalidDocumentsTable() {
             <Table>
               <TableHeader className="dark:border-white/[0.05]">
                 <TableRow>
-                  {["File Name", "Uploader", "Missing Field", "Uploaded At", "Actions"].map(
-                    (col) => (
-                      <TableCell
-                        key={col}
-                        isHeader
-                        className="text-primary text-theme-xs px-3 py-3 text-start font-semibold whitespace-nowrap dark:text-gray-300"
-                      >
-                        {col}
-                      </TableCell>
-                    ),
-                  )}
+                  {[
+                    "File Name",
+                    "Uploader",
+                    "Missing Field",
+                    "Uploaded At",
+                    "Actions",
+                  ].map((col) => (
+                    <TableCell
+                      key={col}
+                      isHeader
+                      className="text-primary text-theme-xs px-3 py-3 text-start font-semibold whitespace-nowrap dark:text-gray-300"
+                    >
+                      {col}
+                    </TableCell>
+                  ))}
                 </TableRow>
               </TableHeader>
 
               <TableBody className="dark:divide-white/[0.05]">
                 {loading ? (
                   <tr>
-                    <td colSpan={5} className="text-theme-sm px-5 py-10 text-center text-gray-400">
+                    <td
+                      colSpan={5}
+                      className="text-theme-sm px-5 py-10 text-center text-gray-400"
+                    >
                       Loading…
                     </td>
                   </tr>
                 ) : filtered.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="text-theme-sm px-5 py-10 text-center text-gray-400">
+                    <td
+                      colSpan={5}
+                      className="text-theme-sm px-5 py-10 text-center text-gray-400"
+                    >
                       No invalid documents match your filters.
                     </td>
                   </tr>
@@ -462,7 +476,9 @@ export default function InvalidDocumentsTable() {
                   {filtered.length}
                 </span>{" "}
                 of{" "}
-                <span className="font-medium text-gray-600 dark:text-gray-300">{data.length}</span>{" "}
+                <span className="font-medium text-gray-600 dark:text-gray-300">
+                  {data.length}
+                </span>{" "}
                 records
               </span>
             </div>
@@ -483,7 +499,9 @@ export default function InvalidDocumentsTable() {
       {showMarkInvalidConfirm && (
         <div
           className="fixed inset-0 z-[999999] flex items-center justify-center bg-black/50 px-4"
-          onClick={(e) => e.target === e.currentTarget && setShowMarkInvalidConfirm(false)}
+          onClick={(e) =>
+            e.target === e.currentTarget && setShowMarkInvalidConfirm(false)
+          }
         >
           <div className="w-full max-w-sm rounded-xl border border-gray-200 bg-white dark:border-white/[0.08] dark:bg-gray-900">
             <div className="px-6 py-5">
@@ -507,8 +525,8 @@ export default function InvalidDocumentsTable() {
                 Mark document as invalid?
               </h2>
               <p className="text-theme-xs mt-1.5 leading-relaxed text-gray-500 dark:text-gray-400">
-                This will mark the document as invalid and return it to the receiver. The receiver
-                will be notified and can fix the missing metadata and re-upload.
+                This will mark the document as invalid and return it to the receiver. The
+                receiver will be notified and can fix the missing metadata and re-upload.
               </p>
 
               <div className="mt-4">

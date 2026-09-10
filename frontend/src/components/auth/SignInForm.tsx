@@ -1,7 +1,7 @@
 import type { FormEvent } from "react";
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import { userUser, type RoleName } from "../../context/UserContext";
+import { type RoleName, userUser } from "../../context/UserContext";
 import Label from "../form/Label";
 
 const ROLES: { value: RoleName; label: string }[] = [

@@ -1,15 +1,15 @@
 import {
   Controller,
   Get,
-  Patch,
-  Param,
-  Query,
   HttpCode,
   HttpStatus,
   Inject,
+  Param,
+  Patch,
+  Query,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, type Repository } from 'typeorm';
 import { IncomingDocQueue } from '../entities/incoming-doc-queue.entity';
 import { IncomingDocumentFile } from '../entities/incoming-document-file.entity';
 import { IncomingDocuments } from '../entities/incoming-documents.entity';

@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from "express";
+import type { NextFunction, Request, Response } from "express";
 
 const RATE_LIMIT_WINDOW_MS = 60 * 1000;
 const RATE_LIMIT_MAX_REQUESTS = 20;
@@ -18,9 +18,7 @@ setInterval(cleanup, RATE_LIMIT_WINDOW_MS).unref();
 
 export function withRateLimit(req: Request, res: Response, next: NextFunction) {
   const clientIp =
-    req.ip ||
-    req.headers["x-forwarded-for"]?.toString().split(",")[0] ||
-    "unknown";
+    req.ip || req.headers["x-forwarded-for"]?.toString().split(",")[0] || "unknown";
 
   const now = Date.now();
   const entry = clientRequests.get(clientIp);

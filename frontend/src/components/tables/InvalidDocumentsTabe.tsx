@@ -1,7 +1,7 @@
-import { useState, useEffect, useRef } from "react";
-import { Table, TableHeader, TableRow, TableCell, TableBody } from "../ui/table";
 import axios from "axios";
+import { useEffect, useRef, useState } from "react";
 import { userUser } from "../../context/UserContext";
+import { Table, TableBody, TableCell, TableHeader, TableRow } from "../ui/table";
 
 // ─── Types ─────────────────────────────────────────────────────
 
@@ -146,13 +146,15 @@ function DeleteConfirmModal({
             Remarks
           </p>
           <p className="text-theme-sm mt-1 text-gray-600 dark:text-gray-300">
-            {record.remarks && record.remarks.trim() ? record.remarks : "No remarks provided."}
+            {record.remarks && record.remarks.trim()
+              ? record.remarks
+              : "No remarks provided."}
           </p>
         </div>
 
         <p className="text-theme-xs mt-4 text-gray-400 dark:text-gray-500">
-          This will permanently delete the document and its uploaded file. This action cannot be
-          undone.
+          This will permanently delete the document and its uploaded file. This action
+          cannot be undone.
         </p>
 
         {error && <p className="text-theme-xs text-danger mt-2">{error}</p>}
@@ -406,7 +408,10 @@ export default function InvalidDocumentsTable() {
               <span className="font-medium text-gray-600 dark:text-gray-300">
                 {filtered.length}
               </span>{" "}
-              of <span className="font-medium text-gray-600 dark:text-gray-300">{data.length}</span>{" "}
+              of{" "}
+              <span className="font-medium text-gray-600 dark:text-gray-300">
+                {data.length}
+              </span>{" "}
               records
             </p>
           )}
@@ -417,28 +422,36 @@ export default function InvalidDocumentsTable() {
             <Table>
               <TableHeader className="dark:border-white/[0.05]">
                 <TableRow>
-                  {["File Name", "Uploaded At", "Missing Fields", "Status", "Action"].map((col) => (
-                    <TableCell
-                      key={col}
-                      isHeader
-                      className="text-primary text-theme-xs px-3 py-3 text-start font-semibold whitespace-nowrap dark:text-gray-300"
-                    >
-                      {col}
-                    </TableCell>
-                  ))}
+                  {["File Name", "Uploaded At", "Missing Fields", "Status", "Action"].map(
+                    (col) => (
+                      <TableCell
+                        key={col}
+                        isHeader
+                        className="text-primary text-theme-xs px-3 py-3 text-start font-semibold whitespace-nowrap dark:text-gray-300"
+                      >
+                        {col}
+                      </TableCell>
+                    ),
+                  )}
                 </TableRow>
               </TableHeader>
 
               <TableBody className="dark:divide-white/[0.05]">
                 {loading ? (
                   <tr>
-                    <td colSpan={5} className="text-theme-sm px-5 py-10 text-center text-gray-400">
+                    <td
+                      colSpan={5}
+                      className="text-theme-sm px-5 py-10 text-center text-gray-400"
+                    >
                       Loading…
                     </td>
                   </tr>
                 ) : filtered.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="text-theme-sm px-5 py-10 text-center text-gray-400">
+                    <td
+                      colSpan={5}
+                      className="text-theme-sm px-5 py-10 text-center text-gray-400"
+                    >
                       No invalid documents match your filters.
                     </td>
                   </tr>
@@ -489,7 +502,9 @@ export default function InvalidDocumentsTable() {
                   {filtered.length}
                 </span>{" "}
                 of{" "}
-                <span className="font-medium text-gray-600 dark:text-gray-300">{data.length}</span>{" "}
+                <span className="font-medium text-gray-600 dark:text-gray-300">
+                  {data.length}
+                </span>{" "}
                 records
               </span>
             </div>
