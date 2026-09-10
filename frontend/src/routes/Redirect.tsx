@@ -20,27 +20,31 @@ function createRolePath(paths: {
 export function DashboardRedirect() {
   const { role } = userUser();
 
-  console.log("user: ", role);
-  if (!role) return <Navigate to="/signin" />;
+  // console.log("user: ", role);
+  // if (!role) return <Navigate to="/signin" />;
+  //
+  // const dashboardPath = createRolePath({
+  //   superAdmin: "dashboard",
+  //   admin: "dashboard",
+  //   receiving_officer: "dashboard",
+  //   division: "assigned-documents", // no dashboard
+  // })[role];
+  //
+  // if (!dashboardPath) return <Navigate to="notFound" />;
+  //
+  // return <Navigate to={dashboardPath} />;
 
-  const dashboardPath = createRolePath({
-    superAdmin: "dashboard",
-    admin: "dashboard",
-    receiving_officer: "dashboard",
-    division: "assigned-documents", // no dashboard
-  })[role];
-
-  if (!dashboardPath) return <Navigate to="notFound" />;
-
-  return <Navigate to={dashboardPath} />;
+  return <Navigate to="/receiving-officer/dashboard" />;
 }
 
 export function UploadRedirect() {
   const { role } = userUser();
 
-  if (!role) return <Navigate to="/signin" />;
+  // if (!role) return <Navigate to="/signin" />;
+  //
+  // if ([1, 2].includes(role)) return <Navigate to="/upload-direct" />;
+  //
+  // return <Navigate to="/incoming-upload" />;
 
-  if ([1, 2].includes(role)) return <Navigate to="/upload-direct" />;
-
-  return <Navigate to="/incoming-upload" />;
+  return <Navigate to="/upload-direct" />;
 }

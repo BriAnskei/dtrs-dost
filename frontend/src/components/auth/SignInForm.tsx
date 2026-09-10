@@ -1,32 +1,42 @@
-import type { FormEvent } from "react";
-import { useState } from "react";
+import { type SubmitEventHandler, useState } from "react";
 import { useNavigate } from "react-router";
-import { userUser, type RoleName } from "../../context/UserContext";
+import { EyeCloseIcon, EyeIcon } from "../../icons";
+import Checkbox from "../form/input/Checkbox";
+import Input from "../form/input/InputField";
 import Label from "../form/Label";
-
-const ROLES: { value: RoleName; label: string }[] = [
-  { value: "division", label: "Division" },
-  { value: "receiver_officer", label: "Receiver Officer" },
-  { value: "admin", label: "Admin" },
-  { value: "super_admin", label: "Super Admin" },
-] as const;
-
-const selectClasses =
-  "h-11 w-full appearance-none rounded-lg border border-[#e2e8f0] bg-transparent bg-[url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2220%22 height=%2220%22 viewBox=%220 0 20 20%22 fill=%22none%22><path d=%22M5 7.5L10 12.5L15 7.5%22 stroke=%22%23475569%22 stroke-width=%221.5%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22/></svg>')] bg-no-repeat bg-[right_1rem_center] px-4 py-2.5 pr-10 text-sm text-text shadow-theme-xs focus:border-[#2563eb] focus:outline-hidden focus:ring-3 focus:ring-[#2563eb]/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-secondary";
 
 export default function SignInForm() {
   const navigate = useNavigate();
-  const { setCurrUser } = userUser();
 
   const [showPassword, setShowPassword] = useState(false);
-  const [isChecked, setIsChecked] = useState(false);
-  const [role, setRole] = useState<RoleName>("");
+  const [rememberMe, setRememberMe] = useState(false);
+  const [identifier, setIdentifier] = useState(""); // username or email
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
 
-  const handleSignin = (e: React.SubmitEvent<HTMLFormElement>) => {
+  const handleSignin: SubmitEventHandler<HTMLFormElement> = (e) => {
     e.preventDefault();
-    setCurrUser(role as RoleName);
+
+    if (!identifier.trim() || !password) {
+      setError("Please enter your username/email and password.");
+      return;
+    }
+
+    setError("");
+
+    // TODO: replace with real auth call; identifier can be a username or an email
+
+    if (rememberMe) {
+      localStorage.setItem("dtrs_remember_identifier", identifier);
+    } else {
+      localStorage.removeItem("dtrs_remember_identifier");
+    }
 
     navigate("/");
+  };
+
+  const handleForgotPassword = () => {
+    navigate("/forgot-password");
   };
 
   return (
@@ -38,37 +48,33 @@ export default function SignInForm() {
               Sign In
             </h1>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Select your role and enter your credentials to continue.
+              Enter your username or email and password to continue.
             </p>
           </div>
 
-          <form onSubmit={handleSignin}>
+          <form onSubmit={handleSignin} noValidate>
             <div className="space-y-6">
-              <div>
-                <Label>
-                  Role <span className="text-danger">*</span>
-                </Label>
-                <select
-                  className={selectClasses}
-                  value={role}
-                  onChange={(e) => setRole(e.target.value)}
+              {error && (
+                <div
+                  role="alert"
+                  className="rounded-lg border border-danger/20 bg-danger/5 px-4 py-2.5 text-sm text-danger"
                 >
-                  <option value="" disabled>
-                    Select your role
-                  </option>
-                  {ROLES.map((r) => (
-                    <option key={r.value} value={r.value}>
-                      {r.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              {/*
+                  {error}
+                </div>
+              )}
+
               <div>
                 <Label>
-                  Username <span className="text-danger">*</span>
+                  Username or Email <span className="text-danger">*</span>
                 </Label>
-                <Input placeholder="Enter your username" />
+                <Input
+                  type="text"
+                  name="identifier"
+                  autoComplete="username"
+                  placeholder="Enter your username or email"
+                  value={identifier}
+                  onChange={(e) => setIdentifier(e.target.value)}
+                />
               </div>
 
               <div>
@@ -78,32 +84,43 @@ export default function SignInForm() {
                 <div className="relative">
                   <Input
                     type={showPassword ? "text" : "password"}
+                    name="password"
+                    autoComplete="current-password"
                     placeholder="Enter your password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
                   />
-                  <span
+                  <button
+                    type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute z-30 -translate-y-1/2 cursor-pointer right-4 top-1/2"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    aria-pressed={showPassword}
+                    className="absolute z-30 -translate-y-1/2 right-4 top-1/2"
                   >
                     {showPassword ? (
                       <EyeIcon className="fill-gray-500 dark:fill-gray-400 size-5" />
                     ) : (
                       <EyeCloseIcon className="fill-gray-500 dark:fill-gray-400 size-5" />
                     )}
-                  </span>
+                  </button>
                 </div>
-              </div> */}
-              {/*
+              </div>
+
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <Checkbox checked={isChecked} onChange={setIsChecked} />
+                  <Checkbox checked={rememberMe} onChange={setRememberMe} />
                   <span className="block font-normal text-gray-700 text-theme-sm dark:text-gray-400">
-                    Keep me logged in
+                    Remember me
                   </span>
                 </div>
-                <span className="text-sm text-secondary cursor-default">
+                <button
+                  type="button"
+                  onClick={handleForgotPassword}
+                  className="text-sm text-secondary hover:underline"
+                >
                   Forgot password?
-                </span>
-              </div> */}
+                </button>
+              </div>
 
               <div>
                 <button
