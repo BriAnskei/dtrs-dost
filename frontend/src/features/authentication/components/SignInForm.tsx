@@ -1,41 +1,25 @@
-import { type SubmitEventHandler, useState } from "react";
-import { useNavigate } from "react-router";
-import { type RoleName, userUser } from "../../context/UserContext";
-import Label from "../form/Label";
+import { useState } from "react";
+import Checkbox from "../../../components/form/input/Checkbox";
+import Input from "../../../components/form/input/InputField";
+import Label from "../../../components/form/Label";
+import { EyeCloseIcon, EyeIcon } from "../../../icons";
+import { useLogin } from "../hooks/useLogin";
 
 export default function SignInForm() {
-  const navigate = useNavigate();
-
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
-  const [identifier, setIdentifier] = useState(""); // username or email
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [showAdminContact, setShowAdminContact] = useState(false);
 
-  const handleSignin: SubmitEventHandler<HTMLFormElement> = (e) => {
-    e.preventDefault();
-
-    if (!identifier.trim() || !password) {
-      setError("Please enter your username/email and password.");
-      return;
-    }
-
-    setError("");
-
-    // TODO: replace with real auth call; identifier can be a username or an email
-
-    if (rememberMe) {
-      localStorage.setItem("dtrs_remember_identifier", identifier);
-    } else {
-      localStorage.removeItem("dtrs_remember_identifier");
-    }
-
-    navigate("/");
-  };
-
-  const handleForgotPassword = () => {
-    navigate("/forgot-password");
-  };
+  const {
+    email,
+    password,
+    rememberMe,
+    error,
+    setEmail,
+    setPassword,
+    setRememberMe,
+    handleLogin,
+    isPending,
+  } = useLogin();
 
   return (
     <div className="flex flex-1 flex-col">
@@ -50,7 +34,7 @@ export default function SignInForm() {
             </p>
           </div>
 
-          <form onSubmit={handleSignin} noValidate>
+          <form onSubmit={handleLogin} noValidate>
             <div className="space-y-6">
               {error && (
                 <div
@@ -63,15 +47,15 @@ export default function SignInForm() {
 
               <div>
                 <Label>
-                  Username or Email <span className="text-danger">*</span>
+                  Email <span className="text-danger">*</span>
                 </Label>
                 <Input
                   type="text"
-                  name="identifier"
+                  name="email"
                   autoComplete="username"
                   placeholder="Enter your username or email"
-                  value={identifier}
-                  onChange={(e) => setIdentifier(e.target.value)}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                 />
               </div>
 
@@ -104,28 +88,36 @@ export default function SignInForm() {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Checkbox checked={rememberMe} onChange={setRememberMe} />
-                  <span className="block font-normal text-gray-700 text-theme-sm dark:text-gray-400">
-                    Remember me
-                  </span>
+              <div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Checkbox checked={rememberMe} onChange={setRememberMe} />
+                    <span className="block font-normal text-gray-700 text-theme-sm dark:text-gray-400">
+                      Remember me
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowAdminContact(true)}
+                    className="text-sm text-secondary hover:underline"
+                  >
+                    Forgot password?
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={handleForgotPassword}
-                  className="text-sm text-secondary hover:underline"
-                >
-                  Forgot password?
-                </button>
+                {showAdminContact && (
+                  <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                    Please contact your system administrator to reset your password.
+                  </p>
+                )}
               </div>
 
               <div>
                 <button
                   type="submit"
-                  className="bg-primary hover:bg-secondary w-full rounded-lg px-4 py-2.5 text-sm font-medium text-white transition-colors"
+                  disabled={isPending}
+                  className="bg-primary hover:bg-secondary w-full rounded-lg px-4 py-2.5 text-sm font-medium text-white transition-colors disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  Sign In
+                  {isPending ? "Signing in..." : "Sign In"}
                 </button>
               </div>
             </div>

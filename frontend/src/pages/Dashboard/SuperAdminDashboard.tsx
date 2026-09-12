@@ -1,5 +1,4 @@
 // pages/SuperAdminDashboard.tsx
-import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import PageMeta from "../../components/common/PageMeta";
 import SystemDocumentOverview from "../../components/super_admin/SuperAdminDocumentOverview";
 import SuperAdminUserStats from "../../components/super_admin/SuperAdminUserStats";

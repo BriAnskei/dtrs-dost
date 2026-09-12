@@ -1,20 +1,38 @@
-import type { NextFunction, Request, Response } from "express";
+import {
+  type ExecutionContext,
+  Inject,
+  Injectable,
+  UnauthorizedException,
+} from "@nestjs/common";
+import { Reflector } from "@nestjs/core";
+import { AuthGuard } from "@nestjs/passport";
+import { IS_PUBLIC_KEY } from "../authentication/decorators/public.decorator";
 
-export function withAuth(req: Request, res: Response, next: NextFunction) {
-  const authHeader = req.headers.authorization;
-
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return res.status(401).json({
-      success: false,
-      error: "Missing or invalid authorization header",
-    });
+@Injectable()
+export class JwtAuthGuard extends AuthGuard("jwt") {
+  constructor(@Inject(Reflector) private reflector: Reflector) {
+    super();
   }
 
-  const token = authHeader.split(" ")[1];
+  handleRequest<TReturn = unknown>(
+    err: unknown,
+    user: unknown,
+    _info: unknown,
+    context: ExecutionContext,
+  ): TReturn {
+    const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
 
-  // TODO: validate token against your auth provider
-  // For now, attach a placeholder user if token is present
-  (req as any).user = { token };
+    if (isPublic) {
+      return user as TReturn;
+    }
 
-  return next();
+    if (err || !user) {
+      throw err ?? new UnauthorizedException("Invalid or missing access token");
+    }
+
+    return user as TReturn;
+  }
 }

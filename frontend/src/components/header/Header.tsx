@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router";
 import { ThemeToggleButton } from "../common/ThemeToggleButton";
 import NotificationDropdown from "./NotificationDropdown";
-import UserDropdown from "./UserDropdown";
+import UserDropdown from "../../features/authentication/components/UserDropdown";
 
 // Define the interface for the props
 interface HeaderProps {

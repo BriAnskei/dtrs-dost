@@ -1,0 +1,12 @@
+import "dotenv/config";
+import { DataSource } from "typeorm";
+import { RefreshTokenEntity } from "./authentication/entities/refresh-token.entity";
+
+export default new DataSource({
+  type: "postgres",
+  url: process.env.DATABASE_URL,
+
+  entities: [RefreshTokenEntity],
+
+  migrations: ["src/migrations/*.ts"],
+});
