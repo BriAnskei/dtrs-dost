@@ -1,5 +1,6 @@
 import { Navigate } from "react-router";
-import { type Roles, userUser } from "../context/UserContext";
+import { useUser } from "../context/currentUser/user-user";
+import type { Roles } from "../features/userManagement/type/user.type";
 
 function createRolePath(paths: {
   superAdmin?: string;
@@ -18,28 +19,25 @@ function createRolePath(paths: {
 }
 
 export function DashboardRedirect() {
-  const { role } = userUser();
+  const { currentUser } = useUser();
 
-  // console.log("user: ", role);
-  // if (!role) return <Navigate to="/signin" />;
-  //
-  // const dashboardPath = createRolePath({
-  //   superAdmin: "dashboard",
-  //   admin: "dashboard",
-  //   receiving_officer: "dashboard",
-  //   division: "assigned-documents", // no dashboard
-  // })[role];
-  //
-  // if (!dashboardPath) return <Navigate to="notFound" />;
-  //
-  // return <Navigate to={dashboardPath} />;
+  if (!currentUser) return <Navigate to="/signin" />;
 
-  return <Navigate to="/receiving-officer/dashboard" />;
+  const role = currentUser.role_id;
+
+  const dashboardPath = createRolePath({
+    superAdmin: "dashboard",
+    admin: "dashboard",
+    receiving_officer: "dashboard",
+    division: "assigned-documents", // no dashboard
+  })[role];
+
+  if (!dashboardPath) return <Navigate to="notFound" />;
+
+  return <Navigate to={dashboardPath} />;
 }
 
 export function UploadRedirect() {
-  const { role } = userUser();
-
   // if (!role) return <Navigate to="/signin" />;
   //
   // if ([1, 2].includes(role)) return <Navigate to="/upload-direct" />;

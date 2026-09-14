@@ -1,32 +1,21 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Link, useLocation } from "react-router";
+import { Link, matchPath, useLocation } from "react-router";
 import CompanyLogo from "../components/logo/CompanyLogo";
 import type { NavItem } from "../config/navConfig";
 import { useSidebar } from "../context/SidebarContext";
 import { useFilteredNav } from "../hooks/useFilteredNav";
 import { useFilteredOthersNav } from "../hooks/useFilteredOthersNav";
+import { ChevronDownIcon, HorizontaLDots } from "../icons";
+
 // Assume these icons are imported from an icon library
-import {
-  BoxCubeIcon,
-  CalenderIcon,
-  ChevronDownIcon,
-  GridIcon,
-  HorizontaLDots,
-  ListIcon,
-  PageIcon,
-  PieChartIcon,
-  PlugInIcon,
-  TableIcon,
-  UserCircleIcon,
-} from "../icons";
 
 const AppSidebar: React.FC = () => {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
 
-  const othersItems = useFilteredOthersNav();
   const location = useLocation();
 
   const navItems = useFilteredNav();
+  const othersItems = useFilteredOthersNav();
 
   const [openSubmenu, setOpenSubmenu] = useState<{
     type: "main" | "others";

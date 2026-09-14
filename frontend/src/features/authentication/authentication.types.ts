@@ -1,14 +1,17 @@
+import type { RawAxiosRequestConfig } from "axios";
+import type { User } from "../userManagement/type/user.type";
+
 export interface LoginDto {
   email: string;
   password: string;
   remember_me: boolean;
 }
 
-export interface RefreshTokenDto {
-  refresh_token: string;
-}
+export type LoginResponse = {
+  user_data: User;
+};
 
-export interface AuthenticationResponse {
-  access_token: string;
-  refresh_token: string;
-}
+export type AuthenticationRequestConfig = RawAxiosRequestConfig & {
+  _retry?: boolean;
+  skipAuthRefresh?: boolean;
+};

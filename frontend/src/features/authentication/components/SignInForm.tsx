@@ -3,7 +3,7 @@ import Checkbox from "../../../components/form/input/Checkbox";
 import Input from "../../../components/form/input/InputField";
 import Label from "../../../components/form/Label";
 import { EyeCloseIcon, EyeIcon } from "../../../icons";
-import { useLogin } from "../hooks/useLogin";
+import { useSignin } from "../hooks/useSignin";
 
 export default function SignInForm() {
   const [showPassword, setShowPassword] = useState(false);
@@ -19,7 +19,7 @@ export default function SignInForm() {
     setRememberMe,
     handleLogin,
     isPending,
-  } = useLogin();
+  } = useSignin();
 
   return (
     <div className="flex flex-1 flex-col">
@@ -39,9 +39,23 @@ export default function SignInForm() {
               {error && (
                 <div
                   role="alert"
-                  className="rounded-lg border border-danger/20 bg-danger/5 px-4 py-2.5 text-sm text-danger"
+                  className="flex items-center gap-1.5 text-sm text-danger"
                 >
-                  {error}
+                  <svg
+                    className="size-4 shrink-0"
+                    viewBox="0 0 20 20"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M10 6.5v4M10 13.5h.01M17.5 10a7.5 7.5 0 1 1-15 0 7.5 7.5 0 0 1 15 0Z"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                  <span>{error}</span>
                 </div>
               )}
 

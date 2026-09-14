@@ -2,10 +2,10 @@ import { createHash, randomBytes } from "node:crypto";
 import { Injectable, UnauthorizedException } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import * as argon2 from "argon2";
+import { DataSource, EntityManager } from "typeorm";
 import type { UserEntity } from "../../user/entities/user.entity";
 import { UserRepository } from "../../user/user.repository";
 import type { LoginDto } from "../dto/login.dto";
-import type { RefreshTokenDto } from "../dto/refresh-token.dto";
 import type { RefreshTokenEntity } from "../entities/refresh-token.entity";
 import { RefreshTokenRepository } from "../repository/refresh-token.repository";
 
@@ -20,6 +20,7 @@ export class AuthenticationService {
     private readonly userRepository: UserRepository,
     private readonly refreshTokenRepository: RefreshTokenRepository,
     private readonly jwtService: JwtService,
+    private readonly dataSource: DataSource,
   ) {}
 
   async login(dto: LoginDto) {
@@ -31,6 +32,16 @@ export class AuthenticationService {
     const refreshToken = await this.createRefreshToken(user.id, dto.remember_me);
 
     return {
+      user_data: {
+        id: user.id,
+        division_id: user.division_id,
+        full_name: user.full_name,
+        role_id: user.role_id,
+        email: user.email,
+        contect_number: user.contact_number,
+        is_active: user.is_active,
+      },
+
       access_token: accessToken,
       refresh_token: refreshToken,
       refresh_token_max_age_ms: dto.remember_me
@@ -39,39 +50,51 @@ export class AuthenticationService {
     };
   }
 
-  async refresh(dto: RefreshTokenDto) {
-    const tokenHash = this.hashRefreshToken(dto.refresh_token);
-
-    const storedToken = await this.refreshTokenRepository.findOne(tokenHash);
-
-    if (!storedToken) {
-      throw new UnauthorizedException("Invalid refresh token");
+  async refresh(refreshToken: string | undefined) {
+    if (!refreshToken) {
+      throw new UnauthorizedException("Refresh token not found");
     }
 
-    if (storedToken.expires_at <= new Date()) {
-      await this.refreshTokenRepository.delete(storedToken.id);
+    const tokenHash = this.hashRefreshToken(refreshToken);
 
-      throw new UnauthorizedException("Refresh token expired");
-    }
+    return this.dataSource.transaction(async (manager) => {
+      const storedToken = await this.refreshTokenRepository.consume(tokenHash, manager);
 
-    const user = await this.userRepository.findById(storedToken.user_id);
+      if (!storedToken) {
+        throw new UnauthorizedException("Invalid or expired refresh token");
+      }
 
-    if (!user?.is_active) {
-      throw new UnauthorizedException("User is not active");
-    }
+      const user = await this.userRepository.findById(storedToken.user_id, manager);
 
-    await this.refreshTokenRepository.delete(storedToken.id);
+      if (!user?.is_active) {
+        throw new UnauthorizedException("User is not active");
+      }
 
-    const accessToken = await this.generateAccessToken(user);
-    const refreshToken = await this.createRefreshToken(user.id, storedToken.remembered);
+      const accessToken = await this.generateAccessToken(user);
 
-    return {
-      access_token: accessToken,
-      refresh_token: refreshToken,
-    };
+      const refreshTokenValue = await this.createRefreshToken(
+        user.id,
+        storedToken.remembered,
+        manager,
+      );
+
+      return {
+        access_token: accessToken,
+        refresh_token: refreshTokenValue,
+
+        refresh_token_max_age_ms: storedToken.remembered
+          ? this.refreshTokenExpirationMs.rememberMe
+          : this.refreshTokenExpirationMs.default,
+      };
+    });
   }
 
   async logout(refreshToken: string) {
+    if (!refreshToken) {
+      return {
+        message: "Logged out successfully",
+      };
+    }
     const tokenHash = this.hashRefreshToken(refreshToken);
 
     await this.refreshTokenRepository.deleteByTokenHash(tokenHash);
@@ -117,7 +140,8 @@ export class AuthenticationService {
 
   private async createRefreshToken(
     userId: string,
-    remember_me: boolean,
+    rememberMe: boolean,
+    manager?: EntityManager,
   ): Promise<string> {
     const refreshToken = randomBytes(64).toString("hex");
 
@@ -125,17 +149,20 @@ export class AuthenticationService {
 
     const expiresAt = new Date(
       Date.now() +
-        (remember_me
+        (rememberMe
           ? this.refreshTokenExpirationMs.rememberMe
           : this.refreshTokenExpirationMs.default),
     );
 
-    await this.refreshTokenRepository.save({
-      user_id: userId,
-      token_hash: tokenHash,
-      expires_at: expiresAt,
-      remembered: remember_me,
-    } as RefreshTokenEntity);
+    await this.refreshTokenRepository.save(
+      {
+        user_id: userId,
+        token_hash: tokenHash,
+        expires_at: expiresAt,
+        remembered: rememberMe,
+      } as Partial<RefreshTokenEntity>,
+      manager ?? this.dataSource.manager,
+    );
 
     return refreshToken;
   }

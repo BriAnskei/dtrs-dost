@@ -1,7 +1,6 @@
 import axios from "axios";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
-import { userUser } from "../../context/UserContext";
 import MissingFieldsModal from "../ui/modal/document/MissingFieldsModal";
 
 // ─── Types ─────────────────────────────────────────────────────────────

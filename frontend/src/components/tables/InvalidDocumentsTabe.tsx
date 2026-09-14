@@ -1,6 +1,6 @@
 import axios from "axios";
 import { useEffect, useRef, useState } from "react";
-import { userUser } from "../../context/UserContext";
+import { useUser } from "../../context/currentUser/user-user";
 import { Table, TableBody, TableCell, TableHeader, TableRow } from "../ui/table";
 
 // ─── Types ─────────────────────────────────────────────────────
@@ -183,7 +183,8 @@ function DeleteConfirmModal({
 // ─── Main Component ──────────────────────────────────────────
 
 export default function InvalidDocumentsTable() {
-  const { userId } = userUser();
+  const { currentUser } = useUser();
+  const userId = currentUser?.id;
   const [search, setSearch] = useState("");
   const [filterDateFrom, setFilterDateFrom] = useState("");
   const [filterDateTo, setFilterDateTo] = useState("");

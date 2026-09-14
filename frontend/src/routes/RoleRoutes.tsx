@@ -1,6 +1,7 @@
 import type React from "react";
 import { Navigate } from "react-router";
-import { type Roles, userUser } from "../context/UserContext";
+import { useUser } from "../context/currentUser/user-user";
+import type { Roles } from "../features/userManagement/type/user.type";
 
 interface Props {
   children: React.ReactNode;
@@ -8,11 +9,13 @@ interface Props {
 }
 
 export default function RoleRoute({ children, allowedRoles }: Props) {
-  const { role } = userUser();
+  const { currentUser } = useUser();
 
-  if (!role) {
+  if (!currentUser) {
     return <Navigate to="/signin" />;
   }
+
+  const role = currentUser.role_id;
 
   // awkward to show a non unauthorized for the super admin
   if (!allowedRoles.includes(role) && role === 1) return <Navigate to="/notfound" />;

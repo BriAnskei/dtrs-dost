@@ -1,5 +1,12 @@
-import axios, { type AxiosError, type InternalAxiosRequestConfig } from "axios";
+import axios, { type AxiosError } from "axios";
+import { toast } from "sonner";
+import { notifySessionExpired } from "../features/authentication/authentication.events";
 import { authenticationService } from "../features/authentication/authentication.service";
+import {
+  clearAuthenticated,
+  isAuthenticated,
+} from "../features/authentication/authentication.session";
+import type { AuthenticationRequestConfig } from "../features/authentication/authentication.types";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -15,25 +22,45 @@ let isRefreshing = false;
 
 let refreshPromise: Promise<void> | null = null;
 
+function isRefreshRequest(url: string | undefined) {
+  return url?.includes("/authentication/refresh") ?? false;
+}
+
+function isLoginRequest(url: string | undefined) {
+  return url?.includes("/authentication/login") ?? false;
+}
+
+function isLogoutRequest(url: string | undefined) {
+  return url?.includes("/authentication/logout") ?? false;
+}
+
+function showSessionExpiredToast() {
+  toast.error("Your session has expired", {
+    description: "Please sign in again.",
+    id: "session-expired",
+  });
+}
+
 apiClient.interceptors.response.use(
   (res) => res,
 
   async (err: AxiosError) => {
-    const originalReq = err.config as
-      | (InternalAxiosRequestConfig & {
-          _retry?: boolean;
-        })
-      | undefined;
+    const originalReq = err.config as AuthenticationRequestConfig | undefined;
 
     if (!originalReq) {
       return Promise.reject(err);
     }
 
-    if (
-      err.response?.status !== 401 ||
-      originalReq._retry ||
-      originalReq.url?.includes("/authentication/refresh")
-    ) {
+    const isUnauthorized = err.response?.status === 401;
+
+    const shouldSkipRefresh =
+      originalReq.skipAuthRefresh === true ||
+      isRefreshRequest(originalReq.url) ||
+      isLoginRequest(originalReq.url) ||
+      isLogoutRequest(originalReq.url) ||
+      originalReq._retry === true;
+
+    if (!isUnauthorized || shouldSkipRefresh) {
       return Promise.reject(err);
     }
 
@@ -58,6 +85,15 @@ apiClient.interceptors.response.use(
 
       return apiClient(originalReq);
     } catch (refreshErr) {
+      // Only notify if the app previously had an authenticated session.
+      if (isAuthenticated()) {
+        clearAuthenticated();
+
+        showSessionExpiredToast();
+
+        notifySessionExpired();
+      }
+
       return Promise.reject(refreshErr);
     }
   },

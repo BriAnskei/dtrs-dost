@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { type NavItem, OTHERS_NAV_ITEMS } from "../config/navConfig";
-import { type Roles, userUser } from "../context/UserContext";
+import { useUser } from "../context/currentUser/user-user";
+import type { Roles } from "../features/userManagement/type/user.type";
 
 /**
  * Mirrors useFilteredNav but operates on the "others" navigation items.
@@ -8,7 +9,10 @@ import { type Roles, userUser } from "../context/UserContext";
  * that include the role in their `roles` array.
  */
 export const useFilteredOthersNav = (): NavItem[] => {
-  const { role } = userUser();
+  const { currentUser } = useUser();
+
+  const role = currentUser?.role_id;
+
   const currentRole = role as Roles | undefined;
 
   return useMemo(() => {

@@ -24,6 +24,7 @@ import NotificationPage from "../pages/notification/NotificationPage";
 import NotFound from "../pages/OtherPage/NotFound";
 import Unauthorized from "../pages/OtherPage/Unauthorized";
 import PublicTrackingPage from "../pages/Public/PublicTrackingPage";
+import PublicRoute from "./PublicRoute";
 import ProtectedRoute from "./protectedRoute";
 import { DashboardRedirect, UploadRedirect } from "./Redirect";
 import RoleRoute from "./RoleRoutes";
@@ -183,7 +184,11 @@ const DIVISION_ROUTE: RouteType[] = [
 export const router = createBrowserRouter([
   {
     path: "/signin",
-    element: <SignIn />,
+    element: (
+      <PublicRoute>
+        <SignIn />
+      </PublicRoute>
+    ),
   },
 
   {

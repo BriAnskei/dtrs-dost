@@ -9,7 +9,7 @@ import {
   typeLabel,
 } from "../../components/notifications/NotificationItem";
 import { useNotifications } from "../../context/NotificationsContext";
-import { userUser } from "../../context/UserContext";
+import { useUser } from "../../context/currentUser/user-user";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -54,7 +54,8 @@ const ALLOWED_TYPES_BY_ROLE: Record<number, NotificationType[]> = {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 const NotificationPage: React.FC = () => {
-  const { role } = userUser();
+  const { currentUser } = useUser();
+  const role = currentUser?.role_id;
   const {
     notifications,
     markAsRead,

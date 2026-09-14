@@ -14,21 +14,25 @@ export class JwtAuthGuard extends AuthGuard("jwt") {
     super();
   }
 
-  handleRequest<TReturn = unknown>(
-    err: unknown,
-    user: unknown,
-    _info: unknown,
-    context: ExecutionContext,
-  ): TReturn {
+  canActivate(context: ExecutionContext) {
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
       context.getHandler(),
       context.getClass(),
     ]);
 
     if (isPublic) {
-      return user as TReturn;
+      return true;
     }
 
+    return super.canActivate(context);
+  }
+
+  handleRequest<TReturn = unknown>(
+    err: unknown,
+    user: unknown,
+    _info: unknown,
+    _context: ExecutionContext,
+  ): TReturn {
     if (err || !user) {
       throw err ?? new UnauthorizedException("Invalid or missing access token");
     }

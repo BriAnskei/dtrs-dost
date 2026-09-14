@@ -1,4 +1,4 @@
-import type { Roles } from "../context/UserContext";
+import type { Roles } from "../features/userManagement/type/user.type";
 import {
   AccessControlIcon,
   AdministrationIcon,

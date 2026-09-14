@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Link } from "react-router";
 import { useNotifications } from "../../context/NotificationsContext";
-import { userUser } from "../../context/UserContext";
+import { useUser } from "../../context/currentUser/user-user";
 import {
   type NotificationType,
   typeLabel,
@@ -39,7 +39,8 @@ const ALLOWED_TYPES_BY_ROLE: Record<number, NotificationType[]> = {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function NotificationDropdown() {
-  const { role } = userUser();
+  const { currentUser } = useUser();
+  const role = currentUser?.role_id;
   const { notifications, markAsRead, removeNotification, markAllAsRead } =
     useNotifications();
   const [isOpen, setIsOpen] = useState(false);

@@ -1,7 +1,7 @@
 // components/admin/NeedsAttentionStrip.tsx
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import { userUser } from "../../context/UserContext";
+import { useUser } from "../../context/currentUser/user-user";
 import { AlertIcon, ArrowRightIcon } from "../../icons";
 
 interface AttentionItem {
@@ -58,7 +58,8 @@ function AlertDangerIcon({ className }: { className?: string }) {
 }
 
 export default function NeedsAttentionStrip() {
-  const { role } = userUser();
+  const { currentUser } = useUser();
+  const role = currentUser?.role_id;
   const items = role === 3 ? receiverItems : adminItems;
   const navigate = useNavigate();
   const [dismissed, setDismissed] = useState(false);

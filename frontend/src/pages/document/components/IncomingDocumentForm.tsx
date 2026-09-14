@@ -10,7 +10,7 @@ import axios from "axios";
 import * as pdfjsLib from "pdfjs-dist";
 import Tesseract from "tesseract.js";
 import QRCodeModal from "../../../components/receiver/QRCodeModal";
-import { userUser } from "../../../context/UserContext";
+import { useUser } from "../../../context/currentUser/user-user";
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
 pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
@@ -48,7 +48,8 @@ interface UploadResult {
 // ── Component ─────────────────────────────────────────────
 
 export default function IncomingDocumentForm() {
-  const { userId } = userUser();
+  const { currentUser } = useUser();
+  const userId = currentUser?.id;
 
   const [file, setFile] = useState<File | null>(null);
   const [fileError, setFileError] = useState<string | null>(null);

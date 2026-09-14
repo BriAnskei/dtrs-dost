@@ -2,7 +2,6 @@ import { Body, Controller, HttpCode, Post, Req, Res, UseGuards } from "@nestjs/c
 import type { Request, Response } from "express";
 import { Public } from "../decorators/public.decorator";
 import { LoginDto } from "../dto/login.dto";
-import { RefreshTokenDto } from "../dto/refresh-token.dto";
 import { LoginThrottlerGuard } from "../guard/login-throttler.guard";
 import { AuthenticationService } from "../service/authentication.service";
 
@@ -21,7 +20,7 @@ export class AuthenticationController {
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       path: "/authentication",
-      maxAge: Math.floor(result.refresh_token_max_age_ms / 1000),
+      maxAge: result.refresh_token_max_age_ms,
     });
 
     res.cookie("access_token", result.access_token, {
@@ -32,14 +31,36 @@ export class AuthenticationController {
       maxAge: 15 * 60 * 1000, //15 minutes
     });
     return {
-      message: "Login suucessfully",
+      user_data: result.user_data,
     };
   }
 
   @Post("refresh")
   @Public()
-  async refresh(@Body() dto: RefreshTokenDto) {
-    return this.authenticationService.refresh(dto);
+  async refresh(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+    const refreshToken = req.cookies?.refresh_token;
+
+    const result = await this.authenticationService.refresh(refreshToken);
+
+    res.cookie("access_token", result.access_token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "productzion",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 15 * 60 * 1000,
+    });
+
+    res.cookie("refresh_token", result.refresh_token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/authentication",
+      maxAge: result.refresh_token_max_age_ms,
+    });
+
+    return {
+      message: "Token refreshed successfully",
+    };
   }
 
   @Post("logout")
