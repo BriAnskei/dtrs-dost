@@ -4,34 +4,29 @@
  * ProtectedRoute (`routes/protectedRoute.tsx`) wraps every authenticated
  * layout route.  Its contract:
  *
- *   - isLoading  → show <AppShellSkeleton />  (no redirect, keep the shell
- *     stable while we resolve the session).
- *   - !user      → <Navigate to="/signin" replace />  (kick unauth visitors
- *     back to sign-in).
+ *   - isLoading  → <AppShellSkeleton />  (no redirect; keep the shell stable
+ *     while we resolve the session).
+ *   - !user      → <Navigate to="/signin" replace />  (bounce unauth visitors).
  *   -  user      → render children.
  *
- * These tests mock `useUser` (the single read point of the user context) and
- * assert on the rendered outcome inside a <MemoryRouter>.
+ * We mock `useUser` (the single read point of the user context) and assert on
+ * rendered output inside a <MemoryRouter> + <Routes>.  The AppShellSkeleton is
+ * stubbed so the focus stays on routing logic.
+ *
+ * The catch-all `*` route in renderRoutes renders <LocationDisplay>, which
+ * reports the final pathname — that's how we assert <Navigate> destinations.
  */
 
-import { describe, it, expect, vi } from "vitest";
 import { screen } from "@testing-library/react";
 import { Route } from "react-router";
+import { describe, expect, it, vi } from "vitest";
+import { LocationDisplay, renderRoutes } from "../tests/test-utils";
 import ProtectedRoute from "./protectedRoute";
-import { renderRoutes } from "../tests/test-utils";
 
-/*
- * Hoisted mock so the file-scope `vi.mock` factory can reference it.
- * Each test sets the return value via `mockUseUser`.
- */
 const { mockUseUser } = vi.hoisted(() => ({ mockUseUser: vi.fn() }));
 
 vi.mock("../context/currentUser/user-user", () => ({ useUser: mockUseUser }));
 
-/*
- * Stub the real skeleton so tests don't depend on react-loading-skeleton's
- * internals — we only care about the guard's branching, not the loading UI.
- */
 vi.mock("../components/Appshellskeleton", () => ({
   default: () => <span data-testid="skeleton">Loading…</span>,
 }));
@@ -43,49 +38,50 @@ describe("ProtectedRoute", () => {
     mockUseUser.mockReturnValue({ currentUser: null, isLoading: true });
 
     renderRoutes(
-      <ProtectedRoute>
-        <span>{PROTECTED_MARKER}</span>
-      </ProtectedRoute>,
-      ["/protected"]},
+      <Route
+        path="/protected"
+        element={
+          <ProtectedRoute>
+            <span>{PROTECTED_MARKER}</span>
+          </ProtectedRoute>
+        }
+      />,
+      ["/protected"],
     );
 
-    // Skeleton visible, protected content NOT yet rendered.
     expect(screen.getByTestId("skeleton")).toBeInTheDocument();
     expect(screen.queryByText(PROTECTED_MARKER)).not.toBeInTheDocument();
   });
 
-  it("redirects to /signin when there is no authenticated user", () => {
+  it("redirects an unauthenticated visitor to /signin", () => {
+    /*
+     * No user + not loading → ProtectedRoute emits <Navigate to="/signin" />.
+     * Only the guarded route is declared; the destination "/signin" then falls
+     * through to the catch-all <LocationDisplay>, proving the redirect target.
+     */
     mockUseUser.mockReturnValue({ currentUser: null, isLoading: false });
 
     renderRoutes(
-      [
-        <Route
-          key="signin"
-          path="/signin"
-          element={<span id="signin-page">Sign in page</span>}
-        />,
-        <Route
-          key="protected"
-          path="/protected"
-          element={
-            <ProtectedRoute>
-              <span>{PROTECTED_MARKER}</span>
-            </ProtectedRoute>
-          }
-        />,
-      ],
+      <Route
+        path="/protected"
+        element={
+          <ProtectedRoute>
+            <span>{PROTECTED_MARKER}</span>
+          </ProtectedRoute>
+        }
+      />,
       ["/protected"],
     );
 
-    // Navigate fired → /signin route matched → its content renders.
-    expect(screen.getByText("Sign in page")).toBeInTheDocument();
-    expect(screen.queryByText(PROTECTED_MARKER)).not.toBeInTheDocument();
-
-    // Also confirm the resulting URL (proves the redirect target/pathname).
     expect(screen.getByTestId("location").textContent).toBe("/signin");
+    expect(screen.queryByText(PROTECTED_MARKER)).not.toBeInTheDocument();
   });
 
-  it("renders children when an authenticated user exists", () => {
+  it("renders children when an authenticated user exists (no redirect)", () => {
+    /*
+     * A user is present → children render and the URL stays at /protected
+     * (LocationDisplay inside the children proves no redirect happened).
+     */
     mockUseUser.mockReturnValue({
       currentUser: {
         id: "u1",
@@ -100,14 +96,19 @@ describe("ProtectedRoute", () => {
     });
 
     renderRoutes(
-      <ProtectedRoute>
-        <span>{PROTECTED_MARKER}</span>
-      </ProtectedRoute>,
+      <Route
+        path="/protected"
+        element={
+          <ProtectedRoute>
+            <span>{PROTECTED_MARKER}</span>
+            <LocationDisplay />
+          </ProtectedRoute>
+        }
+      />,
       ["/protected"],
     );
 
     expect(screen.getByText(PROTECTED_MARKER)).toBeInTheDocument();
-    // No redirect occurred.
-    expect(screen.queryByTestId("skeleton")).not.toBeInTheDocument();
+    expect(screen.getByTestId("location").textContent).toBe("/protected");
   });
 });

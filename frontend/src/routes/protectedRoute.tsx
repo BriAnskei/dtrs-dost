@@ -9,11 +9,6 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
   if (isLoading) {
     return <AppShellSkeleton />;
   }
-
-  if (!currentUser) {
-    return <Navigate to="/signin" replace />;
-  }
-
   if (!currentUser && !isLoading) return <Navigate to="/signin" />;
 
   return children;

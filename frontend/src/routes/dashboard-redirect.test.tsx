@@ -21,11 +21,11 @@
  * because <Navigate> does not render page content.
  */
 
-import { describe, it, expect, vi } from "vitest";
 import { screen } from "@testing-library/react";
 import { Route } from "react-router";
-import { DashboardRedirect } from "./Redirect";
+import { describe, expect, it, vi } from "vitest";
 import { renderRoutes } from "../tests/test-utils";
+import { DashboardRedirect } from "./Redirect";
 
 const { mockUseUser } = vi.hoisted(() => ({ mockUseUser: vi.fn() }));
 
@@ -52,7 +52,7 @@ describe("DashboardRedirect", () => {
      */
     mockUseUser.mockReturnValue({ currentUser: null, isLoading: false });
 
-    renderRoutes(<Route path="/" element={<DashboardRedirect />} />, ["/",]);
+    renderRoutes(<Route path="/" element={<DashboardRedirect />} />, ["/"]);
 
     expect(screen.getByTestId("location").textContent).toBe("/signin");
   });

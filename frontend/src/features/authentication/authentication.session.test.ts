@@ -13,11 +13,11 @@
  *   These tests pin that persistence contract.
  */
 
-import { describe, it, expect, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import {
-  markAuthenticated,
   clearAuthenticated,
   isAuthenticated,
+  markAuthenticated,
 } from "./authentication.session";
 
 describe("authentication.session (localStorage-backed flag)", () => {

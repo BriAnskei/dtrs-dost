@@ -26,9 +26,7 @@ export function LocationDisplay() {
   return <span data-testid="location">{pathname}</span>;
 }
 
-interface RenderRouterOptions {
-  initialEntries?: string[];
-}
+type RenderRouterOptions = { initialEntries?: string[] };
 
 /**
  * Render a <Routes> body inside an isolated <MemoryRouter>.
@@ -37,15 +35,22 @@ interface RenderRouterOptions {
  * route (LocationDisplay) is appended last so unmatched Navigate targets are
  * still observable.
  *
+ * `initialEntries` may be passed as a plain array (shorthand) or as an options
+ * object — the helper normalises both:
+ *
  * @example
- * renderRoutes([<Route path="/signin" element={<Signin/>} />], ["/dashboard"]);
+ * renderRoutes(<Route path="/signin" element={<Signin/>} />, ["/dashboard"])
+ * renderRoutes(<Route path="/signin" element={<Signin/>} />, { initialEntries: ["/dashboard"] })
  */
 export function renderRoutes(
   children: ReactNode,
-  { initialEntries = ["/"] }: RenderRouterOptions = {},
+  initialEntries: string[] | RenderRouterOptions = ["/"],
 ): RenderResult {
+  const entries = Array.isArray(initialEntries)
+    ? initialEntries
+    : initialEntries.initialEntries ?? ["/"];
   return render(
-    <MemoryRouter initialEntries={initialEntries}>
+    <MemoryRouter initialEntries={entries}>
       <Routes>
         {children}
         <Route path="*" element={<LocationDisplay />} />

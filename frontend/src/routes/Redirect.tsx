@@ -9,7 +9,7 @@ function createRolePath(paths: {
   division?: string;
 }): Partial<Record<Roles, string>> {
   return {
-    ...(paths.superAdmin && { 1: `/super-admin/${paths.superAdmin}` }),
+    ...(paths.superAdmin && { 1: `/super-admin//${paths.superAdmin}` }),
     ...(paths.admin && { 2: `/admin/${paths.admin}` }),
     ...(paths.receiving_officer && {
       3: `/receiving-officer/${paths.receiving_officer}`,

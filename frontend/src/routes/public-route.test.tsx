@@ -1,8 +1,8 @@
 /**
  * PublicRoute guard tests.
  *
- * PublicRoute (`routes/PublicRoute.tsx`) wraps the /signin page.  Its
- * contract (the inverse of ProtectedRoute):
+ * PublicRoute (`routes/PublicRoute.tsx`) wraps the /signin page.  Its contract
+ * (the inverse of ProtectedRoute):
  *
  *   - isLoading  → <AppShellSkeleton />
  *   - user set   → <Navigate to="/" replace />   (don't let a logged-in user
@@ -13,11 +13,11 @@
  * stub.
  */
 
-import { describe, it, expect, vi } from "vitest";
 import { screen } from "@testing-library/react";
 import { Route } from "react-router";
+import { describe, expect, it, vi } from "vitest";
+import { LocationDisplay, renderRoutes } from "../tests/test-utils";
 import PublicRoute from "./PublicRoute";
-import { renderRoutes } from "../tests/test-utils";
 
 const { mockUseUser } = vi.hoisted(() => ({ mockUseUser: vi.fn() }));
 
@@ -34,9 +34,14 @@ describe("PublicRoute", () => {
     mockUseUser.mockReturnValue({ currentUser: null, isLoading: true });
 
     renderRoutes(
-      <PublicRoute>
-        <span>{FORM_MARKER}</span>
-      </PublicRoute>,
+      <Route
+        path="/signin"
+        element={
+          <PublicRoute>
+            <span>{FORM_MARKER}</span>
+          </PublicRoute>
+        }
+      />,
       ["/signin"],
     );
 
@@ -44,11 +49,11 @@ describe("PublicRoute", () => {
     expect(screen.queryByText(FORM_MARKER)).not.toBeInTheDocument();
   });
 
-  it("redirects a logged-in user away from /signin to the dashboard", () => {
+  it("redirects a logged-in user away from /signin to /", () => {
     /*
-     * A logged-in user visiting /signin should be bounced to "/" — there's
-     * nothing for them to sign in to.  The resulting pathname (captured by
-     * the catch-all LocationDisplay) proves the Navigate target.
+     * Logged-in user visiting /signin → PublicRoute emits <Navigate to="/" />.
+     * Only the guarded route is declared; "/" then falls through to the
+     * catch-all <LocationDisplay>, proving the redirect target.
      */
     mockUseUser.mockReturnValue({
       currentUser: {
@@ -64,38 +69,43 @@ describe("PublicRoute", () => {
     });
 
     renderRoutes(
-      [
-        <Route key="home" path="/" element={<span id="home">Home (dashboard redirect)</span>} />,
-        <Route
-          key="signin"
-          path="/signin"
-          element={
-            <PublicRoute>
-              <span>{FORM_MARKER}</span>
-            </PublicRoute>
-          }
-        />,
-      ],
+      <Route
+        path="/signin"
+        element={
+          <PublicRoute>
+            <span>{FORM_MARKER}</span>
+          </PublicRoute>
+        }
+      />,
       ["/signin"],
     );
 
-    // Bounce to "/" → home route matched.
-    expect(screen.getByText("Home (dashboard redirect)")).toBeInTheDocument();
-    expect(screen.queryByText(FORM_MARKER)).not.toBeInTheDocument();
     expect(screen.getByTestId("location").textContent).toBe("/");
+    expect(screen.queryByText(FORM_MARKER)).not.toBeInTheDocument();
   });
 
   it("renders the sign-in form when there is no authenticated user", () => {
+    /*
+     * No user + not loading → children (the form) render; the embedded
+     * <LocationDisplay> proves the pathname stayed /signin (no redirect).
+     */
     mockUseUser.mockReturnValue({ currentUser: null, isLoading: false });
 
     renderRoutes(
-      <PublicRoute>
-        <span>{FORM_MARKER}</span>
-      </PublicRoute>,
+      <Route
+        path="/signin"
+        element={
+          <PublicRoute>
+            <span>{FORM_MARKER}</span>
+            <LocationDisplay />
+          </PublicRoute>
+        }
+      />,
       ["/signin"],
     );
 
     expect(screen.getByText(FORM_MARKER)).toBeInTheDocument();
+    expect(screen.getByTestId("location").textContent).toBe("/signin");
     expect(screen.queryByTestId("skeleton")).not.toBeInTheDocument();
   });
 });
