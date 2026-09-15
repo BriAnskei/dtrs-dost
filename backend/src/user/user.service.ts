@@ -24,6 +24,7 @@ export class UserService {
       role_id: user.role_id,
       email: user.email,
       contect_number: user.contact_number,
+      position: user.position,
       is_active: user.is_active,
     };
   }

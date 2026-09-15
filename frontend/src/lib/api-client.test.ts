@@ -305,3 +305,49 @@ describe("api-client response interceptor — session expiry", () => {
     ]);
   });
 });
+
+describe("api-client response interceptor — network errors", () => {
+  /*
+   * Transport failure: the request was sent but no response was ever received
+   * (server down, offline, DNS, timeout, empty response). The interceptor must
+   * toast once, must NOT attempt token refresh, and must NOT fire session-
+   * expiry handling — a network error is not an auth problem.
+   */
+  const networkAdapter: AxiosAdapter = (config) =>
+    Promise.reject(
+      new AxiosError("connect ECONNREFUSED 127.0.0.1:80", AxiosError.ERR_NETWORK, config),
+    );
+
+  beforeEach(() => {
+    vi.restoreAllMocks();
+    mockRefresh.mockReset();
+    mockToastError.mockReset();
+    localStorage.clear();
+  });
+
+  it("toasts once and skips refresh on a transport failure (server down)", async () => {
+    markAuthenticatedLocal();
+
+    const apiClient = await freshApiClient();
+    apiClient.defaults.adapter = networkAdapter;
+
+    await expect(apiClient.get("/user/me")).rejects.toBeTruthy();
+
+    expect(mockToastError).toHaveBeenCalledTimes(1);
+    expect(mockToastError).toHaveBeenCalledWith(
+      "Could not connect to the server",
+      expect.objectContaining({ id: "network-error" }),
+    );
+    expect(mockRefresh).not.toHaveBeenCalled();
+  });
+
+  it("does NOT toast on a network failure for the login flow (caller owns it)", async () => {
+    const apiClient = await freshApiClient();
+    apiClient.defaults.adapter = networkAdapter;
+
+    await expect(apiClient.post("/authentication/login", {})).rejects.toBeTruthy();
+
+    expect(mockToastError).not.toHaveBeenCalled();
+    expect(mockRefresh).not.toHaveBeenCalled();
+  });
+});

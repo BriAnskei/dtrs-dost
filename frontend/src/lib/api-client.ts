@@ -51,6 +51,26 @@ apiClient.interceptors.response.use(
       return Promise.reject(err);
     }
 
+    // No response at all => transport failure (server down, offline, DNS,
+    // timeout, empty response). This is NOT an auth problem, so skip the
+    // 401/refresh dance entirely and just surface a toast. Auth-flow calls
+    // (login/refresh/logout) own their own error handling and stay quiet here.
+    if (!err.response) {
+      const isAuthFlow =
+        isLoginRequest(originalReq.url) ||
+        isRefreshRequest(originalReq.url) ||
+        isLogoutRequest(originalReq.url);
+
+      if (!isAuthFlow) {
+        toast.error("Could not connect to the server", {
+          description: "Check your connection or try again later.",
+          id: "network-error",
+        });
+      }
+
+      return Promise.reject(err);
+    }
+
     const isUnauthorized = err.response?.status === 401;
 
     const shouldSkipRefresh =

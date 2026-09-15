@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { type NavItem, OTHERS_NAV_ITEMS } from "../config/navConfig";
 import { useUser } from "../context/currentUser/user-user";
-import type { Roles } from "../features/userManagement/type/user.type";
+import type { Roles } from "../features/user-management/type/user.type";
 
 /**
  * Mirrors useFilteredNav but operates on the "others" navigation items.

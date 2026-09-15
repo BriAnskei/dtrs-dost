@@ -11,6 +11,7 @@ export class AuthenticationController {
 
   @Post("login")
   @Public()
+  @HttpCode(200)
   @UseGuards(LoginThrottlerGuard)
   async login(@Body() dto: LoginDto, @Res({ passthrough: true }) res: Response) {
     const result = await this.authenticationService.login(dto);

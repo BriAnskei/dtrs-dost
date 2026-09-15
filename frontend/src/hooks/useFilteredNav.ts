@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { NAV_ITEMS, type NavItem } from "../config/navConfig";
 import { useUser } from "../context/currentUser/user-user";
-import type { Roles } from "../features/userManagement/type/user.type";
+import type { Roles } from "../features/user-management/type/user.type";
 
 /**
  * Map each role to its dashboard route. The Dashboard nav item has a generic

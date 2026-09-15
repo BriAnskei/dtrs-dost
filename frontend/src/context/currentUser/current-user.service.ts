@@ -1,4 +1,4 @@
-import type { User } from "../../features/userManagement/type/user.type";
+import type { User } from "../../features/user-management/type/user.type";
 import { apiClient } from "../../lib/api-client";
 
 export const currentUserService = {

@@ -8,7 +8,7 @@ export function useSignOut() {
   const queryClient = useQueryClient();
 
   const logoutMutation = useMutation({
-    mutationFn: authenticationService.logout,
+    mutationFn: authenticationService.signOut,
 
     onSuccess: () => {
       clearAuthenticated();

@@ -1,9 +1,9 @@
 import { apiClient } from "../../lib/api-client";
-import type { User } from "../userManagement/type/user.type";
+import type { User } from "../user-management/type/user.type";
 import type { LoginDto, LoginResponse } from "./authentication.types";
 
 export const authenticationService = {
-  async login(dto: LoginDto): Promise<User> {
+  async signIn(dto: LoginDto): Promise<User> {
     const res = await apiClient.post<LoginResponse>("/authentication/login", dto);
     return res.data.user_data;
   },
@@ -12,7 +12,7 @@ export const authenticationService = {
     await apiClient.post("/authentication/refresh");
   },
 
-  async logout(): Promise<void> {
+  async signOut(): Promise<void> {
     await apiClient.post("/authentication/logout");
   },
 };

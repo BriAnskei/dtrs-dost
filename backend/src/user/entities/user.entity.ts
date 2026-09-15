@@ -14,6 +14,9 @@ export class UserEntity {
   @Column({ type: "varchar", length: 255 })
   full_name!: string;
 
+  @Column({ type: "varchar", length: 255, nullable: true })
+  position!: string | null;
+
   @Column({ type: "varchar", length: 255 })
   password!: string;
 

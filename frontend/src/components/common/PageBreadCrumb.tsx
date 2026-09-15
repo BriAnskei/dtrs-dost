@@ -6,7 +6,7 @@ interface BreadcrumbProps {
 
 const PageBreadcrumb: React.FC<BreadcrumbProps> = ({ pageTitle }) => {
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+    <div className="flex flex-wrap items-center justify-between gap-3 mb-2">
       <h2
         className="text-xl font-semibold text-gray-800 dark:text-white/90"
         x-text="pageName"
@@ -28,7 +28,10 @@ const PageBreadcrumb: React.FC<BreadcrumbProps> = ({ pageTitle }) => {
                 viewBox="0 0 17 16"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
+                role="img"
+                aria-labelledby="breadcrumb-arrow-title"
               >
+                <title id="breadcrumb-arrow-title">Breadcrumb separator arrow</title>
                 <path
                   d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366"
                   stroke=""

@@ -42,6 +42,7 @@ export default function SignInForm() {
                   className="flex items-center gap-1.5 text-sm text-danger"
                 >
                   <svg
+                    aria-hidden="true"
                     className="size-4 shrink-0"
                     viewBox="0 0 20 20"
                     fill="none"

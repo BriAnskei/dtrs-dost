@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Link } from "react-router";
+import UserDropdown from "../../features/authentication/components/UserDropdown";
 import { ThemeToggleButton } from "../common/ThemeToggleButton";
 import NotificationDropdown from "./NotificationDropdown";
-import UserDropdown from "../../features/authentication/components/UserDropdown";
 
 // Define the interface for the props
 interface HeaderProps {
@@ -17,12 +17,13 @@ const Header: React.FC<HeaderProps> = ({ onClick, onToggle }) => {
   };
 
   return (
-    <header className="sticky top-0 flex w-full bg-white border-b-2 border-primary z-99999 lg:border-b lg:border-primary/30 shadow-theme-sm">
+    <header className="sticky top-0 flex w-full bg-white border-b-2 border-primary z-40 lg:border-b lg:border-primary/30 shadow-theme-sm">
       <div className="flex flex-col items-center justify-between grow lg:flex-row lg:px-6">
         <div className="flex items-center justify-between w-full gap-2 px-3 py-3 border-b border-primary/10 dark:border-gray-800 sm:gap-4 lg:justify-normal lg:border-b-0 lg:px-0 lg:py-4">
           <button
-            className="block w-10 h-10 text-text lg:hidden dark:text-white/60"
+            type="button"
             onClick={onToggle}
+            className="block w-10 h-10 text-text lg:hidden dark:text-white/60"
           >
             {/* Hamburger Icon */}
             <svg

@@ -2,7 +2,7 @@ import { useMutation } from "@tanstack/react-query";
 import { type SubmitEventHandler, useState } from "react";
 import { useNavigate } from "react-router";
 import { useUser } from "../../../context/currentUser/user-user";
-import { getApiErrorMessage } from "../../../lib/api-error";
+import { getApiErrorMessage, isNetworkError } from "../../../lib/api-error";
 import { authenticationService } from "../authentication.service";
 import { markAuthenticated } from "../authentication.session";
 import type { LoginDto } from "../authentication.types";
@@ -17,7 +17,7 @@ export function useSignin() {
   const [error, setError] = useState("");
 
   const loginMutation = useMutation({
-    mutationFn: (dto: LoginDto) => authenticationService.login(dto),
+    mutationFn: (dto: LoginDto) => authenticationService.signIn(dto),
 
     onSuccess: (userData) => {
       navigate("/", { replace: true });
@@ -27,7 +27,10 @@ export function useSignin() {
 
     onError: (error) => {
       console.log(error);
-      setError(getApiErrorMessage(error, "Login failed."));
+      const message = isNetworkError(error)
+        ? "Could not connect to the server. Check your connection."
+        : getApiErrorMessage(error, "Login failed.");
+      setError(message);
     },
   });
 

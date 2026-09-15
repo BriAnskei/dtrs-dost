@@ -1,7 +1,7 @@
 import type React from "react";
 import { Navigate } from "react-router";
 import { useUser } from "../context/currentUser/user-user";
-import type { Roles } from "../features/userManagement/type/user.type";
+import type { Roles } from "../features/user-management/type/user.type";
 
 interface Props {
   children: React.ReactNode;

@@ -1,7 +1,7 @@
-import ComponentCard from "../../components/common/ComponentCard";
-import PageBreadcrumb from "../../components/common/PageBreadCrumb";
-import PageMeta from "../../components/common/PageMeta";
-import UserManagementTable from "../../components/tables/Administration/UserManagementTable";
+import ComponentCard from "../../../components/common/ComponentCard";
+import PageBreadcrumb from "../../../components/common/PageBreadCrumb";
+import PageMeta from "../../../components/common/PageMeta";
+import UserManagementTable from "./UserManagementTable";
 
 export default function UserManagementPage() {
   return (
@@ -12,7 +12,7 @@ export default function UserManagementPage() {
       />
       <PageBreadcrumb pageTitle="User Management" />
       <div className="space-y-6">
-        <ComponentCard title="System Users">
+        <ComponentCard>
           <UserManagementTable />
         </ComponentCard>
       </div>

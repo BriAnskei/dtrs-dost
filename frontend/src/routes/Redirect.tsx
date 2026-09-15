@@ -1,6 +1,6 @@
 import { Navigate } from "react-router";
 import { useUser } from "../context/currentUser/user-user";
-import type { Roles } from "../features/userManagement/type/user.type";
+import type { Roles } from "../features/user-management/type/user.type";
 
 function createRolePath(paths: {
   superAdmin?: string;

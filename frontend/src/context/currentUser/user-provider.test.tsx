@@ -22,7 +22,8 @@
  * and reflects the state change in place.
  */
 
-import { act, screen } from "@testing-library/react";
+import { AxiosError } from "axios";
+import { act, fireEvent, screen, waitFor } from "@testing-library/react";
 import { Route } from "react-router";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
@@ -122,3 +123,108 @@ function listen() {
   window.addEventListener(AUTH_SESSION_EXPIRED, spy);
   return spy;
 }
+
+/** Renders provider session-state + a Retry button for the network-error tests. */
+function SessionProbe() {
+  const { currentUser, isLoading, serverError, refetch } = useUser();
+  const state = `${isLoading ? "loading" : "idle"}|${
+    serverError ? "serverError" : "ok"
+  }|${currentUser ? currentUser.email : "none"}`;
+  return (
+    <>
+      <span data-testid="state">{state}</span>
+      <button
+        data-testid="retry"
+        onClick={refetch}
+        disabled={!serverError}
+      >
+        Retry
+      </button>
+    </>
+  );
+}
+
+describe("UserProvider — network error keeps the session recoverable", () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+    mockGetCurrentUser.mockReset();
+    localStorage.clear();
+  });
+
+  it("marks serverError on a transport failure (no signin-redirect state)", async () => {
+    markAuthenticatedLocal();
+    mockGetCurrentUser.mockRejectedValueOnce(
+      new AxiosError("connect ECONNREFUSED", AxiosError.ERR_NETWORK),
+    );
+
+    renderRoutes(
+      <Route
+        path="/"
+        element={
+          <UserProvider>
+            <SessionProbe />
+          </UserProvider>
+        }
+      />,
+      ["/"],
+    );
+
+    // idle (not loading) + serverError true + no user. ProtectedRoute reads
+    // this to render <ServerUnavailable /> instead of <Navigate to="/signin" />,
+    // which would require serverError === false.
+    await waitFor(() => {
+      expect(screen.getByTestId("state").textContent).toBe(
+        "idle|serverError|none",
+      );
+    });
+  });
+
+  it("refetch triggers a full page reload from the recovery screen", async () => {
+    markAuthenticatedLocal();
+    // Simulate "server down" so the provider lands in the serverError state —
+    // that is what renders the recovery screen with an enabled Retry button.
+    mockGetCurrentUser.mockRejectedValueOnce(
+      new AxiosError("connect ECONNREFUSED", AxiosError.ERR_NETWORK),
+    );
+
+    // refetch is a hard window.location.reload(); stub it so the test doesn't
+    // actually navigate away.
+    const reload = vi.fn();
+    const originalReload = window.location.reload;
+    Object.defineProperty(window.location, "reload", {
+      configurable: true,
+      value: reload,
+    });
+
+    try {
+      renderRoutes(
+        <Route
+          path="/"
+          element={
+            <UserProvider>
+              <SessionProbe />
+            </UserProvider>
+          }
+        />,
+        ["/"],
+      );
+
+      await waitFor(() => {
+        expect(screen.getByTestId("state").textContent).toBe(
+          "idle|serverError|none",
+        );
+      });
+
+      // Button is enabled only in the serverError state; clicking it drives the
+      // real refetch → window.location.reload().
+      fireEvent.click(await screen.findByTestId("retry"));
+
+      expect(reload).toHaveBeenCalledTimes(1);
+    } finally {
+      Object.defineProperty(window.location, "reload", {
+        configurable: true,
+        value: originalReload,
+      });
+    }
+  });
+});
