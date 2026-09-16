@@ -3,16 +3,18 @@ import { ConfigService } from "@nestjs/config";
 import { PassportStrategy } from "@nestjs/passport";
 import type { Request } from "express";
 import { ExtractJwt, Strategy } from "passport-jwt";
+import { UserService } from "../../../user/user.service";
 
 interface JwtPayload {
   sub: string;
-  email: string;
-  role_id: number;
 }
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor(configService: ConfigService) {
+  constructor(
+    configService: ConfigService,
+    private readonly userService: UserService,
+  ) {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
         (request: Request) => request.cookies?.access_token,
@@ -22,22 +24,21 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  validate(payload: JwtPayload) {
+  async validate(payload: JwtPayload) {
     if (!payload.sub) {
       throw new UnauthorizedException("Invalid token payload");
     }
 
-    // User management feature
-    // const user = await this.userService.findById(payload.sub);
+    const user = await this.userService.findByIdForAuth(payload.sub);
 
-    //  if (!user || !user.is_active) {
-    //    throw new UnauthorizedException("User is inactive or not found");
-    //  }
+    if (!user || (user && !user.is_active)) {
+      throw new UnauthorizedException("User is inactive or not found");
+    }
 
     return {
-      id: payload.sub,
-      email: payload.email,
-      role_id: payload.role_id,
+      id: user.id,
+      email: user.email,
+      role_id: user.role_id,
     };
   }
 }

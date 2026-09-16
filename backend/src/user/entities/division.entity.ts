@@ -1,7 +1,9 @@
-import { Column, Entity, PrimaryColumn } from "typeorm";
+import { Column, Entity, OneToMany, PrimaryColumn, Unique } from "typeorm";
+import { UserEntity } from "../../user/entities/user.entity";
 
 @Entity("divisions")
-export class Division {
+@Unique("uq_divisions_name", ["division_name"])
+export class DivisionEntity {
   @PrimaryColumn({ type: "uuid" })
   id!: string;
 
@@ -11,4 +13,10 @@ export class Division {
     length: 255,
   })
   division_name!: string;
+
+  @OneToMany(
+    () => UserEntity,
+    (user) => user.division,
+  )
+  users!: UserEntity[];
 }

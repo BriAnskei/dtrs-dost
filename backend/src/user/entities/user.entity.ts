@@ -1,4 +1,13 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from "typeorm";
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from "typeorm";
+import { DivisionEntity } from "./division.entity";
+import { RoleEntity } from "./role.entity";
 
 @Entity("users")
 export class UserEntity {
@@ -8,8 +17,31 @@ export class UserEntity {
   @Column({ type: "uuid", nullable: true })
   division_id!: string | null;
 
+  @ManyToOne(
+    () => DivisionEntity,
+    (division) => division.users,
+    {
+      nullable: true,
+      onDelete: "SET NULL",
+      onUpdate: "CASCADE",
+    },
+  )
+  @JoinColumn({ name: "division_id" })
+  division!: DivisionEntity | null;
+
   @Column({ type: "int" })
-  role_id!: number;
+  role_id!: string;
+
+  @ManyToOne(
+    () => RoleEntity,
+    (role) => role.users,
+    {
+      onDelete: "RESTRICT",
+      onUpdate: "CASCADE",
+    },
+  )
+  @JoinColumn({ name: "role_id" })
+  role!: RoleEntity;
 
   @Column({ type: "varchar", length: 255 })
   full_name!: string;
@@ -23,7 +55,7 @@ export class UserEntity {
   @Column({ type: "varchar", length: 50, nullable: true })
   contact_number!: string | null;
 
-  @Column({ type: "varchar", length: 255 })
+  @Column({ type: "varchar", length: 255, unique: true })
   email!: string;
 
   @Column({ type: "bool", default: true })
