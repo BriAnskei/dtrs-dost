@@ -6,13 +6,13 @@ import {
 } from "@nestjs/common";
 
 import * as argon2 from "argon2";
-import { DataSource, EntityManager, Repository } from "typeorm";
-import { CreateUserDto } from "./dto/create-user-dto";
-import { DivisionEntity } from "./entities/division.entity";
-import { UserEntity } from "./entities/user.entity";
-import { DivisionRepository } from "./repository/division.repository";
-import { RoleRepository } from "./repository/role.repository";
-import { UserRepository } from "./repository/user.repository";
+import { DataSource, EntityManager } from "typeorm";
+import { CreateUserDto } from "../dto/create-user-dto";
+import { DivisionEntity } from "../entities/division.entity";
+import { UserEntity } from "../entities/user.entity";
+import { DivisionRepository } from "../repository/division.repository";
+import { RoleRepository } from "../repository/role.repository";
+import { UserRepository } from "../repository/user.repository";
 
 @Injectable()
 export class UserService {
@@ -106,5 +106,21 @@ export class UserService {
 
   async findByIdForAuth(id: string): Promise<UserEntity | null> {
     return this.userRepository.findById(id);
+  }
+
+  async findAll(): Promise<UserEntity[]> {
+    return await this.userRepository.findAllWithRelation();
+  }
+
+  async deactivate(id: string): Promise<void> {
+    const res = this.userRepository.deactivate(id);
+
+    if (!res) throw new NotFoundException("User not found");
+  }
+
+  async delete(id: string): Promise<void> {
+    const res = this.userRepository.delete(id);
+
+    if (!res) throw new NotFoundException("User not found");
   }
 }
