@@ -1,14 +1,11 @@
 import { UnauthorizedException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { Test, type TestingModule } from "@nestjs/testing";
-import { JwtStrategy } from "./jwt.strategy";
 import { UserService } from "../../../user/service/user.service";
+import { JwtStrategy } from "./jwt.strategy";
 
 jest.mock("@nestjs/passport", () => ({
-  PassportStrategy: () =>
-    class {
-      constructor() {}
-    },
+  PassportStrategy: () => class {},
 }));
 
 jest.mock("passport-jwt", () => ({
@@ -77,12 +74,8 @@ describe("JwtStrategy", () => {
   it("should throw UnauthorizedException when payload.sub is undefined", async () => {
     const payload = { sub: undefined } as unknown as { sub: string };
 
-    await expect(strategy.validate(payload)).rejects.toThrow(
-      UnauthorizedException,
-    );
-    await expect(strategy.validate(payload)).rejects.toThrow(
-      "Invalid token payload",
-    );
+    await expect(strategy.validate(payload)).rejects.toThrow(UnauthorizedException);
+    await expect(strategy.validate(payload)).rejects.toThrow("Invalid token payload");
 
     expect(userService.findByIdForAuth).not.toHaveBeenCalled();
   });
@@ -94,12 +87,8 @@ describe("JwtStrategy", () => {
    * lookup occurs.
    */
   it("should throw UnauthorizedException when payload.sub is empty string", async () => {
-    await expect(strategy.validate({ sub: "" })).rejects.toThrow(
-      UnauthorizedException,
-    );
-    await expect(strategy.validate({ sub: "" })).rejects.toThrow(
-      "Invalid token payload",
-    );
+    await expect(strategy.validate({ sub: "" })).rejects.toThrow(UnauthorizedException);
+    await expect(strategy.validate({ sub: "" })).rejects.toThrow("Invalid token payload");
 
     expect(userService.findByIdForAuth).not.toHaveBeenCalled();
   });

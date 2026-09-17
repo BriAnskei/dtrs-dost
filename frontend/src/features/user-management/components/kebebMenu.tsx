@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import type { SystemUser } from "../type/mock.types";
+import type { SystemUser } from "../type/user.type";
 
 // ─── Kebab Menu ───────────────────────────────────────────────────────────────
 

@@ -1,7 +1,7 @@
 import { type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import { AUTH_SESSION_EXPIRED } from "../../features/authentication/authentication.events";
 import { isNetworkError } from "../../lib/api-error";
-import type { User } from "../../features/user-management/type/user.type";
+import type { User } from "./curr-user.type";
 import { currentUserService } from "./current-user.service";
 import { UserContext } from "./user-context";
 

@@ -8,6 +8,7 @@ import {
 import * as argon2 from "argon2";
 import { DataSource, EntityManager } from "typeorm";
 import { CreateUserDto } from "../dto/create-user-dto";
+import { UserWithRelationResponseDto } from "../dto/userWithRelation-response-dto";
 import { DivisionEntity } from "../entities/division.entity";
 import { UserEntity } from "../entities/user.entity";
 import { DivisionRepository } from "../repository/division.repository";
@@ -23,7 +24,7 @@ export class UserService {
     private readonly dataSource: DataSource,
   ) {}
 
-  async create(userData: CreateUserDto): Promise<UserEntity> {
+  async create(userData: CreateUserDto): Promise<UserWithRelationResponseDto> {
     return this.dataSource.transaction(async (manager) => {
       const existingUserWithThisEmail = await this.userRepository.findByEmail(
         userData.email,
@@ -41,8 +42,23 @@ export class UserService {
 
       const res = await this.createNewUser(userData, division, manager);
 
-      return this.userRepository.findByIdWithRelation(res.id);
+      return this.findByIdWithRelation(res.id);
     });
+  }
+
+  async findByIdWithRelation(id: string): Promise<UserWithRelationResponseDto> {
+    const user = await this.userRepository.findByIdWithRelation(id);
+
+    return {
+      id: user.id,
+      full_name: user.full_name,
+      position: user.position,
+      email: user.email,
+      role: user.role.name,
+      is_active: user.is_active,
+      division: user.division?.division_name ?? null,
+      created_at: user.created_at,
+    };
   }
 
   async createNewUser(

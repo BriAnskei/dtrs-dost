@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
@@ -18,6 +19,12 @@ import { UserService } from "../service/user.service";
 export class UserController {
   constructor(private readonly service: UserService) {}
 
+  @Post("new")
+  @Roles(Role.SuperAdmin)
+  async create(@Body() userData: CreateUserDto) {
+    return await this.service.create(userData);
+  }
+
   @Get("me")
   async getCurrentUser(@Req() req: Request) {
     const user = req.user as {
@@ -25,12 +32,6 @@ export class UserController {
     };
 
     return this.service.findById(user.id);
-  }
-
-  @Post("new")
-  @Roles(Role.SuperAdmin)
-  async create(@Body() userData: CreateUserDto) {
-    return await this.service.create(userData);
   }
 
   @Get()
@@ -46,7 +47,7 @@ export class UserController {
     this.service.deactivate(id);
   }
 
-  @Patch(":id/deactivate")
+  @Delete(":id")
   @HttpCode(HttpStatus.NO_CONTENT)
   @Roles(Role.SuperAdmin)
   async delete(id: string): Promise<void> {

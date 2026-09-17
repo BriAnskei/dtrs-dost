@@ -1,6 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import type { EntityManager, Repository } from "typeorm";
+import { type EntityManager, Not, type Repository } from "typeorm";
+import { Role } from "../../auth/authorization/roles.enum";
 import { UserEntity } from "../entities/user.entity";
 
 @Injectable()
@@ -45,6 +46,7 @@ export class UserRepository {
 
   async findAllWithRelation(): Promise<UserEntity[]> {
     return this.repository.find({
+      where: { role: Not(Role.SuperAdmin) },
       relations: {
         role: true,
         division: true,

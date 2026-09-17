@@ -1,8 +1,6 @@
-// ─── Mobile Card ──────────────────────────────────────────────────────────────
-
 import Badge from "../../../components/ui/badge/Badge";
 import { getRoleBadgeColor, getStatusStyles } from "../helpers";
-import type { SystemUser } from "../type/mock.types";
+import type { SystemUser } from "../type/user.type";
 import KebabMenu from "./kebebMenu";
 
 export default function MobileCard({
@@ -62,10 +60,10 @@ export default function MobileCard({
         </div>
         <div>
           <p className="text-theme-xs text-gray-400 dark:text-gray-500 font-medium uppercase tracking-wide">
-            Contact
+            Division
           </p>
           <p className="text-theme-xs text-gray-700 dark:text-gray-300 mt-0.5">
-            {user.contact}
+            {user.division ?? "—"}
           </p>
         </div>
       </div>

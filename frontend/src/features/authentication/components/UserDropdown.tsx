@@ -14,7 +14,7 @@ function formatDisplayName(fullName: string) {
 }
 
 export default function UserDropdown() {
-  const { currentUser, isLoading, clear } = useUser();
+  const { currentUser, isLoading } = useUser();
   const { logout, isLoggingOut } = useSignOut();
   const [isOpen, setIsOpen] = useState(false);
 
@@ -86,7 +86,6 @@ export default function UserDropdown() {
         <button
           type="button"
           onClick={() => {
-            clear();
             logout();
           }}
           disabled={isLoggingOut}

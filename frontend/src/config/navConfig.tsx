@@ -152,7 +152,7 @@ export const OTHERS_NAV_ITEMS: NavItem[] = [
     roles: [1],
     subItems: [
       {
-        name: "User Management",
+        name: "Manage Users",
         path: "/users",
         roles: [1],
       },

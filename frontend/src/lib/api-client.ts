@@ -74,7 +74,6 @@ apiClient.interceptors.response.use(
     const isUnauthorized = err.response?.status === 401;
 
     const shouldSkipRefresh =
-      originalReq.skipAuthRefresh === true ||
       isRefreshRequest(originalReq.url) ||
       isLoginRequest(originalReq.url) ||
       isLogoutRequest(originalReq.url) ||

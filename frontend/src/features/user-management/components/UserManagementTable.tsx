@@ -1,6 +1,6 @@
-// ─── Main Component ───────────────────────────────────────────────────────────
-
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import MobileCardSkeleton from "../../../components/tables/Skeleton/MobileCardSkeleton";
+import TableSkeleton from "../../../components/tables/Skeleton/TableSkeleton";
 import Badge from "../../../components/ui/badge/Badge";
 import {
   Table,
@@ -11,7 +11,7 @@ import {
 } from "../../../components/ui/table";
 import { ALL_ROLES, THIN_SCROLLBAR } from "../constant";
 import { getRoleBadgeColor, getStatusStyles } from "../helpers";
-import { mockUsers } from "../mockData";
+import { useUsers } from "../hooks/user-users";
 import {
   type AccountStatus,
   EMPTY_FORM,
@@ -19,17 +19,33 @@ import {
   type UserFormState,
   type UserManagementTableProps,
   type UserRole,
-} from "../type/mock.types";
+} from "../type/user.type";
+import { mapUsersResponseToSystemUsers } from "../utils/mapUserResponseToSystemUser";
 import ConfirmDisableModal from "./ConfirmDisableModal";
 import KebabMenu from "./kebebMenu";
 import MobileCard from "./MobileCard";
-import UserFormModal from "./UserFormModal";
+
+// Column shape shared between the real table header and its skeleton, so the
+// two can never drift out of sync.
+const USER_TABLE_COLUMNS = [
+  { label: "Name", width: "w-32", withSubline: true },
+  { label: "Role", width: "w-16", pill: true },
+  { label: "Email", width: "w-40" },
+  { label: "Division", width: "w-20" },
+  { label: "Account Status", width: "w-16" },
+  { label: "Action", width: "w-6" },
+] as const;
 
 export default function UserManagementTable({
   maxTableHeight = "560px",
   maxMobileHeight = "520px",
 }: UserManagementTableProps = {}) {
-  const [users, setUsers] = useState<SystemUser[]>(mockUsers);
+  const { data: usersResponse, isLoading, isError, error } = useUsers();
+
+  // Local, UI-only overrides for optimistic add/edit/disable until those
+  // are wired to real mutations. Server data always wins on refetch.
+  const [localOverrides, setLocalOverrides] = useState<SystemUser[]>([]);
+
   const [search, setSearch] = useState("");
   const [filterRole, setFilterRole] = useState<UserRole | "All">("All");
   const [filterStatus, setFilterStatus] = useState<AccountStatus | "All">("All");
@@ -39,33 +55,56 @@ export default function UserManagementTable({
   const [editTarget, setEditTarget] = useState<SystemUser | null>(null);
   const [disableTarget, setDisableTarget] = useState<SystemUser | null>(null);
 
+  // ── Derived data: API response -> view model ──
+  // (Single responsibility: this component only orchestrates UI state;
+  // the actual shape translation lives in mapUsersResponseToSystemUsers.)
+  const users = useMemo<SystemUser[]>(() => {
+    const fromApi = usersResponse ? mapUsersResponseToSystemUsers(usersResponse) : [];
+    return [...localOverrides, ...fromApi];
+  }, [usersResponse, localOverrides]);
+
   // ── Handlers ──
+  // NOTE: Add/Edit/Disable are still local-only (no mutation calls yet),
+  // per current scope — only the read/list path is wired to the real API.
 
   function handleAdd(data: UserFormState) {
     const newUser: SystemUser = {
-      id: Date.now(),
-      ...data,
+      id: `local-${Date.now()}`,
+      name: data.name,
+      title: data.title,
+      role: data.role,
+      email: data.email,
+      division: data.division,
       status: "Active",
     };
-    setUsers((prev) => [newUser, ...prev]);
+    setLocalOverrides((prev) => [newUser, ...prev]);
     setAddModal(false);
   }
 
   function handleEdit(data: UserFormState) {
     if (!editTarget) return;
-    setUsers((prev) => prev.map((u) => (u.id === editTarget.id ? { ...u, ...data } : u)));
+    setLocalOverrides((prev) => {
+      const alreadyOverridden = prev.some((u) => u.id === editTarget.id);
+      const updated = { ...editTarget, ...data };
+      return alreadyOverridden
+        ? prev.map((u) => (u.id === editTarget.id ? updated : u))
+        : [updated, ...prev];
+    });
     setEditTarget(null);
   }
 
   function handleToggleStatus() {
     if (!disableTarget) return;
-    setUsers((prev) =>
-      prev.map((u) =>
-        u.id === disableTarget.id
-          ? { ...u, status: u.status === "Active" ? "Disabled" : "Active" }
-          : u,
-      ),
-    );
+    setLocalOverrides((prev) => {
+      const alreadyOverridden = prev.some((u) => u.id === disableTarget.id);
+      const toggled: SystemUser = {
+        ...disableTarget,
+        status: disableTarget.status === "Active" ? "Disabled" : "Active",
+      };
+      return alreadyOverridden
+        ? prev.map((u) => (u.id === disableTarget.id ? toggled : u))
+        : [toggled, ...prev];
+    });
     setDisableTarget(null);
   }
 
@@ -90,9 +129,7 @@ export default function UserManagementTable({
       <div className="space-y-4">
         {/* ── Toolbar ── */}
         <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
-          {/* Left: search + filters */}
           <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end flex-1">
-            {/* Search */}
             <div className="relative w-full sm:flex-1 sm:min-w-50">
               <span className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-gray-400">
                 <svg
@@ -119,7 +156,6 @@ export default function UserManagementTable({
               />
             </div>
 
-            {/* Filters */}
             <div className="flex gap-3 flex-wrap items-center">
               <select
                 value={filterRole}
@@ -160,7 +196,6 @@ export default function UserManagementTable({
             </div>
           </div>
 
-          {/* Right: Add User button */}
           <button
             type="button"
             onClick={() => setAddModal(true)}
@@ -180,199 +215,188 @@ export default function UserManagementTable({
           </button>
         </div>
 
-        {/* ── Mobile Cards (< md) ── */}
-        <div className="md:hidden space-y-3">
-          <div
-            className={`overflow-y-auto space-y-3 pr-1 ${THIN_SCROLLBAR}`}
-            style={{ maxHeight: maxMobileHeight }}
-          >
-            {filtered.length === 0 ? (
-              <div className="rounded-xl border border-gray-200 bg-white dark:border-white/[0.08] dark:bg-white/[0.03] px-5 py-10 text-center text-gray-400 text-theme-sm">
-                No users match your filters.
+        {isLoading && (
+          <>
+            {/* Mobile skeleton (< md) */}
+            <div className="md:hidden">
+              <MobileCardSkeleton maxHeight={maxMobileHeight} count={5} />
+            </div>
+            {/* Desktop skeleton (≥ md) */}
+            <TableSkeleton
+              maxHeight={maxTableHeight}
+              scrollbarClassName={THIN_SCROLLBAR}
+              columns={
+                USER_TABLE_COLUMNS as unknown as {
+                  label: string;
+                  width?: string;
+                  withSubline?: boolean;
+                  pill?: boolean;
+                }[]
+              }
+              rows={8}
+            />
+          </>
+        )}
+
+        {isError && (
+          <div className="rounded-xl border border-red-200 bg-red-50 dark:border-red-900/40 dark:bg-red-900/10 px-5 py-10 text-center text-red-600 text-theme-sm">
+            Failed to load users{error instanceof Error ? `: ${error.message}` : "."}
+          </div>
+        )}
+
+        {!isLoading && !isError && (
+          <>
+            {/* ── Mobile Cards (< md) ── */}
+            <div className="md:hidden space-y-3">
+              <div
+                className={`overflow-y-auto space-y-3 pr-1 ${THIN_SCROLLBAR}`}
+                style={{ height: maxMobileHeight }}
+              >
+                {filtered.length === 0 ? (
+                  <div className="rounded-xl border border-gray-200 bg-white dark:border-white/[0.08] dark:bg-white/[0.03] px-5 py-10 text-center text-gray-400 text-theme-sm">
+                    No users match your filters.
+                  </div>
+                ) : (
+                  filtered.map((user) => (
+                    <MobileCard
+                      key={user.id}
+                      user={user}
+                      onEdit={() => setEditTarget(user)}
+                      onToggleStatus={() => setDisableTarget(user)}
+                    />
+                  ))
+                )}
               </div>
-            ) : (
-              filtered.map((user) => (
-                <MobileCard
-                  key={user.id}
-                  user={user}
-                  onEdit={() => setEditTarget(user)}
-                  onToggleStatus={() => setDisableTarget(user)}
-                />
-              ))
-            )}
-          </div>
-          {filtered.length > 0 && (
-            <p className="text-theme-xs text-gray-400 dark:text-gray-500 text-right px-1">
-              Showing{" "}
-              <span className="font-medium text-gray-600 dark:text-gray-300">
-                {filtered.length}
-              </span>{" "}
-              of{" "}
-              <span className="font-medium text-gray-600 dark:text-gray-300">
-                {users.length}
-              </span>{" "}
-              users
-            </p>
-          )}
-        </div>
+              {filtered.length > 0 && (
+                <p className="text-theme-xs text-gray-400 dark:text-gray-500 text-right px-1">
+                  Showing{" "}
+                  <span className="font-medium text-gray-600 dark:text-gray-300">
+                    {filtered.length}
+                  </span>{" "}
+                  of{" "}
+                  <span className="font-medium text-gray-600 dark:text-gray-300">
+                    {users.length}
+                  </span>{" "}
+                  users
+                </p>
+              )}
+            </div>
 
-        {/* ── Desktop Table (≥ md) ── */}
-        <div className="hidden md:block rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03] overflow-hidden">
-          {/* Horizontal scroll only */}
-          <div className="w-full overflow-x-auto">
-            {/* Vertical scroll only — separated from the horizontal axis so its own
-                scrollbar gutter doesn't get counted into maxHeight and force an
-                unwanted vertical scrollbar when the content actually fits. */}
-            <div
-              className={`overflow-y-auto ${THIN_SCROLLBAR}`}
-              style={{ maxHeight: maxTableHeight }}
-            >
-              <Table>
-                <TableHeader className="dark:border-white/[0.05] sticky top-0 z-10 bg-white dark:bg-gray-900">
-                  <TableRow>
-                    {[
-                      "Name / Position",
-                      "Role",
-                      "Email",
-                      "Contact",
-                      "Account Status",
-                      "Action",
-                    ].map((col) => (
-                      <TableCell
-                        key={col}
-                        isHeader
-                        className="px-4 py-3 font-semibold text-primary text-start text-theme-xs dark:text-gray-300 whitespace-nowrap"
-                      >
-                        {col}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                </TableHeader>
-
-                <TableBody className="dark:divide-white/[0.05]">
-                  {filtered.length === 0 ? (
-                    <tr>
-                      <td
-                        colSpan={6}
-                        className="px-5 py-10 text-center text-gray-400 text-theme-sm"
-                      >
-                        No users match your filters.
-                      </td>
-                    </tr>
-                  ) : (
-                    filtered.map((user) => (
-                      <TableRow
-                        key={user.id}
-                        className="hover:bg-gray-50/60 dark:hover:bg-white/[0.02] transition-colors"
-                      >
-                        {/* Name / Position */}
-                        <TableCell className="px-4 py-3">
-                          <span className="block font-medium text-gray-800 text-theme-sm dark:text-white/90">
-                            {user.name}
-                          </span>
-                          <span className="block text-gray-400 text-theme-xs dark:text-gray-500 mt-0.5">
-                            {user.title}
-                          </span>
-                        </TableCell>
-
-                        {/* Role */}
-                        <TableCell className="px-4 py-3 whitespace-nowrap">
-                          <Badge size="sm" color={getRoleBadgeColor(user.role)}>
-                            {user.role}
-                          </Badge>
-                        </TableCell>
-
-                        {/* Email */}
-                        <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
-                          <span
-                            className="block truncate max-w-[200px]"
-                            title={user.email}
+            {/* ── Desktop Table (≥ md) ── */}
+            <div className="hidden md:flex md:flex-col rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03] overflow-hidden">
+              <div className="w-full overflow-x-auto">
+                <div
+                  className={`overflow-y-auto ${THIN_SCROLLBAR}`}
+                  style={{ height: maxTableHeight }}
+                >
+                  <Table>
+                    <TableHeader className="dark:border-white/[0.05] sticky top-0 z-10 bg-white dark:bg-gray-900">
+                      <TableRow>
+                        {[
+                          "Name",
+                          "Role",
+                          "Email",
+                          "Division",
+                          "Account Status",
+                          "Action",
+                        ].map((col) => (
+                          <TableCell
+                            key={col}
+                            isHeader
+                            className="px-4 py-3 font-semibold text-primary text-start text-theme-xs dark:text-gray-300 whitespace-nowrap"
                           >
-                            {user.email}
-                          </span>
-                        </TableCell>
-
-                        {/* Contact */}
-                        <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap">
-                          {user.contact}
-                        </TableCell>
-
-                        {/* Account Status - with explicit red for Disabled */}
-                        <TableCell className="px-4 py-3 whitespace-nowrap">
-                          <span
-                            className={`text-theme-sm font-medium ${getStatusStyles(user.status)}`}
-                          >
-                            {user.status}
-                          </span>
-                        </TableCell>
-
-                        {/* Action */}
-                        <TableCell className="px-4 py-3">
-                          <KebabMenu
-                            user={user}
-                            onEdit={() => setEditTarget(user)}
-                            onToggleStatus={() => setDisableTarget(user)}
-                          />
-                        </TableCell>
+                            {col}
+                          </TableCell>
+                        ))}
                       </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-          </div>
+                    </TableHeader>
 
-          {/* Footer */}
-          {filtered.length > 0 && (
-            <div className="px-4 py-3 border-t border-gray-100 dark:border-white/[0.05]">
-              <span className="text-theme-xs text-gray-400 dark:text-gray-500">
-                Showing{" "}
-                <span className="font-medium text-gray-600 dark:text-gray-300">
-                  {filtered.length}
-                </span>{" "}
-                of{" "}
-                <span className="font-medium text-gray-600 dark:text-gray-300">
-                  {users.length}
-                </span>{" "}
-                users
-              </span>
+                    <TableBody className="dark:divide-white/[0.05]">
+                      {filtered.length === 0 ? (
+                        <tr>
+                          <td
+                            colSpan={6}
+                            className="px-5 py-10 text-center text-gray-400 text-theme-sm"
+                          >
+                            No users match your filters.
+                          </td>
+                        </tr>
+                      ) : (
+                        filtered.map((user) => (
+                          <TableRow
+                            key={user.id}
+                            className="hover:bg-gray-50/60 dark:hover:bg-white/[0.02] transition-colors"
+                          >
+                            <TableCell className="px-4 py-3">
+                              <span className="block font-medium text-gray-800 text-theme-sm dark:text-white/90">
+                                {user.name}
+                              </span>
+                              <span className="block text-gray-400 text-theme-xs dark:text-gray-500 mt-0.5">
+                                {user.title}
+                              </span>
+                            </TableCell>
+
+                            <TableCell className="px-4 py-3 whitespace-nowrap">
+                              <Badge size="sm" color={getRoleBadgeColor(user.role)}>
+                                {user.role}
+                              </Badge>
+                            </TableCell>
+
+                            <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
+                              <span
+                                className="block truncate max-w-[200px]"
+                                title={user.email}
+                              >
+                                {user.email}
+                              </span>
+                            </TableCell>
+
+                            <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap">
+                              {user.division ?? "—"}
+                            </TableCell>
+
+                            <TableCell className="px-4 py-3 whitespace-nowrap">
+                              <span
+                                className={`text-theme-sm font-medium ${getStatusStyles(user.status)}`}
+                              >
+                                {user.status}
+                              </span>
+                            </TableCell>
+
+                            <TableCell className="px-4 py-3">
+                              <KebabMenu
+                                user={user}
+                                onEdit={() => setEditTarget(user)}
+                                onToggleStatus={() => setDisableTarget(user)}
+                              />
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+
+              {filtered.length > 0 && (
+                <div className="px-4 py-3 border-t border-gray-100 dark:border-white/[0.05]">
+                  <span className="text-theme-xs text-gray-400 dark:text-gray-500">
+                    Showing{" "}
+                    <span className="font-medium text-gray-600 dark:text-gray-300">
+                      {filtered.length}
+                    </span>{" "}
+                    of{" "}
+                    <span className="font-medium text-gray-600 dark:text-gray-300">
+                      {users.length}
+                    </span>{" "}
+                    users
+                  </span>
+                </div>
+              )}
             </div>
-          )}
-        </div>
+          </>
+        )}
       </div>
-
-      {/* ── Modals ── */}
-      {addModal && (
-        <UserFormModal
-          mode="add"
-          initial={EMPTY_FORM}
-          onSave={handleAdd}
-          onClose={() => setAddModal(false)}
-        />
-      )}
-
-      {editTarget && (
-        <UserFormModal
-          mode="edit"
-          initial={{
-            name: editTarget.name,
-            title: editTarget.title,
-            role: editTarget.role,
-            email: editTarget.email,
-            contact: editTarget.contact,
-          }}
-          onSave={handleEdit}
-          onClose={() => setEditTarget(null)}
-        />
-      )}
-
-      {disableTarget && (
-        <ConfirmDisableModal
-          user={disableTarget}
-          onConfirm={handleToggleStatus}
-          onClose={() => setDisableTarget(null)}
-        />
-      )}
     </>
   );
 }
