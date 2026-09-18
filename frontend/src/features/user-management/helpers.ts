@@ -12,5 +12,5 @@ export function getStatusStyles(status: AccountStatus) {
   if (status === "Active") {
     return "text-success";
   }
-  return "text-red-600 font-semibold"; // Explicit red for Disabled
+  return "text-red-500 font-semibold"; // Explicit red for Disabled
 }

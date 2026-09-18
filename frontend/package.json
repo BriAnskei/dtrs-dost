@@ -25,6 +25,7 @@
     "apexcharts": "^4.1.0",
     "axios": "^1.18.0",
     "clsx": "^2.1.1",
+    "crypto-random-string": "^6.0.0",
     "flatpickr": "^4.6.13",
     "pdfjs-dist": "^5.4.296",
     "qrcode.react": "^4.2.0",
@@ -42,7 +43,8 @@
     "sonner": "^2.0.8",
     "swiper": "^11.2.3",
     "tailwind-merge": "^3.0.1",
-    "tesseract.js": "^7.0.0"
+    "tesseract.js": "^7.0.0",
+    "use-debounce": "^10.1.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.19.0",

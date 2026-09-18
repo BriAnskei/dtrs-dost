@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { EntityManager, Repository } from "typeorm";
+import { EntityManager, ILike, Repository } from "typeorm";
 import { DivisionEntity } from "../entities/division.entity";
 
 @Injectable()
@@ -30,6 +30,24 @@ export class DivisionRepository {
       where: {
         division_name,
       },
+    });
+  }
+
+  async searchByName(search: string): Promise<DivisionEntity[] | null> {
+    const escapeLike = (value: string): string => {
+      return value.replace(/[\\%_]/g, "\\$&");
+    };
+
+    return this.repository.find({
+      where: search.trim()
+        ? {
+            division_name: ILike(`%${escapeLike(search)}%`),
+          }
+        : undefined,
+      order: {
+        division_name: "ASC",
+      },
+      take: 20,
     });
   }
 }

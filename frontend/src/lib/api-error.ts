@@ -14,6 +14,12 @@ export function getApiErrorMessage(
     return fallback;
   }
 
+  const status = error.response?.status;
+
+  if (status === 429) {
+    return "Too many login attempts. Please try again later.";
+  }
+
   const message = error.response?.data?.message;
 
   if (Array.isArray(message)) {

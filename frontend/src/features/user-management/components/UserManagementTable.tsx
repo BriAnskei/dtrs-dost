@@ -9,21 +9,21 @@ import {
   TableHeader,
   TableRow,
 } from "../../../components/ui/table";
-import { ALL_ROLES, THIN_SCROLLBAR } from "../constant";
+import { THIN_SCROLLBAR } from "../../../contant/ThinScrollBar";
+import { ALL_ROLES } from "../constant";
 import { getRoleBadgeColor, getStatusStyles } from "../helpers";
-import { useUsers } from "../hooks/user-users";
-import {
-  type AccountStatus,
-  EMPTY_FORM,
-  type SystemUser,
-  type UserFormState,
-  type UserManagementTableProps,
-  type UserRole,
+import { useUsers } from "../hooks/use-users";
+import { EMPTY_FORM, type UserFormState } from "../type/creater-user.type";
+import type {
+  AccountStatus,
+  SystemUser,
+  UserManagementTableProps,
+  UserRole,
 } from "../type/user.type";
 import { mapUsersResponseToSystemUsers } from "../utils/mapUserResponseToSystemUser";
-import ConfirmDisableModal from "./ConfirmDisableModal";
 import KebabMenu from "./kebebMenu";
 import MobileCard from "./MobileCard";
+import UserFormModal from "./UserFormModal";
 
 // Column shape shared between the real table header and its skeleton, so the
 // two can never drift out of sync.
@@ -42,8 +42,10 @@ export default function UserManagementTable({
 }: UserManagementTableProps = {}) {
   const { data: usersResponse, isLoading, isError, error } = useUsers();
 
-  // Local, UI-only overrides for optimistic add/edit/disable until those
-  // are wired to real mutations. Server data always wins on refetch.
+  // Local, UI-only overrides for the still-unwired disable toggle. Add/Edit
+  // now go through real mutations (useCreateUser/useUpdateUser inside
+  // UserFormModal) and land in the ["users"] cache directly, so they no
+  // longer need an entry here. Server data always wins on refetch.
   const [localOverrides, setLocalOverrides] = useState<SystemUser[]>([]);
 
   const [search, setSearch] = useState("");
@@ -60,38 +62,17 @@ export default function UserManagementTable({
   // the actual shape translation lives in mapUsersResponseToSystemUsers.)
   const users = useMemo<SystemUser[]>(() => {
     const fromApi = usersResponse ? mapUsersResponseToSystemUsers(usersResponse) : [];
-    return [...localOverrides, ...fromApi];
+    // Only disable-toggle overrides live here now; anything already present
+    // in fromApi (post add/edit, via cache) takes precedence over a stale
+    // local override with the same id.
+    const overriddenIds = new Set(fromApi.map((u) => u.id));
+    const staleOverrides = localOverrides.filter((u) => !overriddenIds.has(u.id));
+    return [...staleOverrides, ...fromApi];
   }, [usersResponse, localOverrides]);
 
   // ── Handlers ──
-  // NOTE: Add/Edit/Disable are still local-only (no mutation calls yet),
-  // per current scope — only the read/list path is wired to the real API.
-
-  function handleAdd(data: UserFormState) {
-    const newUser: SystemUser = {
-      id: `local-${Date.now()}`,
-      name: data.name,
-      title: data.title,
-      role: data.role,
-      email: data.email,
-      division: data.division,
-      status: "Active",
-    };
-    setLocalOverrides((prev) => [newUser, ...prev]);
-    setAddModal(false);
-  }
-
-  function handleEdit(data: UserFormState) {
-    if (!editTarget) return;
-    setLocalOverrides((prev) => {
-      const alreadyOverridden = prev.some((u) => u.id === editTarget.id);
-      const updated = { ...editTarget, ...data };
-      return alreadyOverridden
-        ? prev.map((u) => (u.id === editTarget.id ? updated : u))
-        : [updated, ...prev];
-    });
-    setEditTarget(null);
-  }
+  // NOTE: Disable is still local-only (no mutation call yet), per current
+  // scope — add/edit are wired to real mutations inside UserFormModal.
 
   function handleToggleStatus() {
     if (!disableTarget) return;
@@ -108,6 +89,18 @@ export default function UserManagementTable({
     setDisableTarget(null);
   }
 
+  function toFormState(user: SystemUser): UserFormState {
+    return {
+      name: user.name,
+      position: user.position,
+      role: user.role,
+      email: user.email,
+      contact: user.contact,
+      division: user.division,
+      password: "", // left blank on edit; UserFormModal only requires it in "add" mode
+    };
+  }
+
   // ── Filtered list ──
 
   const filtered = users.filter((u) => {
@@ -116,7 +109,7 @@ export default function UserManagementTable({
       !q ||
       u.name.toLowerCase().includes(q) ||
       u.email.toLowerCase().includes(q) ||
-      u.title.toLowerCase().includes(q);
+      u.position.toLowerCase().includes(q);
     const matchesRole = filterRole === "All" || u.role === filterRole;
     const matchesStatus = filterStatus === "All" || u.status === filterStatus;
     return matchesSearch && matchesRole && matchesStatus;
@@ -332,7 +325,7 @@ export default function UserManagementTable({
                                 {user.name}
                               </span>
                               <span className="block text-gray-400 text-theme-xs dark:text-gray-500 mt-0.5">
-                                {user.title}
+                                {user.position}
                               </span>
                             </TableCell>
 
@@ -397,6 +390,23 @@ export default function UserManagementTable({
           </>
         )}
       </div>
+
+      {addModal && (
+        <UserFormModal
+          mode="add"
+          initial={EMPTY_FORM}
+          onClose={() => setAddModal(false)}
+        />
+      )}
+
+      {editTarget && (
+        <UserFormModal
+          mode="edit"
+          userId={editTarget.id}
+          initial={toFormState(editTarget)}
+          onClose={() => setEditTarget(null)}
+        />
+      )}
     </>
   );
 }

@@ -1,19 +1,10 @@
-export interface CreateUserPayload {
-  full_name: string;
-  email: string;
-  password: string;
-  role_id: number;
-  division: string;
-  position?: string;
-  contact_number?: string;
-}
-
 export interface UserWithRelationResponse {
   id: string;
   full_name: string;
   position?: string;
   email: string;
   role: string;
+  contact: string;
   is_active: boolean;
   division: string | null;
   created_at: string;
@@ -28,9 +19,10 @@ export type AccountStatus = "Active" | "Disabled";
  * how to build one of these from `UserWithRelationResponse`.
  */
 export interface SystemUser {
+  contact: string;
   id: string;
   name: string;
-  title: string;
+  position: string;
   role: UserRole;
   email: string;
   division: string | null;
@@ -43,22 +35,6 @@ export interface UserManagementTableProps {
   /** Max height of the scrollable mobile card list (CSS value). */
   maxMobileHeight?: string;
 }
-
-export interface UserFormState {
-  name: string;
-  title: string;
-  role: UserRole;
-  email: string;
-  division: string | null;
-}
-
-export const EMPTY_FORM: UserFormState = {
-  name: "",
-  title: "",
-  role: "Admin",
-  email: "",
-  division: null,
-};
 
 /** Shown when the API doesn't provide a value for an optional field. */
 export const NO_VALUE_PLACEHOLDER = "—";

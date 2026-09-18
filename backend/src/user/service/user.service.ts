@@ -36,35 +36,31 @@ export class UserService {
 
       const existingRole = await this.roleRepository.findOne(userData.role_id);
 
-      if (!existingRole) throw new NotFoundException("Role not found");
+      if (!existingRole) {
+        throw new NotFoundException("Role not found");
+      }
 
       const division = await this.makeDivisionAsync(userData, manager);
 
-      const res = await this.createNewUser(userData, division, manager);
+      const res = await this.createNewUser(userData, manager, division);
 
-      return this.findByIdWithRelation(res.id);
+      return this.findByIdWithRelation(res.id, manager);
     });
   }
 
-  async findByIdWithRelation(id: string): Promise<UserWithRelationResponseDto> {
-    const user = await this.userRepository.findByIdWithRelation(id);
+  async findByIdWithRelation(
+    id: string,
+    manager?: EntityManager,
+  ): Promise<UserWithRelationResponseDto> {
+    const user = await this.userRepository.findByIdWithRelation(id, manager);
 
-    return {
-      id: user.id,
-      full_name: user.full_name,
-      position: user.position,
-      email: user.email,
-      role: user.role.name,
-      is_active: user.is_active,
-      division: user.division?.division_name ?? null,
-      created_at: user.created_at,
-    };
+    return this.toDto(user);
   }
 
   async createNewUser(
     userData: CreateUserDto,
-    division: DivisionEntity,
     manager: EntityManager,
+    division: DivisionEntity | null,
   ): Promise<UserEntity> {
     const hashedPass = await argon2.hash(userData.password);
     return await this.userRepository.create(
@@ -84,8 +80,12 @@ export class UserService {
   async makeDivisionAsync(
     userData: CreateUserDto,
     manager: EntityManager,
-  ): Promise<DivisionEntity> {
-    const existingDivision = await this.divisionRepository.findByName(userData.division);
+  ): Promise<DivisionEntity | null> {
+    const division = userData.division;
+
+    if (!division) return null;
+
+    const existingDivision = await this.divisionRepository.findByName(division);
 
     if (existingDivision) {
       return existingDivision;
@@ -124,8 +124,22 @@ export class UserService {
     return this.userRepository.findById(id);
   }
 
-  async findAll(): Promise<UserEntity[]> {
-    return await this.userRepository.findAllWithRelation();
+  async findAll(): Promise<UserWithRelationResponseDto[]> {
+    const users = await this.userRepository.findAllWithRelation();
+    return users.map((user) => this.toDto(user));
+  }
+
+  private toDto(user: UserEntity): UserWithRelationResponseDto {
+    const dto = new UserWithRelationResponseDto();
+    dto.id = user.id;
+    dto.full_name = user.full_name;
+    dto.position = user.position;
+    dto.email = user.email;
+    dto.role = user.role?.name ?? "";
+    dto.is_active = user.is_active;
+    dto.division = user.division?.division_name ?? null;
+    dto.created_at = user.created_at;
+    return dto;
   }
 
   async deactivate(id: string): Promise<void> {

@@ -1,10 +1,10 @@
-import { Column, Entity, OneToMany, PrimaryColumn, Unique } from "typeorm";
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn, Unique } from "typeorm";
 import { UserEntity } from "../../user/entities/user.entity";
 
 @Entity("divisions")
 @Unique("uq_divisions_name", ["division_name"])
 export class DivisionEntity {
-  @PrimaryColumn({ type: "uuid" })
+  @PrimaryGeneratedColumn("uuid")
   id!: string;
 
   @Column({

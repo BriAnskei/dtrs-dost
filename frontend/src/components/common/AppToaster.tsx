@@ -7,7 +7,7 @@ export default function AppToaster() {
   return (
     <Toaster
       theme={theme}
-      position="top-right"
+      position="bottom-right"
       richColors={false}
       closeButton
       toastOptions={{

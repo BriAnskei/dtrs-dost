@@ -12,7 +12,6 @@ import { getDatabaseConfig } from "./config/database.config";
 import { IncomingDocQueue } from "./entities/incoming-doc-queue.entity";
 import { IncomingDocumentFile } from "./entities/incoming-document-file.entity";
 import { InvalidDocument } from "./entities/invalid-document.entity";
-import { DivisionController } from "./user/controllers/division.controller";
 import { UserModule } from "./user/user.module";
 
 @Module({
@@ -42,7 +41,7 @@ import { UserModule } from "./user/user.module";
     UserModule,
     AuthorizationModule,
   ],
-  controllers: [AppController, DivisionController],
+  controllers: [AppController],
   providers: [AppService],
 })
 export class AppModule {}
