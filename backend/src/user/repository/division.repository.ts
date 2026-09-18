@@ -50,4 +50,26 @@ export class DivisionRepository {
       take: 20,
     });
   }
+
+  async findAllWithUser(): Promise<DivisionEntity[]> {
+    return this.repository.find({
+      relations: {
+        users: true,
+      },
+    });
+  }
+
+  async updateName(id: string, division_name: string): Promise<boolean> {
+    const res = await this.repository.update(id, {
+      division_name,
+    });
+
+    return (res.affected ?? 0) > 0;
+  }
+
+  async delete(id: string): Promise<boolean> {
+    const res = await this.repository.delete(id);
+
+    return (res.affected ?? 0) > 0;
+  }
 }

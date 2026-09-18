@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { NAV_ITEMS, type NavItem } from "../config/navConfig";
+import type { Roles } from "../context/currentUser/curr-user.type";
 import { useUser } from "../context/currentUser/user-user";
-import type { Roles } from "../features/user-management/type/user.type";
 
 /**
  * Map each role to its dashboard route. The Dashboard nav item has a generic
@@ -10,7 +10,7 @@ import type { Roles } from "../features/user-management/type/user.type";
  * the sidebar link points directly to the dashboard and the `isActive` check
  * in AppSidebar matches only dashboard routes, not every path under "/".
  */
-const DASHBOARD_PATHS: Partial<Record<Roles, string>> = {
+const DASHBOARD_PATHS: Partial<Record<Exclude<Roles, 4>, string>> = {
   1: "/super-admin/dashboard",
   2: "/admin/dashboard",
   3: "/receiving-officer/dashboard",
@@ -37,7 +37,7 @@ export const useFilteredNav = (): NavItem[] => {
       if (!item.roles.includes(currentRole)) return null;
 
       let path = item.path;
-      if (item.name === "Dashboard") {
+      if (item.name === "Dashboard" && currentRole !== 4) {
         path = DASHBOARD_PATHS[currentRole] ?? item.path;
       }
 

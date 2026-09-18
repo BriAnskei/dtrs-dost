@@ -1,4 +1,12 @@
-import { IsEmail, IsIn, IsNotEmpty, IsOptional, IsString } from "class-validator";
+import {
+  IsEmail,
+  IsIn,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  ValidateIf,
+} from "class-validator";
+import { Role } from "../../auth/authorization/roles.enum";
 
 export class CreateUserDto {
   @IsString()
@@ -16,8 +24,11 @@ export class CreateUserDto {
   @IsIn(["1", "2", "3", "4"])
   role_id!: string;
 
+  @ValidateIf((o) => o.role_id === Role.Division)
+  @IsNotEmpty({
+    message: "Division is required for Division users",
+  })
   @IsString()
-  @IsOptional()
   division?: string;
 
   @IsOptional()

@@ -1,9 +1,10 @@
 import { createBrowserRouter } from "react-router";
-import UserManagementTable from "../features/user-management/components/UserManagementTable";
 import SignIn from "../features/authentication/components/SignIn";
+import DivisionManagementPage from "../features/divisions/components/DivisionManagementPage";
+import UserManagementPage from "../features/user-management/components/UserManagementPage";
+import UserManagementTable from "../features/user-management/components/UserManagementTable";
 import AppLayout from "../layout/AppLayout";
 import AccessControlPage from "../pages/Administration/AcessControlPage";
-import UserManagementPage from "../features/user-management/components/UserManagementPage";
 import AdminDashboard from "../pages/Dashboard/AdminDashboard";
 import Home from "../pages/Dashboard/Home";
 import ReceiverDashboard from "../pages/Dashboard/ReceiverDashboard";
@@ -107,6 +108,14 @@ const SUPER_ADMIN_ROUTES: RouteType[] = [
     element: (
       <RoleRoute allowedRoles={[1]}>
         <UserManagementPage />
+      </RoleRoute>
+    ),
+  },
+  {
+    path: "/divisions",
+    element: (
+      <RoleRoute allowedRoles={[1]}>
+        <DivisionManagementPage />
       </RoleRoute>
     ),
   },

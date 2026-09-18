@@ -70,25 +70,6 @@ export default function UserManagementTable({
     return [...staleOverrides, ...fromApi];
   }, [usersResponse, localOverrides]);
 
-  // ── Handlers ──
-  // NOTE: Disable is still local-only (no mutation call yet), per current
-  // scope — add/edit are wired to real mutations inside UserFormModal.
-
-  function handleToggleStatus() {
-    if (!disableTarget) return;
-    setLocalOverrides((prev) => {
-      const alreadyOverridden = prev.some((u) => u.id === disableTarget.id);
-      const toggled: SystemUser = {
-        ...disableTarget,
-        status: disableTarget.status === "Active" ? "Disabled" : "Active",
-      };
-      return alreadyOverridden
-        ? prev.map((u) => (u.id === disableTarget.id ? toggled : u))
-        : [toggled, ...prev];
-    });
-    setDisableTarget(null);
-  }
-
   function toFormState(user: SystemUser): UserFormState {
     return {
       name: user.name,
@@ -104,6 +85,8 @@ export default function UserManagementTable({
   // ── Filtered list ──
 
   const filtered = users.filter((u) => {
+    if (!u) return null;
+
     const q = search.toLowerCase();
     const matchesSearch =
       !q ||

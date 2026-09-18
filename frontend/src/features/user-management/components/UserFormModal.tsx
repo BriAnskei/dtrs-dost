@@ -43,6 +43,8 @@ export default function UserFormModal({
     const e: Partial<Record<keyof UserFormState, string>> = {};
     if (!form.name.trim()) e.name = "Name is required.";
     if (!form.role) e.role = "Role is required.";
+    if (form.role === "Division" && !form.division?.trim())
+      e.division = "Division is required.";
     if (!form.email.trim()) e.email = "Email is required.";
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
       e.email = "Enter a valid email.";
@@ -61,7 +63,7 @@ export default function UserFormModal({
       full_name: form.name,
       email: form.email,
       role_id: String(ROLE_ID_MAP[form.role as AssignableRole]),
-      division: form.division as string,
+      division: form.role === "Division" ? (form.division as string) : undefined,
       position: form.position.trim() ? form.position : undefined,
       contact_number: form.contact.trim() ? form.contact : undefined,
     };
@@ -101,9 +103,9 @@ export default function UserFormModal({
   function field(
     label: string,
     key: keyof UserFormState,
-    opts?: { type?: string; placeholder?: string; required?: boolean },
+    opts?: { type?: string; placeholder?: string; required?: boolean; autoComplete?: string; name?: string },
   ) {
-    const { type = "text", placeholder = "", required = false } = opts ?? {};
+    const { type = "text", placeholder = "", required = false, autoComplete, name } = opts ?? {};
     return (
       <div className="flex flex-col gap-1">
         <label
@@ -115,6 +117,7 @@ export default function UserFormModal({
         </label>
         <input
           id={key}
+          name={name ?? key}
           type={type}
           value={(form[key] as string) ?? ""}
           onChange={(e) => {
@@ -122,6 +125,7 @@ export default function UserFormModal({
             setErrors((er) => ({ ...er, [key]: undefined }));
           }}
           placeholder={placeholder}
+          autoComplete={autoComplete ?? "off"}
           className={`px-3 py-2 text-theme-sm rounded-lg border bg-white text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 transition dark:bg-white/3 dark:text-gray-200 dark:placeholder-gray-500 ${
             errors[key]
               ? "border-danger focus:ring-danger/30"
@@ -138,7 +142,7 @@ export default function UserFormModal({
       <div className="flex flex-col gap-1">
         <div className="flex items-center justify-between">
           <label
-            htmlFor="password"
+            htmlFor="new-user-password"
             className="text-theme-xs font-medium text-gray-600 dark:text-gray-400"
           >
             Password <span className="text-danger">*</span>
@@ -154,7 +158,8 @@ export default function UserFormModal({
 
         <div className="relative">
           <input
-            id="password"
+            id="new-user-password"
+            name="new-password"
             ref={passwordRef}
             type={showPassword ? "text" : "password"}
             value={form.password ?? ""}
@@ -268,7 +273,14 @@ export default function UserFormModal({
       />
 
       <div className="relative w-full max-w-md rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-white/8 dark:bg-gray-900 flex flex-col max-h-[90vh]">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-white/8">
+        <form
+          autoComplete="off"
+          onSubmit={(e) => e.preventDefault()}
+          className="contents"
+        >
+          <input type="hidden" autoComplete="username" name="username" tabIndex={-1} />
+          <input type="hidden" autoComplete="new-password" name="password" tabIndex={-1} />
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border:white/8">
           <div>
             <h2 className="text-theme-sm font-semibold text-gray-800 dark:text-white/90">
               {mode === "add" ? "Add New User" : "Edit User"}
@@ -320,8 +332,15 @@ export default function UserFormModal({
               id="role"
               value={form.role}
               onChange={(e) => {
-                setForm((f) => ({ ...f, role: e.target.value as UserRole | "" }));
-                setErrors((er) => ({ ...er, role: undefined }));
+                const nextRole = e.target.value as UserRole | "";
+                setForm((f) => ({
+                  ...f,
+                  role: nextRole,
+                  // Clear division whenever role isn't "Division" so a stale
+                  // value can't sneak into the payload while the field is hidden.
+                  division: nextRole === "Division" ? f.division : null,
+                }));
+                setErrors((er) => ({ ...er, role: undefined, division: undefined }));
               }}
               className={`px-3 py-2 text-theme-sm rounded-lg border bg-white text-gray-700 focus:outline-none focus:ring-2 transition dark:bg-white/5 dark:text-gray-200 ${
                 errors.role
@@ -363,24 +382,28 @@ export default function UserFormModal({
             )}
           </div>
 
+          {form.role === "Division" && (
+            <DivisionCombobox
+              value={form.division}
+              onChange={(division) => {
+                setForm((f) => ({ ...f, division }));
+                setErrors((er) => ({ ...er, division: undefined }));
+              }}
+              error={errors.division}
+            />
+          )}
+
           {field("Email", "email", {
             type: "email",
             required: true,
             placeholder: "e.g. user@peo.gov.ph",
+            autoComplete: "new-password",
+            name: "new-username",
           })}
           {field("Contact Number", "contact", {
             type: "tel",
             placeholder: "e.g. +63 917 123 4567",
           })}
-
-          <DivisionCombobox
-            value={form.division}
-            onChange={(division) => {
-              setForm((f) => ({ ...f, division }));
-              setErrors((er) => ({ ...er, division: undefined }));
-            }}
-            error={errors.division}
-          />
 
           {mode === "add" && passwordField()}
         </div>
@@ -403,6 +426,7 @@ export default function UserFormModal({
             {isSubmitting ? "Saving…" : mode === "add" ? "Add User" : "Save Changes"}
           </button>
         </div>
+        </form>
       </div>
     </div>,
     document.body,

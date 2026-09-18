@@ -1,4 +1,4 @@
-import type { Roles } from "../features/user-management/type/user.type";
+import type { Roles } from "../context/currentUser/curr-user.type";
 import {
   AccessControlIcon,
   AdministrationIcon,
@@ -82,7 +82,7 @@ export const NAV_ITEMS: NavItem[] = [
 
   {
     name: "Documents",
-    icon: <Document />,
+    icon: <></>,
     roles: [1, 2, 3],
     subItems: [
       // Super Admin, Admin
@@ -154,6 +154,16 @@ export const OTHERS_NAV_ITEMS: NavItem[] = [
       {
         name: "Manage Users",
         path: "/users",
+        roles: [1],
+      },
+      {
+        name: "Deactivated",
+        path: "/deactive",
+        roles: [1],
+      },
+      {
+        name: "Divisions",
+        path: "/divisions",
         roles: [1],
       },
       {

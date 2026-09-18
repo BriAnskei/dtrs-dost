@@ -1,5 +1,5 @@
-import type { User } from "../../features/user-management/type/user.type";
 import { apiClient } from "../../lib/api-client";
+import type { User } from "./curr-user.type";
 
 export const currentUserService = {
   async getCurrentUser(): Promise<User> {
