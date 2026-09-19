@@ -1,7 +1,8 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { type EntityManager, Not, type Repository } from "typeorm";
+import { type EntityManager, ILike, Not, type Repository } from "typeorm";
 import { Role } from "../../auth/authorization/roles.enum";
+import { escapeLike } from "../../util/escapeLike";
 import { UserEntity } from "../entities/user.entity";
 
 @Injectable()
@@ -50,6 +51,35 @@ export class UserRepository {
       relations: {
         role: true,
         division: true,
+      },
+    });
+  }
+
+  async searchByName(name: string): Promise<UserEntity[]> {
+    return this.repository.find({
+      where: {
+        full_name: ILike(`%${escapeLike(name)}%`),
+      },
+      relations: {
+        role: true,
+        division: true,
+      },
+      take: 20,
+    });
+  }
+
+  async findAllByDivisionId(division_id: string): Promise<UserEntity[]> {
+    return this.repository.find({
+      where: { division_id },
+    });
+  }
+
+  async findAllDeactivated(): Promise<UserEntity[]> {
+    return this.repository.find({
+      where: { is_active: false },
+      relations: {
+        division: true,
+        role: true,
       },
     });
   }

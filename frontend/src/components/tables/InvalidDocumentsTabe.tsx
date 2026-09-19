@@ -1,6 +1,7 @@
 import axios from "axios";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useUser } from "../../context/currentUser/user-user";
+import KebabMenu, { TrashIcon, ViewIcon } from "../ui/kebab-menu/KebabMenu";
 import { Table, TableBody, TableCell, TableHeader, TableRow } from "../ui/table";
 
 // ─── Types ─────────────────────────────────────────────────────
@@ -51,69 +52,6 @@ function StatusBadge({ record }: { record: InvalidDocument }) {
     >
       {label}
     </span>
-  );
-}
-
-// ─── Kebab Menu ───────────────────────────────────────────────
-function KebabMenu({
-  record,
-  onView,
-  onDelete,
-}: {
-  record: InvalidDocument;
-  onView: () => void;
-  onDelete: (record: InvalidDocument) => void;
-}) {
-  const [open, setOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  return (
-    <div className="relative inline-block text-left" ref={containerRef}>
-      <button
-        onClick={() => setOpen((prev) => !prev)}
-        className="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/[0.05] dark:hover:text-gray-300"
-        aria-label="Actions"
-        aria-haspopup="true"
-        aria-expanded={open}
-      >
-        <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M12 6a2 2 0 100-4 2 2 0 000 4zM12 14a2 2 0 100-4 2 2 0 000 4zM12 22a2 2 0 100-4 2 2 0 000 4z" />
-        </svg>
-      </button>
-
-      {open && (
-        <div className="absolute right-0 z-[999999] mt-1 w-36 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-lg dark:border-white/[0.08] dark:bg-gray-900">
-          <button
-            onClick={() => {
-              setOpen(false);
-              onView();
-            }}
-            className="text-theme-xs block w-full px-4 py-2 text-left text-gray-700 transition-colors hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-white/[0.05]"
-          >
-            View
-          </button>
-          <button
-            onClick={() => {
-              setOpen(false);
-              onDelete(record);
-            }}
-            className="text-theme-xs text-danger hover:bg-danger/10 block w-full border-t border-gray-100 px-4 py-2 text-left transition-colors dark:border-white/[0.05] dark:hover:bg-white/[0.05]"
-          >
-            Delete
-          </button>
-        </div>
-      )}
-    </div>
   );
 }
 
@@ -193,7 +131,6 @@ export default function InvalidDocumentsTable() {
   const [data, setData] = useState<InvalidDocument[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<InvalidDocument | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
@@ -365,10 +302,10 @@ export default function InvalidDocumentsTable() {
                       {record.fileName}
                     </p>
                     <KebabMenu
-                      record={record}
-                      openMenuId={openMenuId}
-                      setOpenMenuId={setOpenMenuId}
-                      onDelete={openDeleteModal}
+                      actions={[
+                        { label: "View", icon: <ViewIcon />, handler: () => console.log("[View] Record:", record) },
+                        { label: "Delete", icon: <TrashIcon />, handler: () => openDeleteModal(record), danger: true },
+                      ]}
                     />
                   </div>
 

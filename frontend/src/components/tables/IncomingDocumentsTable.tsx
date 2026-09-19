@@ -1,5 +1,5 @@
 import axios from "axios";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import QRCodeModal from "../receiver/QRCodeModal";
 import IncomingAuditModal from "../ui/modal/document/IncomingAuditModal";
 import RoutedDivisionsModal from "../ui/modal/document/RoutedDivisionsModal";
@@ -7,6 +7,13 @@ import StatusUpdateModal, {
   type StatusType,
   type StatusUpdatePayload,
 } from "../ui/modal/document/StatusUpdateModal";
+import KebabMenu, {
+  ArchiveIcon,
+  HistoryIcon,
+  ShareIcon,
+  UpdateStatusIcon,
+  ViewIcon,
+} from "../ui/kebab-menu/KebabMenu";
 import { Table, TableBody, TableCell, TableHeader, TableRow } from "../ui/table";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -111,196 +118,6 @@ function RoutedDivisionsButton({ onClick }: { onClick: () => void }) {
   );
 }
 
-// ─── Kebab Menu ───────────────────────────────────────────────────────────────
-
-function KebabMenu({
-  record,
-  onUpdateStatus,
-  onShare,
-}: {
-  record: IncomingDocument;
-  onUpdateStatus: (record: IncomingDocument) => void;
-  onShare: (record: IncomingDocument) => void;
-}) {
-  const [auditModalOpen, setAuditModalOpen] = useState(false);
-  const [auditRecord, setAuditRecord] = useState<IncomingDocument | null>(null);
-
-  function openAuditModal(record: IncomingDocument) {
-    setAuditRecord(record);
-    setAuditModalOpen(true);
-  }
-
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, []);
-
-  const actions: {
-    label: string;
-    icon: React.ReactNode;
-    handler: () => void;
-    danger?: boolean;
-  }[] = [
-    {
-      label: "View",
-      icon: (
-        <svg
-          className="h-4 w-4"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth={1.8}
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-          />
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-          />
-        </svg>
-      ),
-      handler: () => console.log("[View] Record:", record),
-    },
-    {
-      label: "Update Status",
-      icon: (
-        <svg
-          className="h-4 w-4"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth={1.8}
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"
-          />
-        </svg>
-      ),
-      handler: () => onUpdateStatus(record),
-    },
-    {
-      label: "History",
-      icon: (
-        <svg
-          className="h-4 w-4"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth={1.8}
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-          />
-        </svg>
-      ),
-      handler: () => openAuditModal(record),
-    },
-    {
-      label: "Share",
-      icon: (
-        <svg
-          className="h-4 w-4"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth={1.8}
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M8.684 13.342a4 4 0 105.316 5.658m6.632-8.974a4 4 0 10-5.316 5.658m0 2.316L8.684 13.342m6.632 4.974a4 4 0 105.316 5.658m0 2.316L8.684 15.658m9.316-9.632a4 4 0 11-8 0 4 4 0 018 0zm0 12a4 4 0 11-8 0 4 4 0 018 0zM7 12a4 4 0 11-8 0 4 4 0 018 0z"
-          />
-        </svg>
-      ),
-      handler: () => onShare(record),
-    },
-    {
-      label: "Archive",
-      icon: (
-        <svg
-          className="h-4 w-4"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth={1.8}
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 010 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"
-          />
-        </svg>
-      ),
-      handler: () => console.log("[Archive] Record:", record),
-    },
-  ];
-
-  return (
-    <>
-      <div ref={ref} className="relative inline-block">
-        <button
-          onClick={() => setOpen((v) => !v)}
-          className="rounded-md p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 focus:outline-none dark:hover:bg-white/[0.06] dark:hover:text-gray-200"
-          title="More actions"
-        >
-          <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
-            <circle cx="12" cy="5" r="1.5" />
-            <circle cx="12" cy="12" r="1.5" />
-            <circle cx="12" cy="19" r="1.5" />
-          </svg>
-        </button>
-
-        {open && (
-          <div className="absolute right-0 z-50 mt-1 w-44 rounded-lg border border-gray-200 bg-white shadow-lg dark:border-white/[0.08] dark:bg-gray-900">
-            {actions.map((action, idx) => (
-              <button
-                key={action.label}
-                onClick={() => {
-                  action.handler();
-                  setOpen(false);
-                }}
-                className={`text-theme-xs flex w-full items-center gap-2.5 px-3 py-2 text-left transition-colors ${idx === 0 ? "rounded-t-lg" : ""} ${idx === actions.length - 1 ? "rounded-b-lg" : ""} ${
-                  action.danger
-                    ? "text-danger hover:bg-red-50 dark:hover:bg-red-500/10"
-                    : "text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-white/[0.05]"
-                }`}
-              >
-                {action.icon}
-                {action.label}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {auditRecord && (
-        <IncomingAuditModal
-          isOpen={auditModalOpen}
-          onClose={() => setAuditModalOpen(false)}
-          documentCode={auditRecord.code}
-          documentSubject={auditRecord.subject}
-        />
-      )}
-    </>
-  );
-}
-
 // ─── Mobile Card ──────────────────────────────────────────────────────────────
 
 function MobileCard({
@@ -309,12 +126,14 @@ function MobileCard({
   onViewFile,
   onViewRouted,
   onShare,
+  onHistory,
 }: {
   record: IncomingDocument;
   onUpdateStatus: (record: IncomingDocument) => void;
   onViewFile: (r: IncomingDocument) => void;
   onViewRouted: (r: IncomingDocument) => void;
   onShare: (record: IncomingDocument) => void;
+  onHistory: (record: IncomingDocument) => void;
 }) {
   return (
     <div className="space-y-3 rounded-xl border border-gray-200 bg-white p-4 dark:border-white/[0.08] dark:bg-white/[0.03]">
@@ -323,7 +142,15 @@ function MobileCard({
         <span className="text-theme-xs text-primary dark:text-secondary bg-primary/5 dark:bg-secondary/10 rounded px-2 py-0.5 font-mono font-semibold">
           {record.code}
         </span>
-        <KebabMenu record={record} onUpdateStatus={onUpdateStatus} onShare={onShare} />
+        <KebabMenu
+          actions={[
+            { label: "View", icon: <ViewIcon />, handler: () => console.log("[View] Record:", record) },
+            { label: "Update Status", icon: <UpdateStatusIcon />, handler: () => onUpdateStatus(record) },
+            { label: "History", icon: <HistoryIcon />, handler: () => onHistory(record) },
+            { label: "Share", icon: <ShareIcon />, handler: () => onShare(record) },
+            { label: "Archive", icon: <ArchiveIcon />, handler: () => console.log("[Archive] Record:", record) },
+          ]}
+        />
       </div>
 
       {/* Subject */}
@@ -417,6 +244,10 @@ export default function IncomingDocumentsTable() {
   // Share / QR modal state
   const [shareTarget, setShareTarget] = useState<IncomingDocument | null>(null);
 
+  // Audit modal state (moved from inline KebabMenu)
+  const [auditModalOpen, setAuditModalOpen] = useState(false);
+  const [auditRecord, setAuditRecord] = useState<IncomingDocument | null>(null);
+
   // Fetch incoming documents from API
   useEffect(() => {
     let cancelled = false;
@@ -456,6 +287,11 @@ export default function IncomingDocumentsTable() {
 
   function handleShare(record: IncomingDocument) {
     setShareTarget(record);
+  }
+
+  function openAuditModal(record: IncomingDocument) {
+    setAuditRecord(record);
+    setAuditModalOpen(true);
   }
 
   const shareInfo = shareTarget
@@ -592,6 +428,16 @@ export default function IncomingDocumentsTable() {
           currentStatus={selectedRecord.status}
           documentCode={selectedRecord.code}
           documentSubject={selectedRecord.subject}
+        />
+      )}
+
+      {/* ── Audit Modal ── */}
+      {auditRecord && (
+        <IncomingAuditModal
+          isOpen={auditModalOpen}
+          onClose={() => setAuditModalOpen(false)}
+          documentCode={auditRecord.code}
+          documentSubject={auditRecord.subject}
         />
       )}
 
@@ -734,6 +580,7 @@ export default function IncomingDocumentsTable() {
                 onViewFile={handleViewFile}
                 onViewRouted={openRoutedModal}
                 onShare={handleShare}
+                onHistory={openAuditModal}
               />
             ))
           )}
@@ -878,9 +725,13 @@ export default function IncomingDocumentsTable() {
                         {/* Action */}
                         <TableCell className="px-3 py-3">
                           <KebabMenu
-                            record={record}
-                            onUpdateStatus={openUpdateModal}
-                            onShare={handleShare}
+                            actions={[
+                              { label: "View", icon: <ViewIcon />, handler: () => console.log("[View] Record:", record) },
+                              { label: "Update Status", icon: <UpdateStatusIcon />, handler: () => openUpdateModal(record) },
+                              { label: "History", icon: <HistoryIcon />, handler: () => openAuditModal(record) },
+                              { label: "Share", icon: <ShareIcon />, handler: () => handleShare(record) },
+                              { label: "Archive", icon: <ArchiveIcon />, handler: () => console.log("[Archive] Record:", record) },
+                            ]}
                           />
                         </TableCell>
                       </TableRow>

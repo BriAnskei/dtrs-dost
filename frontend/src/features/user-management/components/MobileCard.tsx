@@ -1,7 +1,10 @@
 import Badge from "../../../components/ui/badge/Badge";
-import { getRoleBadgeColor, getStatusStyles } from "../helpers";
+import KebabMenu, {
+  DisableIcon,
+  EditIcon,
+} from "../../../components/ui/kebab-menu/KebabMenu";
+import { getRoleBadgeColor } from "../helpers";
 import type { SystemUser } from "../type/user.type";
-import KebabMenu from "./kebebMenu";
 
 export default function MobileCard({
   user,
@@ -21,10 +24,24 @@ export default function MobileCard({
             {user.name}
           </p>
           <p className="text-theme-xs text-gray-400 dark:text-gray-500 mt-0.5">
-            {user.title}
+            {user.position}
           </p>
         </div>
-        <KebabMenu user={user} onEdit={onEdit} onToggleStatus={onToggleStatus} />
+        <KebabMenu
+          actions={[
+            {
+              label: "Edit",
+              icon: <EditIcon />,
+              handler: onEdit,
+            },
+            {
+              label: "Disable",
+              icon: <DisableIcon />,
+              handler: onToggleStatus,
+              danger: true,
+            },
+          ]}
+        />
       </div>
 
       {/* Meta grid */}
@@ -41,14 +58,11 @@ export default function MobileCard({
         </div>
         <div>
           <p className="text-theme-xs text-gray-400 dark:text-gray-500 font-medium uppercase tracking-wide">
-            Status
+            Contact
           </p>
-          {/* Status with explicit red for Disabled - Mobile */}
-          <div className="mt-1">
-            <span className={`text-theme-sm font-medium ${getStatusStyles(user.status)}`}>
-              {user.status}
-            </span>
-          </div>
+          <p className="text-theme-xs text-gray-700 dark:text-gray-300 mt-0.5">
+            {user.contact}
+          </p>
         </div>
         <div className="col-span-2">
           <p className="text-theme-xs text-gray-400 dark:text-gray-500 font-medium uppercase tracking-wide">
@@ -60,10 +74,10 @@ export default function MobileCard({
         </div>
         <div>
           <p className="text-theme-xs text-gray-400 dark:text-gray-500 font-medium uppercase tracking-wide">
-            Division
+            Created At
           </p>
           <p className="text-theme-xs text-gray-700 dark:text-gray-300 mt-0.5">
-            {user.division ?? "—"}
+            {user.createtAt}
           </p>
         </div>
       </div>

@@ -2,9 +2,8 @@ export class UserWithRelationResponseDto {
   id!: string;
   full_name!: string;
   position!: string | null;
-  email!: string;
+  contact!: string;
   role!: string;
-  is_active!: boolean;
-  division!: string | null;
+  email!: string;
   created_at!: Date;
 }

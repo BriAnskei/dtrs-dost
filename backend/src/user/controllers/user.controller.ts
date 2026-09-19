@@ -7,6 +7,7 @@ import {
   HttpStatus,
   Patch,
   Post,
+  Query,
   Req,
 } from "@nestjs/common";
 import type { Request } from "express";
@@ -31,13 +32,25 @@ export class UserController {
       id: string;
     };
 
-    return this.service.findById(user.id);
+    return this.service.findCurrentUser(user.id);
+  }
+
+  @Get("/search")
+  @Roles(Role.SuperAdmin)
+  async searchByName(@Query("search") name: string) {
+    return this.service.searchByName(name);
   }
 
   @Get()
   @Roles(Role.SuperAdmin)
   async findAll() {
     return this.service.findAll();
+  }
+
+  @Get()
+  @Roles(Role.SuperAdmin)
+  async findAllDeactivated() {
+    return this.service.findAllDeactivated();
   }
 
   @Patch(":id/deactivate")

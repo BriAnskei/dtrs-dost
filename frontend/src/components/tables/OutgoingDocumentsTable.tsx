@@ -1,5 +1,10 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { Table, TableBody, TableCell, TableHeader, TableRow } from "../ui/table";
+import KebabMenu, {
+  ArchiveIcon,
+  HistoryIcon,
+  ViewIcon,
+} from "../ui/kebab-menu/KebabMenu";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -89,135 +94,7 @@ function formatDate(iso: string) {
   });
 }
 
-// ─── Kebab Menu ───────────────────────────────────────────────────────────────
-
-function KebabMenu({ record }: { record: OutgoingDocument }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, []);
-
-  const actions: {
-    label: string;
-    icon: React.ReactNode;
-    handler: () => void;
-    danger?: boolean;
-  }[] = [
-    {
-      label: "View",
-      icon: (
-        <svg
-          className="w-4 h-4"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth={1.8}
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-          />
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-          />
-        </svg>
-      ),
-      handler: () => console.log("[View] Record:", record),
-    },
-    {
-      label: "History",
-      icon: (
-        <svg
-          className="w-4 h-4"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth={1.8}
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-          />
-        </svg>
-      ),
-      handler: () => console.log("[History] Audit log for record:", record),
-    },
-    {
-      label: "Archive",
-      icon: (
-        <svg
-          className="w-4 h-4"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth={1.8}
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"
-          />
-        </svg>
-      ),
-      handler: () => console.log("[Archive] Record:", record),
-    },
-  ];
-
-  return (
-    <div ref={ref} className="relative inline-block">
-      <button
-        onClick={() => setOpen((v) => !v)}
-        className="p-1.5 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:bg-white/[0.06] dark:hover:text-gray-200 transition-colors focus:outline-none"
-        title="More actions"
-      >
-        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-          <circle cx="12" cy="5" r="1.5" />
-          <circle cx="12" cy="12" r="1.5" />
-          <circle cx="12" cy="19" r="1.5" />
-        </svg>
-      </button>
-
-      {open && (
-        <div className="absolute z-50 right-0 mt-1 w-40 rounded-lg border border-gray-200 bg-white shadow-lg dark:border-white/[0.08] dark:bg-gray-900">
-          {actions.map((action, idx) => (
-            <button
-              key={action.label}
-              onClick={() => {
-                action.handler();
-                setOpen(false);
-              }}
-              className={`flex w-full items-center gap-2.5 px-3 py-2 text-left text-theme-xs transition-colors
-                ${idx === 0 ? "rounded-t-lg" : ""}
-                ${idx === actions.length - 1 ? "rounded-b-lg" : ""}
-                ${
-                  action.danger
-                    ? "text-danger hover:bg-red-50 dark:hover:bg-red-500/10"
-                    : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/[0.05]"
-                }`}
-            >
-              {action.icon}
-              {action.label}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ─── Mobile Card ──────────────────────────────────────────────────────────────
+// ─── Mobile Card ─�─────────────────────────────────────────────────────────────
 
 function MobileCard({
   record,
@@ -233,7 +110,13 @@ function MobileCard({
         <span className="font-mono text-theme-xs font-semibold text-primary dark:text-secondary bg-primary/5 dark:bg-secondary/10 px-2 py-0.5 rounded">
           {record.code}
         </span>
-        <KebabMenu record={record} />
+        <KebabMenu
+          actions={[
+            { label: "View", icon: <ViewIcon />, handler: () => console.log("[View] Record:", record) },
+            { label: "History", icon: <HistoryIcon />, handler: () => console.log("[History] Audit log for record:", record) },
+            { label: "Archive", icon: <ArchiveIcon />, handler: () => console.log("[Archive] Record:", record) },
+          ]}
+        />
       </div>
 
       {/* Subject */}
@@ -539,7 +422,13 @@ export default function OutgoingDocumentsTable() {
 
                       {/* Action */}
                       <TableCell className="px-3 py-3">
-                        <KebabMenu record={record} />
+                        <KebabMenu
+                          actions={[
+                            { label: "View", icon: <ViewIcon />, handler: () => console.log("[View] Record:", record) },
+                            { label: "History", icon: <HistoryIcon />, handler: () => console.log("[History] Audit log for record:", record) },
+                            { label: "Archive", icon: <ArchiveIcon />, handler: () => console.log("[Archive] Record:", record) },
+                          ]}
+                        />
                       </TableCell>
                     </TableRow>
                   ))

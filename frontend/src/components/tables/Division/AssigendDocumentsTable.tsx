@@ -1,4 +1,8 @@
 import { useState } from "react";
+import KebabMenu, {
+  UpdateStatusIcon,
+  ViewIcon,
+} from "../../ui/kebab-menu/KebabMenu";
 import RoutedDivisionsModal from "../../ui/modal/document/RoutedDivisionsModal";
 import StatusUpdateModal, {
   type StatusType,
@@ -83,103 +87,6 @@ function RoutedDivisionsButton({ onClick }: { onClick: () => void }) {
   );
 }
 
-// ─── Kebab Menu (division view: View + Update Status only) ──────────────────
-
-function KebabMenu({
-  record,
-  onView,
-  onUpdateStatus,
-}: {
-  record: IncomingDocument;
-  onView: (record: IncomingDocument) => void;
-  onUpdateStatus: (record: IncomingDocument) => void;
-}) {
-  const [open, setOpen] = useState(false);
-
-  const actions = [
-    {
-      label: "View",
-      icon: (
-        <svg
-          className="h-4 w-4"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth={1.8}
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-          />
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-          />
-        </svg>
-      ),
-      handler: () => onView(record),
-    },
-    {
-      label: "Update Status",
-      icon: (
-        <svg
-          className="h-4 w-4"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth={1.8}
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"
-          />
-        </svg>
-      ),
-      handler: () => onUpdateStatus(record),
-    },
-  ];
-
-  return (
-    <div className="relative inline-block">
-      <button
-        onClick={() => setOpen((v) => !v)}
-        className="rounded-md p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 focus:outline-none dark:hover:bg-white/[0.06] dark:hover:text-gray-200"
-        title="More actions"
-      >
-        <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
-          <circle cx="12" cy="5" r="1.5" />
-          <circle cx="12" cy="12" r="1.5" />
-          <circle cx="12" cy="19" r="1.5" />
-        </svg>
-      </button>
-
-      {open && (
-        <div
-          onMouseLeave={() => setOpen(false)}
-          className="absolute right-0 z-50 mt-1 w-40 rounded-lg border border-gray-200 bg-white shadow-lg dark:border-white/[0.08] dark:bg-gray-900"
-        >
-          {actions.map((action, idx) => (
-            <button
-              key={action.label}
-              onClick={() => {
-                action.handler();
-                setOpen(false);
-              }}
-              className={`text-theme-xs flex w-full items-center gap-2.5 px-3 py-2 text-left text-gray-700 transition-colors hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-white/[0.05] ${idx === 0 ? "rounded-t-lg" : ""} ${idx === actions.length - 1 ? "rounded-b-lg" : ""}`}
-            >
-              {action.icon}
-              {action.label}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
 // ─── Mobile Card ──────────────────────────────────────────────────────────────
 
 function MobileCard({
@@ -201,7 +108,12 @@ function MobileCard({
         <span className="text-theme-xs text-primary dark:text-secondary bg-primary/5 dark:bg-secondary/10 rounded px-2 py-0.5 font-mono font-semibold">
           {record.code}
         </span>
-        <KebabMenu record={record} onView={onView} onUpdateStatus={onUpdateStatus} />
+        <KebabMenu
+          actions={[
+            { label: "View", icon: <ViewIcon />, handler: () => onView(record) },
+            { label: "Update Status", icon: <UpdateStatusIcon />, handler: () => onUpdateStatus(record) },
+          ]}
+        />
       </div>
 
       <p className="text-theme-sm leading-snug font-semibold text-gray-800 dark:text-white/90">
@@ -607,9 +519,10 @@ export default function DivisionIncomingDocumentsTable({
 
                         <TableCell className="px-3 py-3">
                           <KebabMenu
-                            record={record}
-                            onView={handleView}
-                            onUpdateStatus={openUpdateModal}
+                            actions={[
+                              { label: "View", icon: <ViewIcon />, handler: () => handleView(record) },
+                              { label: "Update Status", icon: <UpdateStatusIcon />, handler: () => openUpdateModal(record) },
+                            ]}
                           />
                         </TableCell>
                       </TableRow>

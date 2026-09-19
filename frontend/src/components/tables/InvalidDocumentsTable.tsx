@@ -1,7 +1,9 @@
 import axios from "axios";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
+import KebabMenu, { TrashIcon, ViewIcon } from "../ui/kebab-menu/KebabMenu";
 import MissingFieldsModal from "../ui/modal/document/MissingFieldsModal";
+import { Table, TableBody, TableCell, TableHeader, TableRow } from "../ui/table";
 
 // ─── Types ─────────────────────────────────────────────────────────────
 
@@ -30,76 +32,6 @@ function formatDateTime(iso: string) {
     minute: "2-digit",
     hour12: true,
   });
-}
-
-// ── Kebab Action Menu ─────────────────────────────────────────────────
-
-function KebabIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="currentColor" viewBox="0 0 20 20">
-      <circle cx="10" cy="4" r="1.75" />
-      <circle cx="10" cy="10" r="1.75" />
-      <circle cx="10" cy="16" r="1.75" />
-    </svg>
-  );
-}
-
-function KebabActionMenu({
-  onView,
-  onMarkInvalid,
-}: {
-  onView: () => void;
-  onMarkInvalid: () => void;
-}) {
-  const [open, setOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  return (
-    <div className="relative inline-block text-left" ref={containerRef}>
-      <button
-        onClick={() => setOpen((prev) => !prev)}
-        className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 transition-colors hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/[0.08]"
-        title="Actions"
-        aria-haspopup="true"
-        aria-expanded={open}
-      >
-        <KebabIcon className="h-4 w-4" />
-      </button>
-
-      {open && (
-        <div className="absolute right-0 z-50 mt-1 w-40 origin-top-right overflow-hidden rounded-lg border border-gray-200 bg-white shadow-lg dark:border-white/[0.08] dark:bg-gray-900">
-          <button
-            onClick={() => {
-              setOpen(false);
-              onView();
-            }}
-            className="text-theme-xs flex w-full items-center gap-2 px-3 py-2 text-gray-600 transition-colors hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-white/[0.05]"
-          >
-            View
-          </button>
-          <button
-            onClick={() => {
-              setOpen(false);
-              onMarkInvalid();
-            }}
-            className="text-theme-xs text-danger hover:bg-danger/5 dark:text-danger flex w-full items-center gap-2 border-t border-gray-100 px-3 py-2 transition-colors dark:border-white/[0.05]"
-          >
-            Mark as Invalid
-          </button>
-        </div>
-      )}
-    </div>
-  );
 }
 
 // ─── Main Component ───────────────────────────────────────────────────
@@ -455,9 +387,11 @@ export default function InvalidDocumentsTable() {
                       </TableCell>
 
                       <TableCell className="px-3 py-3">
-                        <KebabActionMenu
-                          onView={() => handleOpenFieldsModal(record)}
-                          onMarkInvalid={() => handleMarkInvalidClick(record.id)}
+                        <KebabMenu
+                          actions={[
+                            { label: "View", icon: <ViewIcon />, handler: () => handleOpenFieldsModal(record) },
+                            { label: "Mark as Invalid", icon: <TrashIcon />, handler: () => handleMarkInvalidClick(record.id), danger: true },
+                          ]}
                         />
                       </TableCell>
                     </TableRow>

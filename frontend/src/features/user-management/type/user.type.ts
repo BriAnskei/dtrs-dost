@@ -4,9 +4,7 @@ export interface UserWithRelationResponse {
   position?: string;
   email: string;
   role: string;
-  contact: string;
-  is_active: boolean;
-  division: string | null;
+  contact?: string;
   created_at: string;
 }
 
@@ -25,8 +23,7 @@ export interface SystemUser {
   position: string;
   role: UserRole;
   email: string;
-  division: string | null;
-  status: AccountStatus;
+  createtAt: string;
 }
 
 export interface UserManagementTableProps {

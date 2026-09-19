@@ -1,7 +1,10 @@
-import { useMemo, useState } from "react";
 import MobileCardSkeleton from "../../../components/tables/Skeleton/MobileCardSkeleton";
 import TableSkeleton from "../../../components/tables/Skeleton/TableSkeleton";
 import Badge from "../../../components/ui/badge/Badge";
+import KebabMenu, {
+  DisableIcon,
+  EditIcon,
+} from "../../../components/ui/kebab-menu/KebabMenu";
 import {
   Table,
   TableBody,
@@ -11,17 +14,10 @@ import {
 } from "../../../components/ui/table";
 import { THIN_SCROLLBAR } from "../../../contant/ThinScrollBar";
 import { ALL_ROLES } from "../constant";
-import { getRoleBadgeColor, getStatusStyles } from "../helpers";
-import { useUsers } from "../hooks/use-users";
-import { EMPTY_FORM, type UserFormState } from "../type/creater-user.type";
-import type {
-  AccountStatus,
-  SystemUser,
-  UserManagementTableProps,
-  UserRole,
-} from "../type/user.type";
-import { mapUsersResponseToSystemUsers } from "../utils/mapUserResponseToSystemUser";
-import KebabMenu from "./kebebMenu";
+import { getRoleBadgeColor } from "../helpers";
+import { useUserManagementTable } from "../hooks/use-user-management-table";
+import { EMPTY_FORM } from "../type/creater-user.type";
+import type { SystemUser, UserManagementTableProps, UserRole } from "../type/user.type";
 import MobileCard from "./MobileCard";
 import UserFormModal from "./UserFormModal";
 
@@ -31,8 +27,8 @@ const USER_TABLE_COLUMNS = [
   { label: "Name", width: "w-32", withSubline: true },
   { label: "Role", width: "w-16", pill: true },
   { label: "Email", width: "w-40" },
-  { label: "Division", width: "w-20" },
-  { label: "Account Status", width: "w-16" },
+  { label: "Contact", width: "w-24" },
+  { label: "Created At", width: "w-20" },
   { label: "Action", width: "w-6" },
 ] as const;
 
@@ -40,65 +36,25 @@ export default function UserManagementTable({
   maxTableHeight = "560px",
   maxMobileHeight = "520px",
 }: UserManagementTableProps = {}) {
-  const { data: usersResponse, isLoading, isError, error } = useUsers();
-
-  // Local, UI-only overrides for the still-unwired disable toggle. Add/Edit
-  // now go through real mutations (useCreateUser/useUpdateUser inside
-  // UserFormModal) and land in the ["users"] cache directly, so they no
-  // longer need an entry here. Server data always wins on refetch.
-  const [localOverrides, setLocalOverrides] = useState<SystemUser[]>([]);
-
-  const [search, setSearch] = useState("");
-  const [filterRole, setFilterRole] = useState<UserRole | "All">("All");
-  const [filterStatus, setFilterStatus] = useState<AccountStatus | "All">("All");
-
-  // Modal state
-  const [addModal, setAddModal] = useState(false);
-  const [editTarget, setEditTarget] = useState<SystemUser | null>(null);
-  const [disableTarget, setDisableTarget] = useState<SystemUser | null>(null);
-
-  // ── Derived data: API response -> view model ──
-  // (Single responsibility: this component only orchestrates UI state;
-  // the actual shape translation lives in mapUsersResponseToSystemUsers.)
-  const users = useMemo<SystemUser[]>(() => {
-    const fromApi = usersResponse ? mapUsersResponseToSystemUsers(usersResponse) : [];
-    // Only disable-toggle overrides live here now; anything already present
-    // in fromApi (post add/edit, via cache) takes precedence over a stale
-    // local override with the same id.
-    const overriddenIds = new Set(fromApi.map((u) => u.id));
-    const staleOverrides = localOverrides.filter((u) => !overriddenIds.has(u.id));
-    return [...staleOverrides, ...fromApi];
-  }, [usersResponse, localOverrides]);
-
-  function toFormState(user: SystemUser): UserFormState {
-    return {
-      name: user.name,
-      position: user.position,
-      role: user.role,
-      email: user.email,
-      contact: user.contact,
-      division: user.division,
-      password: "", // left blank on edit; UserFormModal only requires it in "add" mode
-    };
-  }
-
-  // ── Filtered list ──
-
-  const filtered = users.filter((u) => {
-    if (!u) return null;
-
-    const q = search.toLowerCase();
-    const matchesSearch =
-      !q ||
-      u.name.toLowerCase().includes(q) ||
-      u.email.toLowerCase().includes(q) ||
-      u.position.toLowerCase().includes(q);
-    const matchesRole = filterRole === "All" || u.role === filterRole;
-    const matchesStatus = filterStatus === "All" || u.status === filterStatus;
-    return matchesSearch && matchesRole && matchesStatus;
-  });
-
-  const hasFilters = search || filterRole !== "All" || filterStatus !== "All";
+  const {
+    isLoading,
+    isError,
+    error,
+    users,
+    filtered,
+    hasFilters,
+    toFormState,
+    clearFilters,
+    search,
+    setSearch,
+    filterRole,
+    setFilterRole,
+    addModal,
+    setAddModal,
+    editTarget,
+    setEditTarget,
+    setDisableTarget,
+  } = useUserManagementTable();
 
   return (
     <>
@@ -146,24 +102,10 @@ export default function UserManagementTable({
                 ))}
               </select>
 
-              <select
-                value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value as AccountStatus | "All")}
-                className="flex-1 min-w-32.5 px-3 py-2 text-theme-sm rounded-lg border border-gray-200 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-secondary/40 focus:border-secondary dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-gray-200 transition"
-              >
-                <option value="All">All Statuses</option>
-                <option value="Active">Active</option>
-                <option value="Disabled">Disabled</option>
-              </select>
-
               {hasFilters && (
                 <button
                   type="button"
-                  onClick={() => {
-                    setSearch("");
-                    setFilterRole("All");
-                    setFilterStatus("All");
-                  }}
+                  onClick={clearFilters}
                   className="px-3 py-2 text-theme-sm text-gray-500 hover:text-danger border border-gray-200 rounded-lg hover:border-danger/40 transition-colors dark:border-white/8 dark:text-gray-400 dark:hover:text-danger whitespace-nowrap"
                 >
                   Clear
@@ -268,22 +210,17 @@ export default function UserManagementTable({
                   <Table>
                     <TableHeader className="dark:border-white/[0.05] sticky top-0 z-10 bg-white dark:bg-gray-900">
                       <TableRow>
-                        {[
-                          "Name",
-                          "Role",
-                          "Email",
-                          "Division",
-                          "Account Status",
-                          "Action",
-                        ].map((col) => (
-                          <TableCell
-                            key={col}
-                            isHeader
-                            className="px-4 py-3 font-semibold text-primary text-start text-theme-xs dark:text-gray-300 whitespace-nowrap"
-                          >
-                            {col}
-                          </TableCell>
-                        ))}
+                        {["Name", "Role", "Email", "Contact", "Created At", "Action"].map(
+                          (col) => (
+                            <TableCell
+                              key={col}
+                              isHeader
+                              className="px-4 py-3 font-semibold text-primary text-start text-theme-xs dark:text-gray-300 whitespace-nowrap"
+                            >
+                              {col}
+                            </TableCell>
+                          ),
+                        )}
                       </TableRow>
                     </TableHeader>
 
@@ -298,7 +235,7 @@ export default function UserManagementTable({
                           </td>
                         </tr>
                       ) : (
-                        filtered.map((user) => (
+                        filtered.map((user: SystemUser) => (
                           <TableRow
                             key={user.id}
                             className="hover:bg-gray-50/60 dark:hover:bg-white/[0.02] transition-colors"
@@ -328,22 +265,28 @@ export default function UserManagementTable({
                             </TableCell>
 
                             <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap">
-                              {user.division ?? "—"}
+                              {user.contact}
                             </TableCell>
 
-                            <TableCell className="px-4 py-3 whitespace-nowrap">
-                              <span
-                                className={`text-theme-sm font-medium ${getStatusStyles(user.status)}`}
-                              >
-                                {user.status}
-                              </span>
+                            <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap">
+                              {user.createtAt}
                             </TableCell>
 
                             <TableCell className="px-4 py-3">
                               <KebabMenu
-                                user={user}
-                                onEdit={() => setEditTarget(user)}
-                                onToggleStatus={() => setDisableTarget(user)}
+                                actions={[
+                                  {
+                                    label: "Edit",
+                                    icon: <EditIcon />,
+                                    handler: () => setEditTarget(user),
+                                  },
+                                  {
+                                    label: "Disable",
+                                    icon: <DisableIcon />,
+                                    handler: () => setDisableTarget(user),
+                                    danger: true,
+                                  },
+                                ]}
                               />
                             </TableCell>
                           </TableRow>

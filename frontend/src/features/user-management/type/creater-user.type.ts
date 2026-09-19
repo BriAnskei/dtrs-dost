@@ -6,7 +6,6 @@ export interface UserFormState {
   role: UserRole | "";
   email: string;
   contact: string; // -> contact_number
-  division: string | null;
   password?: string; // only required on "add"
 }
 
@@ -16,7 +15,6 @@ export const EMPTY_FORM: UserFormState = {
   role: "",
   email: "",
   contact: "",
-  division: null,
   password: "",
 };
 

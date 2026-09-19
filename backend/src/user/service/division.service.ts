@@ -1,12 +1,16 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { ConflictException, Injectable, NotFoundException } from "@nestjs/common";
 import { DivisionWithUsersResponseDto } from "../dto/divisionWithUsers-response-dto";
 import { UpdateDivisionDto } from "../dto/update-division-dto";
 import { DivisionEntity } from "../entities/division.entity";
 import { DivisionRepository } from "../repository/division.repository";
+import { UserRepository } from "../repository/user.repository";
 
 @Injectable()
 export class DivisionService {
-  constructor(private readonly repository: DivisionRepository) {}
+  constructor(
+    private readonly repository: DivisionRepository,
+    private readonly userRepository: UserRepository,
+  ) {}
 
   async searchByName(search: string): Promise<DivisionEntity[] | null> {
     return await this.repository.searchByName(search);
@@ -40,6 +44,11 @@ export class DivisionService {
   }
 
   async delete(id: string) {
+    const assignedUser = await this.userRepository.findAllByDivisionId(id);
+
+    if (assignedUser.length > 0)
+      throw new ConflictException("Division with assign users should not be deleted");
+
     const res = await this.repository.delete(id);
 
     if (!res) throw new NotFoundException("Division not found");

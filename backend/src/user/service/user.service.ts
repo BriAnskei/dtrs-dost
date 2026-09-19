@@ -24,6 +24,18 @@ export class UserService {
     private readonly dataSource: DataSource,
   ) {}
 
+  private toDto(user: UserEntity): UserWithRelationResponseDto {
+    const dto = new UserWithRelationResponseDto();
+    dto.id = user.id;
+    dto.full_name = user.full_name;
+    dto.position = user.position ?? "";
+    dto.email = user.email;
+    dto.contact = user.contact_number ?? "";
+    dto.role = user.role.name;
+    dto.created_at = user.created_at;
+    return dto;
+  }
+
   async create(userData: CreateUserDto): Promise<UserWithRelationResponseDto> {
     return this.dataSource.transaction(async (manager) => {
       const existingUserWithThisEmail = await this.userRepository.findByEmail(
@@ -101,11 +113,36 @@ export class UserService {
     return this.userRepository.findByEmail(email);
   }
 
-  async findById(id: string) {
+  async searchByName(name: string): Promise<UserWithRelationResponseDto[] | null> {
+    const users = await this.userRepository.searchByName(name);
+
+    return users.map((u) => this.toDto(u));
+  }
+
+  async findCurrentUser(id: string) {
     const user = await this.userRepository.findById(id);
 
     if (!user) {
       throw new UnauthorizedException("User no longer exist");
+    }
+
+    return {
+      id: user.id,
+      division_id: user.division_id,
+      full_name: user.full_name,
+      role_id: user.role_id,
+      email: user.email,
+      contect_number: user.contact_number,
+      position: user.position,
+      is_active: user.is_active,
+    };
+  }
+
+  async findById(id: string) {
+    const user = await this.userRepository.findById(id);
+
+    if (!user) {
+      throw new NotFoundException("User does not exit");
     }
 
     return {
@@ -129,17 +166,10 @@ export class UserService {
     return users.map((user) => this.toDto(user));
   }
 
-  private toDto(user: UserEntity): UserWithRelationResponseDto {
-    const dto = new UserWithRelationResponseDto();
-    dto.id = user.id;
-    dto.full_name = user.full_name;
-    dto.position = user.position;
-    dto.email = user.email;
-    dto.role = user.role?.name ?? "";
-    dto.is_active = user.is_active;
-    dto.division = user.division?.division_name ?? null;
-    dto.created_at = user.created_at;
-    return dto;
+  async findAllDeactivated(): Promise<UserWithRelationResponseDto[]> {
+    const res = await this.userRepository.findAllDeactivated();
+
+    return res.map((u) => this.toDto(u));
   }
 
   async deactivate(id: string): Promise<void> {

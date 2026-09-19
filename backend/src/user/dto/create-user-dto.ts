@@ -4,6 +4,7 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
+  Matches,
   ValidateIf,
 } from "class-validator";
 import { Role } from "../../auth/authorization/roles.enum";
@@ -37,5 +38,8 @@ export class CreateUserDto {
 
   @IsOptional()
   @IsString()
+  @Matches(/^(09\d{9}|\+639\d{9}|639\d{9})$/, {
+    message: "Contact number must be a valid Philippine mobile number",
+  })
   contact_number?: string;
 }

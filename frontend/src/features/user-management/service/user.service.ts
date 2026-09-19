@@ -1,5 +1,4 @@
 import { apiClient } from "../../../lib/api-client";
-import type { UpdateUserPayload } from "../hooks/use-update-user";
 import type { CreateUserPayload } from "../type/creater-user.type";
 import type { UserWithRelationResponse } from "../type/user.type";
 
@@ -19,5 +18,14 @@ export const userService = {
     return data;
   },
 
-  async update(id: string, data: UpdateUserPayload): Promise<any> {},
+  async searchByName(name: string): Promise<UserWithRelationResponse[]> {
+    const { data } = await apiClient.get<UserWithRelationResponse[]>("/user/search", {
+      params: {
+        name,
+      },
+    });
+    return data;
+  },
+
+  // async update(id: string, data: UpdateUserPayload): Promise<any> {},
 };

@@ -1,8 +1,12 @@
 // ─── MyUploadsTable.tsx ───────────────────────────────────────────────────────
 
 import axios from "axios";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import QRCodeModal from "../../../components/receiver/QRCodeModal";
+import KebabMenu, {
+  ArchiveIcon,
+  ShareIcon,
+} from "../../../components/ui/kebab-menu/KebabMenu";
 import {
   Table,
   TableBody,
@@ -72,60 +76,6 @@ function StatusBadge({ status }: { status: UploadStatus }) {
   );
 }
 
-// ─── Icons ────────────────────────────────────────────────────────────────────
-
-function ArchiveIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      className={className}
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      strokeWidth={2}
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M20 7H4a1 1 0 00-1 1v1a1 1 0 001 1h16a1 1 0 001-1V8a1 1 0 00-1-1z"
-      />
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M5 10v8a1 1 0 001 1h12a1 1 0 001-1v-8"
-      />
-      <path strokeLinecap="round" strokeLinejoin="round" d="M10 14h4" />
-    </svg>
-  );
-}
-
-function ShareIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      className={className}
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      strokeWidth={2}
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M8.684 13.342a4 4 0 100 2.316m6.632-8.974a4 4 0 100-2.316m0 2.316L8.684 13.342m6.632 4.974a4 4 0 100-2.316m0 2.316L8.684 15.658m9.316-9.632a4 4 0 11-8 0 4 4 0 018 0zm0 12a4 4 0 11-8 0 4 4 0 018 0zM7 12a4 4 0 11-8 0 4 4 0 018 0z"
-      />
-    </svg>
-  );
-}
-
-function KebabIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="currentColor" viewBox="0 0 20 20">
-      <circle cx="10" cy="4" r="1.75" />
-      <circle cx="10" cy="10" r="1.75" />
-      <circle cx="10" cy="16" r="1.75" />
-    </svg>
-  );
-}
-
 // ─── Archive Confirm Modal ────────────────────────────────────────────────────
 
 function ArchiveConfirmModal({
@@ -179,77 +129,6 @@ function ArchiveConfirmModal({
   );
 }
 
-// ─── Kebab Action Menu ────────────────────────────────────────────────────────
-
-function KebabActionMenu({
-  onArchive,
-  onShare,
-  disabled,
-}: {
-  onArchive: () => void;
-  onShare: () => void;
-  disabled?: boolean;
-}) {
-  const [open, setOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  if (disabled) {
-    return (
-      <span className="text-theme-xs text-gray-300 italic dark:text-gray-600">
-        Archived
-      </span>
-    );
-  }
-
-  return (
-    <div className="relative inline-block text-left" ref={containerRef}>
-      <button
-        onClick={() => setOpen((prev) => !prev)}
-        className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 transition-colors hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/[0.08]"
-        title="Actions"
-        aria-haspopup="true"
-        aria-expanded={open}
-      >
-        <KebabIcon className="h-4 w-4" />
-      </button>
-
-      {open && (
-        <div className="absolute right-0 z-50 mt-1 w-40 origin-top-right overflow-hidden rounded-lg border border-gray-200 bg-white shadow-lg dark:border-white/[0.08] dark:bg-gray-900">
-          <button
-            onClick={() => {
-              setOpen(false);
-              onShare();
-            }}
-            className="text-theme-xs flex w-full items-center gap-2 px-3 py-2 text-gray-600 transition-colors hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-white/[0.05]"
-          >
-            <ShareIcon className="h-3.5 w-3.5" />
-            Share
-          </button>
-          <button
-            onClick={() => {
-              setOpen(false);
-              onArchive();
-            }}
-            className="text-theme-xs flex w-full items-center gap-2 border-t border-gray-100 px-3 py-2 text-gray-600 transition-colors hover:bg-gray-50 dark:border-white/[0.05] dark:text-gray-300 dark:hover:bg-white/[0.05]"
-          >
-            <ArchiveIcon className="h-3.5 w-3.5" />
-            Archive
-          </button>
-        </div>
-      )}
-    </div>
-  );
-}
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
@@ -497,10 +376,11 @@ export default function UploadedIncomingDocTable() {
                     </div>
 
                     <div className="flex justify-end border-t border-gray-100 pt-1 dark:border-white/[0.05]">
-                      <KebabActionMenu
-                        onArchive={() => setPendingArchive(record)}
-                        onShare={() => handleShare(record)}
-                        disabled={record.status === "archived"}
+                      <KebabMenu
+                        actions={[
+                          { label: "Share", icon: <ShareIcon />, handler: () => handleShare(record), disabled: record.status === "archived" },
+                          { label: "Archive", icon: <ArchiveIcon />, handler: () => setPendingArchive(record), disabled: record.status === "archived" },
+                        ]}
                       />
                     </div>
                   </div>
@@ -595,10 +475,11 @@ export default function UploadedIncomingDocTable() {
 
                           {/* Action */}
                           <TableCell className="px-3 py-3">
-                            <KebabActionMenu
-                              onArchive={() => setPendingArchive(record)}
-                              onShare={() => handleShare(record)}
-                              disabled={record.status === "archived"}
+                            <KebabMenu
+                              actions={[
+                                { label: "Share", icon: <ShareIcon />, handler: () => handleShare(record), disabled: record.status === "archived" },
+                                { label: "Archive", icon: <ArchiveIcon />, handler: () => setPendingArchive(record), disabled: record.status === "archived" },
+                              ]}
                             />
                           </TableCell>
                         </TableRow>
