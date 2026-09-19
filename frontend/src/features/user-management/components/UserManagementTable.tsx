@@ -19,7 +19,8 @@ import { useUserManagementTable } from "../hooks/use-user-management-table";
 import { EMPTY_FORM } from "../type/creater-user.type";
 import type { SystemUser, UserManagementTableProps, UserRole } from "../type/user.type";
 import MobileCard from "./MobileCard";
-import UserFormModal from "./UserFormModal";
+import AddUserModal from "./AddUserModal";
+import EditUserModal from "./EditUserModal";
 
 // Column shape shared between the real table header and its skeleton, so the
 // two can never drift out of sync.
@@ -318,16 +319,14 @@ export default function UserManagementTable({
       </div>
 
       {addModal && (
-        <UserFormModal
-          mode="add"
+        <AddUserModal
           initial={EMPTY_FORM}
           onClose={() => setAddModal(false)}
         />
       )}
 
       {editTarget && (
-        <UserFormModal
-          mode="edit"
+        <EditUserModal
           userId={editTarget.id}
           initial={toFormState(editTarget)}
           onClose={() => setEditTarget(null)}

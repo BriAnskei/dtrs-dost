@@ -76,7 +76,7 @@ export function useUserManagementTable() {
       role: user.role,
       email: user.email,
       contact: user.contact,
-      password: "", // left blank on edit; UserFormModal only requires it in "add" mode
+      password: "", // left blank on edit; AddUserModal only requires it in "add" mode
     };
   }
 
