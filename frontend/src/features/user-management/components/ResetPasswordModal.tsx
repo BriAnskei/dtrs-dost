@@ -1,6 +1,10 @@
 import { createPortal } from "react-dom";
 import { useResetPasswordModal } from "../hooks/use-reset-password-modal";
 import type { SystemUser } from "../type/user.type";
+import ChooseMethodStep from "./resetSteps/ChooseMethodStep";
+import DirectResetStep from "./resetSteps/DirectResetStep";
+import LinkResetStep from "./resetSteps/LinkResetStep";
+import VerifyPasswordStep from "./resetSteps/VerifyPasswordStep";
 
 export default function ResetPasswordModal({
   user,

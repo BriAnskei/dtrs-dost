@@ -4,6 +4,7 @@ import Badge from "../../../components/ui/badge/Badge";
 import KebabMenu, {
   DisableIcon,
   EditIcon,
+  KeyIcon,
 } from "../../../components/ui/kebab-menu/KebabMenu";
 import {
   Table,
@@ -21,6 +22,7 @@ import type { SystemUser, UserManagementTableProps, UserRole } from "../type/use
 import AddUserModal from "./AddUserModal";
 import EditUserModal from "./EditUserModal";
 import MobileCard from "./MobileCard";
+import ResetPasswordModal from "./ResetPasswordModal";
 
 const USER_TABLE_COLUMNS = [
   { label: "Name", width: "w-32", withSubline: true },
@@ -60,6 +62,8 @@ export default function UserManagementTable({
     editTarget,
     setEditTarget,
     setDisableTarget,
+    resetTarget,
+    setResetTarget,
   } = useUserManagementTable();
 
   return (
@@ -97,7 +101,11 @@ export default function UserManagementTable({
             <div className="flex gap-3 flex-wrap items-center">
               <select
                 value={filterRole}
-                onChange={(e) => setFilterRole(e.target.value as UserRole | "All")}
+                onChange={(e) =>
+                  setFilterRole(
+                    e.target.value as Exclude<UserRole, "Super Admin"> | "All",
+                  )
+                }
                 className="flex-1 min-w-32.5 px-3 py-2 text-theme-sm rounded-lg border border-gray-200 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-secondary/40 focus:border-secondary dark:border-white/8 dark:bg-white/3 dark:text-gray-200 transition"
               >
                 <option value="All">All Roles</option>
@@ -326,6 +334,11 @@ export default function UserManagementTable({
                                     handler: () => setEditTarget(user),
                                   },
                                   {
+                                    label: "Reset Password",
+                                    icon: <KeyIcon />,
+                                    handler: () => setResetTarget(user),
+                                  },
+                                  {
                                     label: "Disable",
                                     icon: <DisableIcon />,
                                     handler: () => setDisableTarget(user),
@@ -386,6 +399,10 @@ export default function UserManagementTable({
           initial={toFormState(editTarget)}
           onClose={() => setEditTarget(null)}
         />
+      )}
+
+      {resetTarget && (
+        <ResetPasswordModal user={resetTarget} onClose={() => setResetTarget(null)} />
       )}
     </>
   );
