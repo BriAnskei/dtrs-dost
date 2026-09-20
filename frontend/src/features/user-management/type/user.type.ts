@@ -3,6 +3,7 @@ export interface UserWithRelationResponse {
   full_name: string;
   position?: string;
   email: string;
+  division_name?: string;
   role: string;
   contact?: string;
   created_at: string;
@@ -21,6 +22,7 @@ export interface SystemUser {
   id: string;
   name: string;
   position: string;
+  divisionName?: string;
   role: UserRole;
   email: string;
   createtAt: string;
@@ -35,3 +37,13 @@ export interface UserManagementTableProps {
 
 /** Shown when the API doesn't provide a value for an optional field. */
 export const NO_VALUE_PLACEHOLDER = "—";
+
+export interface FindUsersParams {
+  limit?: number;
+  name?: string;
+  role_id?: number;
+  sort?: "newest" | "oldest";
+  cursor?: string;
+}
+
+export type SortDirection = "newest" | "oldest";

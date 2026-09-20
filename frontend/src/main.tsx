@@ -11,6 +11,10 @@ import { UserProvider } from "./context/currentUser/user-provider.tsx";
 import { ThemeProvider } from "./context/ThemeContext.tsx";
 import { queryClient } from "./lib/query-client.ts";
 
+if (typeof window !== "undefined" && "scrollRestoration" in window.history) {
+  window.history.scrollRestoration = "manual";
+}
+
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>

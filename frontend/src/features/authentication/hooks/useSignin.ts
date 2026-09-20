@@ -1,7 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { type SubmitEventHandler, useState } from "react";
 import { useNavigate } from "react-router";
-import { useUser } from "../../../context/currentUser/user-user";
+import { useUser } from "../../../context/currentUser/use-user";
 import { getApiErrorMessage, isNetworkError } from "../../../lib/api-error";
 import { authenticationService } from "../authentication.service";
 import { markAuthenticated } from "../authentication.session";

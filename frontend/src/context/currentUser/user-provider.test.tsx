@@ -32,7 +32,7 @@ import {
 } from "../../features/authentication/authentication.events";
 import { renderRoutes } from "../../tests/test-utils";
 import { UserProvider } from "./user-provider";
-import { useUser } from "./user-user";
+import { useUser } from "./use-user";
 
 /*
  * currentUserService.getCurrentUser() is async; mock it to resolve a user on

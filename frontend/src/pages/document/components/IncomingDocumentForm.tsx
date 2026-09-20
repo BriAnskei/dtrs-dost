@@ -10,7 +10,7 @@ import axios from "axios";
 import * as pdfjsLib from "pdfjs-dist";
 import Tesseract from "tesseract.js";
 import QRCodeModal from "../../../components/receiver/QRCodeModal";
-import { useUser } from "../../../context/currentUser/user-user";
+import { useUser } from "../../../context/currentUser/use-user";
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
 pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;

@@ -8,7 +8,7 @@ export default function DivisionCombobox({
   onChange,
   error,
 }: {
-  value: string | null;
+  value: string | undefined;
   onChange: (division: string | null) => void;
   error?: string;
 }) {

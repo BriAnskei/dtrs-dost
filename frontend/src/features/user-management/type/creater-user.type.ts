@@ -4,6 +4,7 @@ export interface UserFormState {
   name: string;
   position: string; // -> position
   role: UserRole | "";
+  division?: string;
   email: string;
   contact: string; // -> contact_number
   password?: string; // only required on "add"

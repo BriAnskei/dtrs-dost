@@ -55,6 +55,11 @@ export default function MobileCard({
               {user.role}
             </Badge>
           </div>
+          {user.role === "Division" && user.divisionName && (
+            <p className="text-theme-xs text-gray-400 dark:text-gray-500 mt-1">
+              {user.divisionName}
+            </p>
+          )}
         </div>
         <div>
           <p className="text-theme-xs text-gray-400 dark:text-gray-500 font-medium uppercase tracking-wide">

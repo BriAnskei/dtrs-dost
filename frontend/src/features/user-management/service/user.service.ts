@@ -1,6 +1,7 @@
 import { apiClient } from "../../../lib/api-client";
+import type { PaginatedResponse } from "../../../type/paginated-response.type";
 import type { CreateUserPayload } from "../type/creater-user.type";
-import type { UserWithRelationResponse } from "../type/user.type";
+import type { FindUsersParams, UserWithRelationResponse } from "../type/user.type";
 
 export const userService = {
   async create(userData: CreateUserPayload): Promise<UserWithRelationResponse> {
@@ -12,8 +13,15 @@ export const userService = {
     return data;
   },
 
-  async findAll(): Promise<UserWithRelationResponse[]> {
-    const { data } = await apiClient.get<UserWithRelationResponse[]>("/user");
+  async findAll(
+    params: FindUsersParams,
+  ): Promise<PaginatedResponse<UserWithRelationResponse>> {
+    const { data } = await apiClient.get<PaginatedResponse<UserWithRelationResponse>>(
+      "/user",
+      {
+        params,
+      },
+    );
 
     return data;
   },

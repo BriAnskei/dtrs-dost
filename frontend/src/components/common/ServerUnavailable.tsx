@@ -1,5 +1,5 @@
 import Button from "../ui/button/Button";
-import { useUser } from "../../context/currentUser/user-user";
+import { useUser } from "../../context/currentUser/use-user";
 
 /**
  * Recovery screen shown by ProtectedRoute when the current-user fetch failed

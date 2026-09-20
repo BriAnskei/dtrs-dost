@@ -1,6 +1,6 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
-import { useUser } from "../../context/currentUser/user-user";
+import { useUser } from "../../context/currentUser/use-user";
 import KebabMenu, { TrashIcon, ViewIcon } from "../ui/kebab-menu/KebabMenu";
 import { Table, TableBody, TableCell, TableHeader, TableRow } from "../ui/table";
 

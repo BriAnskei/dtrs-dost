@@ -65,6 +65,10 @@ export class RefreshTokenRepository {
     await this.repository.delete({ token_hash: tokenHash });
   }
 
+  async deleteByUserId(userId: string): Promise<void> {
+    this.repository.delete({ user_id: userId });
+  }
+
   async deleteExpiredByUserId(userId: string): Promise<void> {
     await this.repository.delete({
       user_id: userId,

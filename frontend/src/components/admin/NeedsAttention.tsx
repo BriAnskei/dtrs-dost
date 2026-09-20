@@ -1,7 +1,7 @@
 // components/admin/NeedsAttentionStrip.tsx
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import { useUser } from "../../context/currentUser/user-user";
+import { useUser } from "../../context/currentUser/use-user";
 import { AlertIcon, ArrowRightIcon } from "../../icons";
 
 interface AttentionItem {

@@ -1,7 +1,7 @@
 import type React from "react";
 import { Navigate } from "react-router";
 import AppShellSkeleton from "../components/Appshellskeleton";
-import { useUser } from "../context/currentUser/user-user";
+import { useUser } from "../context/currentUser/use-user";
 
 export default function PublicRoute({ children }: { children: React.ReactNode }) {
   const { currentUser, isLoading } = useUser();

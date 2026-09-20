@@ -14,7 +14,7 @@ export class CreateUserDto {
   @IsNotEmpty()
   full_name!: string;
 
-  @IsEmail()
+  @IsEmail({}, { message: "Email must be a valid email address." })
   email!: string;
 
   @IsString()
@@ -38,8 +38,8 @@ export class CreateUserDto {
 
   @IsOptional()
   @IsString()
-  @Matches(/^(09\d{9}|\+639\d{9}|639\d{9})$/, {
-    message: "Contact number must be a valid Philippine mobile number",
+  @Matches(/^09\d{9}$/, {
+    message: "Contact number must start with 09 and contain exactly 11 digits",
   })
   contact_number?: string;
 }

@@ -7,13 +7,17 @@ import {
 
 import * as argon2 from "argon2";
 import { DataSource, EntityManager } from "typeorm";
+import { PaginatedResponse } from "../../common/pagination/paginated-response";
+import { capitalizeWords } from "../../util/capitalizer";
 import { CreateUserDto } from "../dto/create-user-dto";
+import { FindUsersQueryDto } from "../dto/find-user-query-dto";
 import { UserWithRelationResponseDto } from "../dto/userWithRelation-response-dto";
 import { DivisionEntity } from "../entities/division.entity";
 import { UserEntity } from "../entities/user.entity";
 import { DivisionRepository } from "../repository/division.repository";
 import { RoleRepository } from "../repository/role.repository";
 import { UserRepository } from "../repository/user.repository";
+import { formatPhoneNumber } from "../util/formatPhoneNumber";
 
 @Injectable()
 export class UserService {
@@ -31,12 +35,13 @@ export class UserService {
     dto.position = user.position ?? "";
     dto.email = user.email;
     dto.contact = user.contact_number ?? "";
+    dto.division_name = user.division?.division_name;
     dto.role = user.role.name;
     dto.created_at = user.created_at;
     return dto;
   }
 
-  async create(userData: CreateUserDto): Promise<UserWithRelationResponseDto> {
+  async create(userData: CreateUserDto): Promise<void> {
     return this.dataSource.transaction(async (manager) => {
       const existingUserWithThisEmail = await this.userRepository.findByEmail(
         userData.email,
@@ -54,9 +59,7 @@ export class UserService {
 
       const division = await this.makeDivisionAsync(userData, manager);
 
-      const res = await this.createNewUser(userData, manager, division);
-
-      return this.findByIdWithRelation(res.id, manager);
+      await this.createNewUser(userData, manager, division);
     });
   }
 
@@ -75,15 +78,18 @@ export class UserService {
     division: DivisionEntity | null,
   ): Promise<UserEntity> {
     const hashedPass = await argon2.hash(userData.password);
+
     return await this.userRepository.create(
       {
-        full_name: userData.full_name,
+        full_name: capitalizeWords(userData.full_name),
         email: userData.email,
         password: hashedPass,
         role_id: userData.role_id,
         division_id: division?.id ?? null,
-        position: userData.position ?? null,
-        contact_number: userData.contact_number ?? null,
+        position: userData.position ? capitalizeWords(userData.full_name) : null,
+        contact_number: userData.contact_number
+          ? formatPhoneNumber(userData.contact_number)
+          : null,
       },
       manager,
     );
@@ -161,9 +167,15 @@ export class UserService {
     return this.userRepository.findById(id);
   }
 
-  async findAll(): Promise<UserWithRelationResponseDto[]> {
-    const users = await this.userRepository.findAllWithRelation();
-    return users.map((user) => this.toDto(user));
+  async findAll(
+    query: FindUsersQueryDto,
+  ): Promise<PaginatedResponse<UserWithRelationResponseDto>> {
+    const { users, nextCursor } = await this.userRepository.findAllWithRelation(query);
+
+    return {
+      data: users.map((user) => this.toDto(user)),
+      nextCursor,
+    };
   }
 
   async findAllDeactivated(): Promise<UserWithRelationResponseDto[]> {

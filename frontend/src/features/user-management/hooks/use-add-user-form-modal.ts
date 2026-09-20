@@ -1,12 +1,12 @@
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { useCreateUser } from "../hooks/use-create-user";
-import { passwordGenerator } from "../utils/passwordGenerator";
 import {
   type AssignableRole,
   ROLE_ID_MAP,
   type UserFormState,
 } from "../type/creater-user.type";
+import { passwordGenerator } from "../utils/passwordGenerator";
 
 /**
  * State and business logic for the **Add User** modal only.
@@ -16,9 +16,7 @@ import {
  */
 export function useAddUserFormModal(initial: UserFormState) {
   const [form, setForm] = useState<UserFormState>(initial);
-  const [errors, setErrors] = useState<
-    Partial<Record<keyof UserFormState, string>>
-  >({});
+  const [errors, setErrors] = useState<Partial<Record<keyof UserFormState, string>>>({});
   const [showPassword, setShowPassword] = useState(false);
   const [createdUser, setCreatedUser] = useState<{
     email: string;
@@ -72,7 +70,6 @@ export function useAddUserFormModal(initial: UserFormState) {
     const generated = passwordGenerator(form.name || "User");
     setForm((f) => ({ ...f, password: generated }));
     setErrors((er) => ({ ...er, password: undefined }));
-    setShowPassword(true);
     requestAnimationFrame(() => passwordRef.current?.select());
   }
 

@@ -14,6 +14,7 @@ import type { Request } from "express";
 import { Roles } from "../../auth/authorization/roles.decorator";
 import { Role } from "../../auth/authorization/roles.enum";
 import { CreateUserDto } from "../dto/create-user-dto";
+import { FindUsersQueryDto } from "../dto/find-user-query-dto";
 import { UserService } from "../service/user.service";
 
 @Controller("user")
@@ -43,8 +44,8 @@ export class UserController {
 
   @Get()
   @Roles(Role.SuperAdmin)
-  async findAll() {
-    return this.service.findAll();
+  async findAll(@Query() query: FindUsersQueryDto) {
+    return this.service.findAll(query);
   }
 
   @Get()

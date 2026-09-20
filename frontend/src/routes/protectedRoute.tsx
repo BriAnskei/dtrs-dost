@@ -2,7 +2,7 @@ import type React from "react";
 import { Navigate } from "react-router";
 import AppShellSkeleton from "../components/Appshellskeleton";
 import ServerUnavailable from "../components/common/ServerUnavailable";
-import { useUser } from "../context/currentUser/user-user";
+import { useUser } from "../context/currentUser/use-user";
 
 export default function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { currentUser, isLoading, serverError } = useUser();

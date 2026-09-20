@@ -8,8 +8,8 @@ import {
   type NotificationType,
   typeLabel,
 } from "../../components/notifications/NotificationItem";
+import { useUser } from "../../context/currentUser/use-user";
 import { useNotifications } from "../../context/NotificationsContext";
-import { useUser } from "../../context/currentUser/user-user";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

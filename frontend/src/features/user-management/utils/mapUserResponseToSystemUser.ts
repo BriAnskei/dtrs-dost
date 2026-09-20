@@ -18,6 +18,7 @@ export function mapUserResponseToSystemUser(user: UserWithRelationResponse): Sys
     role: mapApiRoleToDisplayRole(user.role),
     email: user.email,
     contact: user.contact ?? NO_VALUE_PLACEHOLDER,
+    divisionName: user.division_name,
     createtAt: new Date(user.created_at).toLocaleDateString(undefined, {
       year: "numeric",
       month: "short",

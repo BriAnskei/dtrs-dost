@@ -18,12 +18,10 @@ import { getRoleBadgeColor } from "../helpers";
 import { useUserManagementTable } from "../hooks/use-user-management-table";
 import { EMPTY_FORM } from "../type/creater-user.type";
 import type { SystemUser, UserManagementTableProps, UserRole } from "../type/user.type";
-import MobileCard from "./MobileCard";
 import AddUserModal from "./AddUserModal";
 import EditUserModal from "./EditUserModal";
+import MobileCard from "./MobileCard";
 
-// Column shape shared between the real table header and its skeleton, so the
-// two can never drift out of sync.
 const USER_TABLE_COLUMNS = [
   { label: "Name", width: "w-32", withSubline: true },
   { label: "Role", width: "w-16", pill: true },
@@ -41,7 +39,6 @@ export default function UserManagementTable({
     isLoading,
     isError,
     error,
-    users,
     filtered,
     hasFilters,
     toFormState,
@@ -50,6 +47,14 @@ export default function UserManagementTable({
     setSearch,
     filterRole,
     setFilterRole,
+    sort,
+    toggleSort,
+    hasNextPage,
+    isFetchingNextPage,
+    mobileScrollRef,
+    mobileSentinelRef,
+    desktopScrollRef,
+    desktopSentinelRef,
     addModal,
     setAddModal,
     editTarget,
@@ -85,7 +90,7 @@ export default function UserManagementTable({
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search by name, email, or position…"
-                className="w-full pl-9 pr-4 py-2 text-theme-sm rounded-lg border border-gray-200 bg-white text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-secondary/40 focus:border-secondary dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-gray-200 dark:placeholder-gray-500 transition"
+                className="w-full pl-9 pr-4 py-2 text-theme-sm rounded-lg border border-gray-200 bg-white text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-secondary/40 focus:border-secondary dark:border-white/8 dark:bg-white/3 dark:text-gray-200 dark:placeholder-gray-500 transition"
               />
             </div>
 
@@ -93,7 +98,7 @@ export default function UserManagementTable({
               <select
                 value={filterRole}
                 onChange={(e) => setFilterRole(e.target.value as UserRole | "All")}
-                className="flex-1 min-w-32.5 px-3 py-2 text-theme-sm rounded-lg border border-gray-200 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-secondary/40 focus:border-secondary dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-gray-200 transition"
+                className="flex-1 min-w-32.5 px-3 py-2 text-theme-sm rounded-lg border border-gray-200 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-secondary/40 focus:border-secondary dark:border-white/8 dark:bg-white/3 dark:text-gray-200 transition"
               >
                 <option value="All">All Roles</option>
                 {ALL_ROLES.map((r) => (
@@ -102,6 +107,31 @@ export default function UserManagementTable({
                   </option>
                 ))}
               </select>
+
+              <button
+                type="button"
+                onClick={toggleSort}
+                title={sort === "newest" ? "Newest first" : "Oldest first"}
+                className="flex items-center gap-1.5 px-3 py-2 text-theme-sm rounded-lg border border-gray-200 bg-white text-gray-700 hover:border-secondary/40 dark:border-white/8 dark:bg-white/3 dark:text-gray-200 transition whitespace-nowrap"
+              >
+                <svg
+                  className={`w-4 h-4 transition-transform ${
+                    sort === "oldest" ? "rotate-180" : ""
+                  }`}
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  aria-hidden="true"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M3 4h13M3 8h9M3 12h5m4 8V4m0 16l-4-4m4 4l4-4"
+                  />
+                </svg>
+                {sort === "newest" ? "Newest" : "Oldest"}
+              </button>
 
               {hasFilters && (
                 <button
@@ -136,11 +166,9 @@ export default function UserManagementTable({
 
         {isLoading && (
           <>
-            {/* Mobile skeleton (< md) */}
             <div className="md:hidden">
               <MobileCardSkeleton maxHeight={maxMobileHeight} count={5} />
             </div>
-            {/* Desktop skeleton (≥ md) */}
             <TableSkeleton
               maxHeight={maxTableHeight}
               scrollbarClassName={THIN_SCROLLBAR}
@@ -168,22 +196,36 @@ export default function UserManagementTable({
             {/* ── Mobile Cards (< md) ── */}
             <div className="md:hidden space-y-3">
               <div
+                ref={mobileScrollRef}
                 className={`overflow-y-auto space-y-3 pr-1 ${THIN_SCROLLBAR}`}
-                style={{ height: maxMobileHeight }}
+                style={{ height: maxMobileHeight, overflowAnchor: "none" }}
               >
                 {filtered.length === 0 ? (
-                  <div className="rounded-xl border border-gray-200 bg-white dark:border-white/[0.08] dark:bg-white/[0.03] px-5 py-10 text-center text-gray-400 text-theme-sm">
+                  <div className="rounded-xl border border-gray-200 bg-white dark:border-white/8 dark:bg-white/3 px-5 py-10 text-center text-gray-400 text-theme-sm">
                     No users match your filters.
                   </div>
                 ) : (
-                  filtered.map((user) => (
-                    <MobileCard
-                      key={user.id}
-                      user={user}
-                      onEdit={() => setEditTarget(user)}
-                      onToggleStatus={() => setDisableTarget(user)}
-                    />
-                  ))
+                  <>
+                    {filtered.map((user) => (
+                      <MobileCard
+                        key={user.id}
+                        user={user}
+                        onEdit={() => setEditTarget(user)}
+                        onToggleStatus={() => setDisableTarget(user)}
+                      />
+                    ))}
+                    <div ref={mobileSentinelRef} className="h-px" />
+                    {isFetchingNextPage && (
+                      <p className="text-center text-theme-xs text-gray-400 py-2">
+                        Loading more…
+                      </p>
+                    )}
+                    {!hasNextPage && (
+                      <p className="text-center text-theme-xs text-gray-300 dark:text-gray-600 py-2">
+                        No more users
+                      </p>
+                    )}
+                  </>
                 )}
               </div>
               {filtered.length > 0 && (
@@ -192,24 +234,21 @@ export default function UserManagementTable({
                   <span className="font-medium text-gray-600 dark:text-gray-300">
                     {filtered.length}
                   </span>{" "}
-                  of{" "}
-                  <span className="font-medium text-gray-600 dark:text-gray-300">
-                    {users.length}
-                  </span>{" "}
                   users
                 </p>
               )}
             </div>
 
             {/* ── Desktop Table (≥ md) ── */}
-            <div className="hidden md:flex md:flex-col rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03] overflow-hidden">
+            <div className="hidden md:flex md:flex-col rounded-xl border border-gray-200 bg-white dark:border-white/5 dark:bg-white/3 overflow-hidden">
               <div className="w-full overflow-x-auto">
                 <div
+                  ref={desktopScrollRef}
                   className={`overflow-y-auto ${THIN_SCROLLBAR}`}
-                  style={{ height: maxTableHeight }}
+                  style={{ height: maxTableHeight, overflowAnchor: "none" }}
                 >
                   <Table>
-                    <TableHeader className="dark:border-white/[0.05] sticky top-0 z-10 bg-white dark:bg-gray-900">
+                    <TableHeader className="dark:border-white/5 sticky top-0 z-10 bg-white dark:bg-gray-900">
                       <TableRow>
                         {["Name", "Role", "Email", "Contact", "Created At", "Action"].map(
                           (col) => (
@@ -225,7 +264,7 @@ export default function UserManagementTable({
                       </TableRow>
                     </TableHeader>
 
-                    <TableBody className="dark:divide-white/[0.05]">
+                    <TableBody className="dark:divide-white/5">
                       {filtered.length === 0 ? (
                         <tr>
                           <td
@@ -254,6 +293,11 @@ export default function UserManagementTable({
                               <Badge size="sm" color={getRoleBadgeColor(user.role)}>
                                 {user.role}
                               </Badge>
+                              {user.role === "Division" && user.divisionName && (
+                                <span className="block text-gray-400 text-theme-xs dark:text-gray-500 mt-0.5">
+                                  {user.divisionName}
+                                </span>
+                              )}
                             </TableCell>
 
                             <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
@@ -293,23 +337,37 @@ export default function UserManagementTable({
                           </TableRow>
                         ))
                       )}
+                      {filtered.length > 0 && (
+                        <tr>
+                          <td colSpan={6} className="h-px p-0">
+                            <div ref={desktopSentinelRef} className="h-px" />
+                          </td>
+                        </tr>
+                      )}
+                      {isFetchingNextPage && (
+                        <tr>
+                          <td
+                            colSpan={6}
+                            className="px-4 py-3 text-center text-theme-xs text-gray-400"
+                          >
+                            Loading more…
+                          </td>
+                        </tr>
+                      )}
                     </TableBody>
                   </Table>
                 </div>
               </div>
 
               {filtered.length > 0 && (
-                <div className="px-4 py-3 border-t border-gray-100 dark:border-white/[0.05]">
+                <div className="px-4 py-3 border-t border-gray-100 dark:border-white/5">
                   <span className="text-theme-xs text-gray-400 dark:text-gray-500">
                     Showing{" "}
                     <span className="font-medium text-gray-600 dark:text-gray-300">
                       {filtered.length}
                     </span>{" "}
-                    of{" "}
-                    <span className="font-medium text-gray-600 dark:text-gray-300">
-                      {users.length}
-                    </span>{" "}
                     users
+                    {!hasNextPage && " (all loaded)"}
                   </span>
                 </div>
               )}
@@ -319,10 +377,7 @@ export default function UserManagementTable({
       </div>
 
       {addModal && (
-        <AddUserModal
-          initial={EMPTY_FORM}
-          onClose={() => setAddModal(false)}
-        />
+        <AddUserModal initial={EMPTY_FORM} onClose={() => setAddModal(false)} />
       )}
 
       {editTarget && (
