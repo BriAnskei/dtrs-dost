@@ -1,5 +1,5 @@
 import type { RawAxiosRequestConfig } from "axios";
-import type { User } from "../../context/currentUser/curr-user.type";
+import type { User } from "../../../context/currentUser/curr-user.type";
 
 export interface LoginDto {
   email: string;

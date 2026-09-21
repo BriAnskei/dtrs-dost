@@ -1,5 +1,10 @@
+import { useMutation } from "@tanstack/react-query";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
+import { getErrorMessage } from "../../../lib/api-error";
+import { authenticationService } from "../../authentication/service/authentication.service";
+import { passwordResetService } from "../service/password-reset.service";
+import { userService } from "../service/user.service";
 import type { SystemUser } from "../type/user.type";
 import { passwordGenerator } from "../utils/passwordGenerator";
 
@@ -11,19 +16,6 @@ interface DirectResetForm {
   confirmPassword: string;
 }
 
-/**
- * State and flow logic for the **Reset Password** modal.
- *
- * Flow: verify (the acting super admin re-enters their own password) ->
- * method (direct set vs. shareable link/QR) -> direct | link.
- *
- * Companion `ResetPasswordModal` + step components call this hook and
- * render pure JSX — no `useState` lives in any of them.
- *
- * All mutations are stubbed with a fake delay for now. Swap each `TODO`
- * block for a real mutation once the endpoints exist — the surrounding
- * validation, loading and error state is already wired.
- */
 export function useResetPasswordModal(user: SystemUser, onClose: () => void) {
   const [step, setStep] = useState<ResetPasswordStep>("verify");
 
@@ -31,7 +23,21 @@ export function useResetPasswordModal(user: SystemUser, onClose: () => void) {
   const [adminPassword, setAdminPassword] = useState("");
   const [adminPasswordError, setAdminPasswordError] = useState<string | undefined>();
   const [showAdminPassword, setShowAdminPassword] = useState(false);
-  const [isVerifying, setIsVerifying] = useState(false);
+
+  const verifyPasswordMutation = useMutation({
+    mutationFn: (password: string) => authenticationService.verifyPassword(password),
+    onSuccess: () => setStep("method"),
+    onError: (err) => setAdminPasswordError(getErrorMessage(err, "Incorrect password.")),
+  });
+
+  function handleVerifyPassword() {
+    if (!adminPassword.trim()) {
+      setAdminPasswordError("Enter your password to continue.");
+      return;
+    }
+    setAdminPasswordError(undefined);
+    verifyPasswordMutation.mutate(adminPassword);
+  }
 
   // ── Step 2: method choice ──────────────────────────────────────────────
   const [method, setMethod] = useState<ResetPasswordMethod | null>(null);
@@ -41,41 +47,54 @@ export function useResetPasswordModal(user: SystemUser, onClose: () => void) {
     password: "",
     confirmPassword: "",
   });
+
   const [directErrors, setDirectErrors] = useState<
     Partial<Record<keyof DirectResetForm, string>>
   >({});
+
   const [showDirectPassword, setShowDirectPassword] = useState(false);
-  const [isResetting, setIsResetting] = useState(false);
   const [resetComplete, setResetComplete] = useState(false);
   const directPasswordRef = useRef<HTMLInputElement>(null);
+
+  const directResetMutation = useMutation({
+    mutationFn: (password: string) =>
+      userService.updatePassword({ user_id: user.id, password }),
+    onSuccess: () => {
+      setResetComplete(true);
+      toast.success(`Password reset for ${user.name}.`);
+    },
+    onError: (err) => {
+      setDirectErrors((e) => ({
+        ...e,
+        password: getErrorMessage(err, "Could not reset the password."),
+      }));
+    },
+  });
 
   // ── Step 3b: link / QR reset ───────────────────────────────────────────
   const [linkToken, setLinkToken] = useState<string | null>(null);
   const [linkExpiresAt, setLinkExpiresAt] = useState<Date | null>(null);
-  const [isGeneratingLink, setIsGeneratingLink] = useState(false);
 
-  function handleVerifyPassword() {
-    if (!adminPassword.trim()) {
-      setAdminPasswordError("Enter your password to continue.");
-      return;
-    }
-    setIsVerifying(true);
-    // TODO: replace with a real re-auth call, e.g.
-    // useVerifyAdminPassword().mutateAsync(adminPassword), and call
-    // setAdminPasswordError("Incorrect password.") on failure instead of
-    // advancing the step.
-    setTimeout(() => {
-      setIsVerifying(false);
-      setStep("method");
-    }, 600);
+  const generateLinkMutation = useMutation({
+    mutationFn: () => passwordResetService.createResetRequest(user.id),
+    onSuccess: (data) => {
+      setLinkToken(data.token);
+      setLinkExpiresAt(new Date(data.expires_at));
+    },
+    onError: (err) =>
+      toast.error(getErrorMessage(err, "Could not generate a reset link.")),
+  });
+
+  function generateLink() {
+    setLinkToken(null);
+    setLinkExpiresAt(null);
+    generateLinkMutation.mutate();
   }
 
   function selectMethod(next: ResetPasswordMethod) {
     setMethod(next);
     setStep(next === "direct" ? "direct" : "link");
-    if (next === "link" && !linkToken) {
-      generateLink();
-    }
+    if (next === "link") generateLink();
   }
 
   function handleGeneratePassword() {
@@ -100,27 +119,7 @@ export function useResetPasswordModal(user: SystemUser, onClose: () => void) {
       setDirectErrors(e);
       return;
     }
-    setIsResetting(true);
-    // TODO: replace with a real mutation, e.g.
-    // useResetUserPassword().mutate({ userId: user.id, password: directForm.password })
-    setTimeout(() => {
-      setIsResetting(false);
-      setResetComplete(true);
-      toast.success(`Password reset for ${user.name}.`);
-    }, 700);
-  }
-
-  function generateLink() {
-    setIsGeneratingLink(true);
-    // TODO: replace with a real mutation that issues a one-time reset
-    // token server-side, e.g.
-    // useCreatePasswordResetLink().mutateAsync({ userId: user.id })
-    setTimeout(() => {
-      const token = crypto.randomUUID();
-      setLinkToken(token);
-      setLinkExpiresAt(new Date(Date.now() + 15 * 60 * 1000));
-      setIsGeneratingLink(false);
-    }, 600);
+    directResetMutation.mutate(directForm.password);
   }
 
   const resetLinkUrl = linkToken
@@ -151,34 +150,30 @@ export function useResetPasswordModal(user: SystemUser, onClose: () => void) {
     step,
     goBack,
     handleClose,
-    // verify
     adminPassword,
     setAdminPassword,
     adminPasswordError,
     setAdminPasswordError,
     showAdminPassword,
     setShowAdminPassword,
-    isVerifying,
+    isVerifying: verifyPasswordMutation.isPending,
     handleVerifyPassword,
-    // method
     method,
     selectMethod,
-    // direct
     directForm,
     setDirectForm,
     directErrors,
     setDirectErrors,
     showDirectPassword,
     setShowDirectPassword,
-    isResetting,
+    isResetting: directResetMutation.isPending,
     resetComplete,
     directPasswordRef,
     handleGeneratePassword,
     handleDirectSubmit,
-    // link
     linkToken,
     linkExpiresAt,
-    isGeneratingLink,
+    isGeneratingLink: generateLinkMutation.isPending,
     resetLinkUrl,
     generateLink,
     handleCopyLink,

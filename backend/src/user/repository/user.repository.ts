@@ -179,12 +179,14 @@ export class UserRepository {
     return (result.affected ?? 0) > 0;
   }
 
-  async resetPassword(
+  async updatePassword(
     id: string,
     password: string,
-    manager: EntityManager,
+    manager?: EntityManager,
   ): Promise<boolean> {
-    const result = await manager.getRepository(UserEntity).update(id, {
+    const repo = manager ? manager.getRepository(UserEntity) : this.repository;
+
+    const result = await repo.update(id, {
       password,
     });
 

@@ -35,5 +35,9 @@ export const userService = {
     return data;
   },
 
+  async updatePassword(payload: { user_id: string; password: string }): Promise<void> {
+    await apiClient.patch("/user/password", payload);
+  },
+
   // async update(id: string, data: UpdateUserPayload): Promise<any> {},
 };

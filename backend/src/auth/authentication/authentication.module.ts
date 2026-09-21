@@ -6,17 +6,21 @@ import { TypeOrmModule } from "@nestjs/typeorm";
 import { JwtAuthGuard } from "../../middleware/auth";
 import { UserModule } from "../../user/user.module";
 import { AuthenticationController } from "./controller/authentication.controller";
+import { PasswordResetController } from "./controller/password-reset.controller";
+import { PasswordResetTokenEntity } from "./entities/password-reset-token.entity";
 import { RefreshTokenEntity } from "./entities/refresh-token.entity";
 import { LoginThrottlerGuard } from "./guard/login-throttler.guard";
+import { PasswordResetRepository } from "./repository/password-reset-token-repository";
 import { RefreshTokenRepository } from "./repository/refresh-token.repository";
 import { AuthenticationService } from "./service/authentication.service";
+import { PasswordResetService } from "./service/password-reset-token-service";
 import { JwtStrategy } from "./strategies/jwt.strategy";
 
 @Module({
   imports: [
     UserModule,
     ConfigModule,
-    TypeOrmModule.forFeature([RefreshTokenEntity]),
+    TypeOrmModule.forFeature([RefreshTokenEntity, PasswordResetTokenEntity]),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -26,9 +30,11 @@ import { JwtStrategy } from "./strategies/jwt.strategy";
       }),
     }),
   ],
-  controllers: [AuthenticationController],
+  controllers: [AuthenticationController, PasswordResetController],
   providers: [
     AuthenticationService,
+    PasswordResetService,
+    PasswordResetRepository,
     RefreshTokenRepository,
     JwtStrategy,
     JwtAuthGuard,

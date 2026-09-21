@@ -1,4 +1,5 @@
 import { createBrowserRouter } from "react-router";
+import ResetPassword from "../features/authentication/components/ResetPassword";
 import SignIn from "../features/authentication/components/SignIn";
 import DivisionManagementPage from "../features/divisions/components/DivisionManagementPage";
 import UserManagementPage from "../features/user-management/components/UserManagementPage";
@@ -201,13 +202,22 @@ export const router = createBrowserRouter([
   },
 
   {
+    path: "/reset-password/:token",
+    element: (
+      <PublicRoute>
+        <ResetPassword />
+      </PublicRoute>
+    ),
+  },
+
+  {
     path: "/document/track",
     element: <PublicTrackingPage />,
   },
 
   {
     element: (
-      <ProtectedRoute>
+      <ProtectedRoute> 
         <AppLayout />
       </ProtectedRoute>
     ),

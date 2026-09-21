@@ -1,12 +1,12 @@
 import axios, { type AxiosError } from "axios";
 import { toast } from "sonner";
 import { notifySessionExpired } from "../features/authentication/authentication.events";
-import { authenticationService } from "../features/authentication/authentication.service";
 import {
   clearAuthenticated,
   isAuthenticated,
 } from "../features/authentication/authentication.session";
-import type { AuthenticationRequestConfig } from "../features/authentication/authentication.types";
+import { authenticationService } from "../features/authentication/service/authentication.service";
+import type { AuthenticationRequestConfig } from "../features/authentication/type/authentication.type";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -32,6 +32,10 @@ function isLoginRequest(url: string | undefined) {
 
 function isLogoutRequest(url: string | undefined) {
   return url?.includes("/authentication/logout") ?? false;
+}
+
+function isVerifyPasswordRequest(url: string | undefined) {
+  return url?.includes("/authentication/verify-password") ?? false;
 }
 
 function showSessionExpiredToast() {
@@ -77,6 +81,7 @@ apiClient.interceptors.response.use(
       isRefreshRequest(originalReq.url) ||
       isLoginRequest(originalReq.url) ||
       isLogoutRequest(originalReq.url) ||
+      isVerifyPasswordRequest(originalReq.url) ||
       originalReq._retry === true;
 
     if (!isUnauthorized || shouldSkipRefresh) {

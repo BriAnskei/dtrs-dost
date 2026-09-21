@@ -1,9 +1,20 @@
-import { Body, Controller, HttpCode, Post, Req, Res, UseGuards } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  HttpCode,
+  HttpStatus,
+  Post,
+  Req,
+  Res,
+  UseGuards,
+} from "@nestjs/common";
 import type { Request, Response } from "express";
 import { Public } from "../decorators/public.decorator";
 import { LoginDto } from "../dto/login.dto";
+import { VerifyPasswordDto } from "../dto/verify-password.dto";
 import { LoginThrottlerGuard } from "../guard/login-throttler.guard";
 import { AuthenticationService } from "../service/authentication.service";
+import type { AuthenticatedRequest } from "../types/authenticated-request";
 
 @Controller("authentication")
 export class AuthenticationController {
@@ -61,6 +72,16 @@ export class AuthenticationController {
 
     return {
       message: "Token refreshed successfully",
+    };
+  }
+
+  @Post("verify-password")
+  @HttpCode(HttpStatus.OK)
+  async verifyPassword(@Req() req: AuthenticatedRequest, @Body() dto: VerifyPasswordDto) {
+    await this.authenticationService.verifyPassword(req.user.id, dto.password);
+
+    return {
+      verified: true,
     };
   }
 

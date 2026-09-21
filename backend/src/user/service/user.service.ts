@@ -11,6 +11,7 @@ import { PaginatedResponse } from "../../common/pagination/paginated-response";
 import { capitalizeWords } from "../../util/capitalizer";
 import { CreateUserDto } from "../dto/create-user-dto";
 import { FindUsersQueryDto } from "../dto/find-user-query-dto";
+import { UpdateUserPasswordDto } from "../dto/update-user-password.dto";
 import { UserWithRelationResponseDto } from "../dto/userWithRelation-response-dto";
 import { DivisionEntity } from "../entities/division.entity";
 import { UserEntity } from "../entities/user.entity";
@@ -86,7 +87,7 @@ export class UserService {
         password: hashedPass,
         role_id: userData.role_id,
         division_id: division?.id ?? null,
-        position: userData.position ? capitalizeWords(userData.full_name) : null,
+        position: userData.position ? capitalizeWords(userData.position) : null,
         contact_number: userData.contact_number
           ? formatPhoneNumber(userData.contact_number)
           : null,
@@ -110,7 +111,7 @@ export class UserService {
     }
 
     return await this.divisionRepository.save(
-      { division_name: userData.division },
+      { division_name: capitalizeWords(division) },
       manager,
     );
   }
@@ -182,6 +183,16 @@ export class UserService {
     const res = await this.userRepository.findAllDeactivated();
 
     return res.map((u) => this.toDto(u));
+  }
+
+  async updateUserPassword(dto: UpdateUserPasswordDto): Promise<void> {
+    const hashedPassword = await argon2.hash(dto.password);
+
+    const updated = await this.userRepository.updatePassword(dto.user_id, hashedPassword);
+
+    if (!updated) {
+      throw new NotFoundException("User not found");
+    }
   }
 
   async deactivate(id: string): Promise<void> {

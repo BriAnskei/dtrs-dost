@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import { useUser } from "../../../context/currentUser/use-user";
-import { authenticationService } from "../authentication.service";
+import { authenticationService } from "../service/authentication.service";
 import { clearAuthenticated } from "../authentication.session";
 
 export function useSignOut() {

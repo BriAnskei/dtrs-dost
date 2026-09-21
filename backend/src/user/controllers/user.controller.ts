@@ -11,10 +11,12 @@ import {
   Req,
 } from "@nestjs/common";
 import type { Request } from "express";
+import { AuthenticatedRequest } from "../../auth/authentication/types/authenticated-request";
 import { Roles } from "../../auth/authorization/roles.decorator";
 import { Role } from "../../auth/authorization/roles.enum";
 import { CreateUserDto } from "../dto/create-user-dto";
 import { FindUsersQueryDto } from "../dto/find-user-query-dto";
+import { UpdateUserPasswordDto } from "../dto/update-user-password.dto";
 import { UserService } from "../service/user.service";
 
 @Controller("user")
@@ -52,6 +54,13 @@ export class UserController {
   @Roles(Role.SuperAdmin)
   async findAllDeactivated() {
     return this.service.findAllDeactivated();
+  }
+
+  @Patch("password")
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Roles(Role.SuperAdmin)
+  async updateUserPassword(@Body() dto: UpdateUserPasswordDto): Promise<void> {
+    await this.service.updateUserPassword(dto);
   }
 
   @Patch(":id/deactivate")

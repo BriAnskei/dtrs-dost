@@ -5,6 +5,7 @@ import {
   IsOptional,
   IsString,
   Matches,
+  MinLength,
   ValidateIf,
 } from "class-validator";
 import { Role } from "../../auth/authorization/roles.enum";
@@ -19,6 +20,7 @@ export class CreateUserDto {
 
   @IsString()
   @IsNotEmpty()
+  @MinLength(8)
   password!: string;
 
   @IsString()

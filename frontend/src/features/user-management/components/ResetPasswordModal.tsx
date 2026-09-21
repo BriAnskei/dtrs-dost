@@ -34,6 +34,13 @@ export default function ResetPasswordModal({
       />
 
       <div className="relative w-full max-w-md rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-white/8 dark:bg-gray-900 flex flex-col max-h-[90vh]">
+        <form
+          autoComplete="off"
+          onSubmit={(e) => e.preventDefault()}
+          className="contents"
+        >
+          <input type="hidden" autoComplete="username" name="username" tabIndex={-1} />
+          <input type="hidden" autoComplete="new-password" name="password" tabIndex={-1} />
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-white/8">
           <div>
@@ -120,6 +127,7 @@ export default function ResetPasswordModal({
             </button>
           </div>
         )}
+        </form>
       </div>
     </div>,
     document.body,

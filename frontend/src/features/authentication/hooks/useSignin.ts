@@ -3,9 +3,9 @@ import { type SubmitEventHandler, useState } from "react";
 import { useNavigate } from "react-router";
 import { useUser } from "../../../context/currentUser/use-user";
 import { getApiErrorMessage, isNetworkError } from "../../../lib/api-error";
-import { authenticationService } from "../authentication.service";
 import { markAuthenticated } from "../authentication.session";
-import type { LoginDto } from "../authentication.types";
+import { authenticationService } from "../service/authentication.service";
+import type { LoginDto } from "../type/authentication.type";
 
 export function useSignin() {
   const navigate = useNavigate();

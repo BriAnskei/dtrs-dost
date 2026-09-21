@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import { EntityManager, Repository } from "typeorm";
 import { PasswordResetTokenEntity } from "../entities/password-reset-token.entity";
 
 @Injectable()
@@ -50,9 +50,13 @@ export class PasswordResetRepository {
     });
   }
 
-  async delete(id: string): Promise<void> {
-    await this.repository.delete({
-      id,
-    });
+  async delete(id: string, manager?: EntityManager): Promise<boolean> {
+    const repo = manager
+      ? manager.getRepository(PasswordResetTokenEntity)
+      : this.repository;
+
+    const result = await repo.delete(id);
+
+    return (result.affected ?? 0) > 0;
   }
 }

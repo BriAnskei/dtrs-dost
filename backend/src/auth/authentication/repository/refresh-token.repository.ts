@@ -65,8 +65,10 @@ export class RefreshTokenRepository {
     await this.repository.delete({ token_hash: tokenHash });
   }
 
-  async deleteByUserId(userId: string): Promise<void> {
-    this.repository.delete({ user_id: userId });
+  async deleteByUserId(userId: string, manager?: EntityManager): Promise<void> {
+    const repo = manager ? manager.getRepository(EntityManager) : this.repository;
+
+    repo.delete({ user_id: userId });
   }
 
   async deleteExpiredByUserId(userId: string): Promise<void> {

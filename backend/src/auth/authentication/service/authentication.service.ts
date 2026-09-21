@@ -113,18 +113,30 @@ export class AuthenticationService {
     if (!user) {
       throw new UnauthorizedException("Invalid credentials");
     }
+    
+    
+    if(!user.is_active)
+      throw new UnauthorizedException("Account has been deactivated");
 
-    if (!user.is_active) {
-      throw new UnauthorizedException("User account is inactive");
-    }
+    await this.verifyPassword(user.id, password, user);
 
-    const passwordMatches = await argon2.verify(user.password, password);
+    return user;
+  }
+
+  async verifyPassword(
+    userId: string,
+    password: string,
+    user?: UserEntity,
+  ): Promise<void> {
+    const userData = user ?? (await this.userRepository.findById(userId));
+
+    if (!userData) throw new UnauthorizedException("Invalid credentials");
+
+    const passwordMatches = await argon2.verify(userData.password, password);
 
     if (!passwordMatches) {
       throw new UnauthorizedException("Invalid credentials");
     }
-
-    return user;
   }
 
   private async generateAccessToken(user: UserEntity): Promise<string> {
