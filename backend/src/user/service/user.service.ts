@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -7,10 +8,13 @@ import {
 
 import * as argon2 from "argon2";
 import { DataSource, EntityManager } from "typeorm";
+import { $ZodUndefinedInternals } from "zod/v4/core";
+import { Role } from "../../auth/authorization/roles.enum";
 import { PaginatedResponse } from "../../common/pagination/paginated-response";
 import { capitalizeWords } from "../../util/capitalizer";
 import { CreateUserDto } from "../dto/create-user-dto";
 import { FindUsersQueryDto } from "../dto/find-user-query-dto";
+import { UpdateUserDto } from "../dto/update-user-dto";
 import { UpdateUserPasswordDto } from "../dto/update-user-password.dto";
 import { UserWithRelationResponseDto } from "../dto/userWithRelation-response-dto";
 import { DivisionEntity } from "../entities/division.entity";
@@ -52,13 +56,13 @@ export class UserService {
         throw new ConflictException("This email already exist");
       }
 
-      const existingRole = await this.roleRepository.findOne(userData.role_id);
+      const existingRole = await this.roleRepository.findById(userData.role_id);
 
       if (!existingRole) {
         throw new NotFoundException("Role not found");
       }
 
-      const division = await this.makeDivisionAsync(userData, manager);
+      const division = await this.makeDivisionAsync(userData.division, manager);
 
       await this.createNewUser(userData, manager, division);
     });
@@ -80,7 +84,7 @@ export class UserService {
   ): Promise<UserEntity> {
     const hashedPass = await argon2.hash(userData.password);
 
-    return await this.userRepository.create(
+    return await this.userRepository.save(
       {
         full_name: capitalizeWords(userData.full_name),
         email: userData.email,
@@ -97,21 +101,19 @@ export class UserService {
   }
 
   async makeDivisionAsync(
-    userData: CreateUserDto,
+    division_name: string | undefined,
     manager: EntityManager,
   ): Promise<DivisionEntity | null> {
-    const division = userData.division;
+    if (!division_name) return null;
 
-    if (!division) return null;
-
-    const existingDivision = await this.divisionRepository.findByName(division);
+    const existingDivision = await this.divisionRepository.findByName(division_name);
 
     if (existingDivision) {
       return existingDivision;
     }
 
     return await this.divisionRepository.save(
-      { division_name: capitalizeWords(division) },
+      { division_name: capitalizeWords(division_name) },
       manager,
     );
   }
@@ -183,6 +185,82 @@ export class UserService {
     const res = await this.userRepository.findAllDeactivated();
 
     return res.map((u) => this.toDto(u));
+  }
+
+  async update(id: string, dto: UpdateUserDto): Promise<void> {
+    await this.dataSource.transaction(async (manager) => {
+      const user = await this.userRepository.findById(id, manager);
+
+      if (!user) {
+        throw new NotFoundException("User not found.");
+      }
+
+      if (dto.email && dto.email !== user.email) {
+        const existingUser = await this.userRepository.findByEmail(dto.email, manager);
+
+        if (existingUser && existingUser.id !== id) {
+          throw new ConflictException({
+            message: "Email is already in use.",
+            error: "EMAIL_ALREADY_EXISTS",
+          });
+        }
+      }
+
+      // Update role
+      if (dto.role_id !== undefined) {
+        const role = await this.roleRepository.findById(dto.role_id, manager);
+
+        if (!role) {
+          throw new BadRequestException({
+            message: "Invalid role.",
+            error: "INVALID_ROLE",
+          });
+        }
+
+        user.role_id = role.id;
+        user.role = role;
+      }
+
+      // Handle division based on the resulting role
+      if (dto.division && Number(user.role_id) === Role.Division) {
+        if (!dto.division) {
+          throw new BadRequestException("Division is required for Division users.");
+        }
+
+        const division = await this.makeDivisionAsync(dto.division, manager);
+
+        if (!division) {
+          throw new BadRequestException("Division is required.");
+        }
+
+        user.division_id = division.id;
+        user.division = division;
+      } else {
+        // User is not a Division user, so remove their division assignment.
+        user.division_id = null;
+        user.division = null;
+      }
+
+      if (dto.full_name !== undefined) {
+        user.full_name = capitalizeWords(dto.full_name);
+      }
+
+      if (dto.position !== undefined) {
+        user.position = dto.position ? capitalizeWords(dto.position) : null;
+      }
+
+      if (dto.email !== undefined) {
+        user.email = dto.email;
+      }
+
+      if (dto.contact_number !== undefined) {
+        user.contact_number = dto.contact_number
+          ? formatPhoneNumber(dto.contact_number)
+          : null;
+      }
+
+      await this.userRepository.save(user, manager);
+    });
   }
 
   async updateUserPassword(dto: UpdateUserPasswordDto): Promise<void> {

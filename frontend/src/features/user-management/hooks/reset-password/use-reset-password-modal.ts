@@ -1,7 +1,6 @@
-// hooks/use-reset-password-modal.ts
 import { useState } from "react";
-import type { PasswordResetTokenSummary } from "../../type/password-reset.type";
-import type { SystemUser } from "../../type/user.type";
+import type { PasswordResetTokenSummary } from "../../types/password-reset.type";
+import type { SystemUser } from "../../types/user.type";
 import { useChooseMethodStep } from "./use-choose-method";
 import { useDirectResetStep } from "./use-direct-reset-step";
 import { useLinkResetStep } from "./use-link-reset-step";

@@ -1,26 +1,33 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { userService } from "../service/user.service";
-import type { CreateUserPayload } from "../type/creater-user.type";
-import type { UserWithRelationResponse } from "../type/user.type";
+import { toast } from "sonner";
+import { getApiErrorMessage } from "../../../lib/api-error";
+import { userService } from "../services/user.service";
+import type { UpdateUserPayload } from "../types/update-user.type";
 
-export type UpdateUserPayload = Partial<Omit<CreateUserPayload, "password">> & {
-  password?: string; // omit/empty to leave password unchanged
-};
+export interface UpdateUserVariables {
+  id: string;
+  data: Partial<UpdateUserPayload>;
+}
 
 export function useUpdateUser() {
   const queryClient = useQueryClient();
 
-  return useMutation<
-    UserWithRelationResponse,
-    Error,
-    { id: string; data: UpdateUserPayload }
-  >({
+  return useMutation<void, Error, UpdateUserVariables>({
     mutationFn: ({ id, data }) => userService.update(id, data),
 
-    onSuccess: (updatedUser) => {
-      queryClient.setQueryData<UserWithRelationResponse[]>(["users"], (oldUsers) => {
-        if (!oldUsers) return [updatedUser];
-        return oldUsers.map((u) => (u.id === updatedUser.id ? updatedUser : u));
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ["users"],
+      });
+
+      toast.success("User updated successfully.", {
+        id: "update-user-success",
+      });
+    },
+
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, "Failed to update user."), {
+        id: "update-user-error",
       });
     },
   });

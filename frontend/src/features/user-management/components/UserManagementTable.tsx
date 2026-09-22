@@ -14,11 +14,11 @@ import {
   TableRow,
 } from "../../../components/ui/table";
 import { THIN_SCROLLBAR } from "../../../contant/ThinScrollBar";
-import { ALL_ROLES } from "../constant";
+import { ALL_ROLES } from "../constants";
 import { getRoleBadgeColor } from "../helpers";
 import { useUserManagementTable } from "../hooks/use-user-management-table";
-import { EMPTY_FORM } from "../type/creater-user.type";
-import type { SystemUser, UserManagementTableProps, UserRole } from "../type/user.type";
+import { EMPTY_FORM } from "../types/create-user.type";
+import type { SystemUser, UserManagementTableProps, UserRole } from "../types/user.type";
 import MobileCard from "./MobileCard";
 import AddUserModal from "./modal/AddUserModal";
 import EditUserModal from "./modal/EditUserModal";

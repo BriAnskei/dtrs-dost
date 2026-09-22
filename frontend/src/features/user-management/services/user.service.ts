@@ -1,7 +1,8 @@
 import { apiClient } from "../../../lib/api-client";
 import type { PaginatedResponse } from "../../../type/paginated-response.type";
-import type { CreateUserPayload } from "../type/creater-user.type";
-import type { FindUsersParams, UserWithRelationResponse } from "../type/user.type";
+import type { CreateUserPayload } from "../types/create-user.type";
+import type { UpdateUserPayload } from "../types/update-user.type";
+import type { FindUsersParams, UserWithRelationResponse } from "../types/user.type";
 
 export const userService = {
   async create(userData: CreateUserPayload): Promise<UserWithRelationResponse> {
@@ -39,5 +40,7 @@ export const userService = {
     await apiClient.patch("/user/password", payload);
   },
 
-  // async update(id: string, data: UpdateUserPayload): Promise<any> {},
+  async update(id: string, data: Partial<UpdateUserPayload>): Promise<void> {
+    await apiClient.patch(`user/${id}`, data);
+  },
 };

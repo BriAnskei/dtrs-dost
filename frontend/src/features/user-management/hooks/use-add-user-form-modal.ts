@@ -1,12 +1,12 @@
 import { useRef, useState } from "react";
 import { toast } from "sonner";
-import { useCreateUser } from "../hooks/use-create-user";
 import {
   type AssignableRole,
   ROLE_ID_MAP,
   type UserFormState,
-} from "../type/creater-user.type";
+} from "../types/create-user.type";
 import { passwordGenerator } from "../utils/passwordGenerator";
+import { useCreateUser } from "./use-create-user";
 
 /**
  * State and business logic for the **Add User** modal only.

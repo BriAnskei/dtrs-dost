@@ -6,6 +6,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  ParseUUIDPipe,
   Patch,
   Post,
   Query,
@@ -16,6 +17,7 @@ import { Roles } from "../../auth/authorization/roles.decorator";
 import { Role } from "../../auth/authorization/roles.enum";
 import { CreateUserDto } from "../dto/create-user-dto";
 import { FindUsersQueryDto } from "../dto/find-user-query-dto";
+import { UpdateUserDto } from "../dto/update-user-dto";
 import { UpdateUserPasswordDto } from "../dto/update-user-password.dto";
 import { UserService } from "../service/user.service";
 
@@ -61,6 +63,15 @@ export class UserController {
   @Roles(Role.SuperAdmin)
   async updateUserPassword(@Body() dto: UpdateUserPasswordDto): Promise<void> {
     await this.service.updateUserPassword(dto);
+  }
+
+  @Patch(":id")
+  @Roles(Role.SuperAdmin)
+  async update(
+    @Param("id", ParseUUIDPipe) id: string,
+    @Body() dto: UpdateUserDto,
+  ): Promise<void> {
+    await this.service.update(id, dto);
   }
 
   @Patch(":id/deactivate")

@@ -15,15 +15,16 @@ export class UserRepository {
     private readonly repository: Repository<UserEntity>,
   ) {}
 
-  async create(
+  async save(
     userData: Partial<UserEntity>,
     manager: EntityManager,
   ): Promise<UserEntity> {
     return manager.getRepository(UserEntity).save(userData);
   }
 
-  async findByEmail(email: string): Promise<UserEntity | null> {
-    return this.repository.findOne({
+  async findByEmail(email: string, manager?: EntityManager): Promise<UserEntity | null> {
+    const repo = manager ? manager.getRepository(UserEntity) : this.repository;
+    return repo.findOne({
       where: { email },
     });
   }
@@ -178,6 +179,8 @@ export class UserRepository {
 
     return (result.affected ?? 0) > 0;
   }
+
+  
 
   async updatePassword(
     id: string,

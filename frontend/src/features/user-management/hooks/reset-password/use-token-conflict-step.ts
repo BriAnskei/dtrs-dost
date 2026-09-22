@@ -1,8 +1,7 @@
-// hooks/steps/use-token-conflict-step.ts
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { getErrorMessage } from "../../../../lib/api-error";
-import { passwordResetService } from "../../service/password-reset.service";
+import { passwordResetService } from "../../services/password-reset.service";
 import type { ResetPasswordMethod } from "./use-reset-password-modal";
 
 interface Args {

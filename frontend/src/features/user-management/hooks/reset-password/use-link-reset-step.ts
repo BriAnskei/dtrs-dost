@@ -2,8 +2,8 @@ import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
 import { getErrorMessage } from "../../../../lib/api-error";
-import { passwordResetService } from "../../service/password-reset.service";
-import type { PasswordResetRequestResponse } from "../../type/password-reset.type";
+import { passwordResetService } from "../../services/password-reset.service";
+import type { PasswordResetRequestResponse } from "../../types/password-reset.type";
 
 export function useLinkResetStep(userId: string) {
   const [linkData, setLinkData] = useState<PasswordResetRequestResponse | null>(null);

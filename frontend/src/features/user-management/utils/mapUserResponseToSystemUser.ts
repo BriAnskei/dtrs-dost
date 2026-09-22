@@ -2,7 +2,7 @@ import {
   NO_VALUE_PLACEHOLDER,
   type SystemUser,
   type UserWithRelationResponse,
-} from "../type/user.type";
+} from "../types/user.type";
 import { mapApiRoleToDisplayRole } from "./mapRole";
 
 /**

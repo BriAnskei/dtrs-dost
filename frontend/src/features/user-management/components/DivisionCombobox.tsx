@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { THIN_SCROLLBAR } from "../../../contant/ThinScrollBar";
 import { useSearchDivisions } from "../hooks/use-division-search";
-import type { Division } from "../type/division.type";
+import type { Division } from "../types/division.type";
 
 export default function DivisionCombobox({
   value,

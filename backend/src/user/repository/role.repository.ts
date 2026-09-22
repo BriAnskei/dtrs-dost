@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import { EntityManager, Repository } from "typeorm";
 import { RoleEntity } from "../entities/role.entity";
 
 @Injectable()
@@ -10,8 +10,9 @@ export class RoleRepository {
     private readonly repository: Repository<RoleEntity>,
   ) {}
 
-  async findOne(id: string): Promise<RoleEntity | null> {
-    return this.repository.findOne({
+  async findById(id: string, manager?: EntityManager): Promise<RoleEntity | null> {
+    const repo = manager ? manager.getRepository(RoleEntity) : this.repository;
+    return repo.findOne({
       where: {
         id,
       },

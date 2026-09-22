@@ -1,6 +1,6 @@
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { userService } from "../service/user.service";
-import type { FindUsersParams } from "../type/user.type";
+import { userService } from "../services/user.service";
+import type { FindUsersParams } from "../types/user.type";
 
 type UserFilters = Pick<FindUsersParams, "name" | "role_id" | "sort">;
 

@@ -1,5 +1,5 @@
 import { apiClient } from "../../../lib/api-client";
-import type { Division } from "../type/division.type";
+import type { Division } from "../types/division.type";
 
 export const divisionService = {
   async findByName(search: string): Promise<Division[] | null> {

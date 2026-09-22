@@ -4,11 +4,11 @@ import { getErrorMessage } from "../../../../lib/api-error";
 import {
   getConflictBody,
   passwordResetService,
-} from "../../service/password-reset.service";
+} from "../../services/password-reset.service";
 import type {
   PasswordResetRequestResponse,
   PasswordResetTokenSummary,
-} from "../../type/password-reset.type";
+} from "../../types/password-reset.type";
 import type { ResetPasswordMethod } from "./use-reset-password-modal";
 
 interface Args {

@@ -1,10 +1,11 @@
 import { useCallback, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
 import { useInfiniteScrollSentinel } from "../../../hooks/user-infinite-scroll-sentinel";
-import { useUsers } from "../hooks/use-users";
-import { ROLE_ID_MAP, type UserFormState } from "../type/creater-user.type";
-import type { SortDirection, SystemUser, UserRole } from "../type/user.type";
+import { ROLE_ID_MAP, type UserFormState } from "../types/create-user.type";
+import type { SortDirection, SystemUser, UserRole } from "../types/user.type";
 import { mapUsersResponseToSystemUsers } from "../utils/mapUserResponseToSystemUser";
+import { removeHyphens } from "../utils/string";
+import { useUsers } from "./use-users";
 
 export function useUserManagementTable() {
   const [search, setSearch] = useState("");
@@ -65,7 +66,8 @@ export function useUserManagementTable() {
       position: user.position,
       role: user.role,
       email: user.email,
-      contact: user.contact,
+      contact: removeHyphens(user.contact),
+      division: user.divisionName,
       password: "",
     };
   }

@@ -1,11 +1,10 @@
-// service/password-reset.service.ts
 import axios from "axios";
 import { apiClient } from "../../../lib/api-client";
 import type {
   PasswordResetConflictBody,
   PasswordResetRequestResponse,
   PasswordResetTokenSummary,
-} from "../type/password-reset.type";
+} from "../types/password-reset.type";
 
 export const passwordResetService = {
   async createResetRequest(userId: string): Promise<PasswordResetRequestResponse> {

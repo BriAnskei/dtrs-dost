@@ -1,10 +1,9 @@
-// hooks/steps/use-direct-reset-step.ts
 import { useMutation } from "@tanstack/react-query";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { getErrorMessage } from "../../../../lib/api-error";
-import { userService } from "../../service/user.service";
-import type { SystemUser } from "../../type/user.type";
+import { userService } from "../../services/user.service";
+import type { SystemUser } from "../../types/user.type";
 import { passwordGenerator } from "../../utils/passwordGenerator";
 
 interface DirectResetForm {
@@ -31,11 +30,13 @@ export function useDirectResetStep(user: SystemUser) {
       setResetComplete(true);
       toast.success(`Password reset for ${user.name}.`);
     },
-    onError: (err) =>
+    onError: (err) => {
+      console.log("error");
       setDirectErrors((e) => ({
         ...e,
         password: getErrorMessage(err, "Could not reset the password."),
-      })),
+      }));
+    },
   });
 
   function handleGeneratePassword() {

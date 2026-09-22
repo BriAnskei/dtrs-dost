@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useDebounce } from "use-debounce";
-import { divisionService } from "../service/division.service";
+import { divisionService } from "../services/division.service";
 
 export function useSearchDivisions(search: string) {
   const [debounceSearch] = useDebounce(search, 500);

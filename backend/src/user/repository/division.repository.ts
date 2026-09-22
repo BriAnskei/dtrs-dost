@@ -13,9 +13,11 @@ export class DivisionRepository {
 
   async save(
     division: Partial<DivisionEntity>,
-    manager: EntityManager,
+    manager?: EntityManager,
   ): Promise<DivisionEntity> {
-    return manager.getRepository(DivisionEntity).save(division);
+    const repo = manager ? manager.getRepository(DivisionEntity) : this.repository;
+
+    return repo.save(division);
   }
 
   async findOne(id: string): Promise<DivisionEntity | null> {

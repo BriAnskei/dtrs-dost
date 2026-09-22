@@ -1,4 +1,4 @@
-import type { AccountStatus, UserRole } from "./type/user.type";
+import type { AccountStatus, UserRole } from "./types/user.type";
 
 export function getRoleBadgeColor(role: UserRole) {
   if (role === "Admin") return "warning";

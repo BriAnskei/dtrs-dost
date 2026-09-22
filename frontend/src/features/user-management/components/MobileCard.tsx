@@ -4,7 +4,7 @@ import KebabMenu, {
   EditIcon,
 } from "../../../components/ui/kebab-menu/KebabMenu";
 import { getRoleBadgeColor } from "../helpers";
-import type { SystemUser } from "../type/user.type";
+import type { SystemUser } from "../types/user.type";
 
 export default function MobileCard({
   user,

@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { useUpdateUser } from "../hooks/use-update-user";
 import {
   type AssignableRole,
   ROLE_ID_MAP,
   type UserFormState,
-} from "../type/creater-user.type";
+} from "../types/create-user.type";
+import type { UpdateUserPayload } from "../types/update-user.type";
+import { useUpdateUser } from "./use-update-user";
 
 /**
  * State and business logic for the **Edit User** modal only.
@@ -18,9 +19,7 @@ export function useEditUserFormModal(
   userId: string,
 ) {
   const [form, setForm] = useState<UserFormState>(initial);
-  const [errors, setErrors] = useState<
-    Partial<Record<keyof UserFormState, string>>
-  >({});
+  const [errors, setErrors] = useState<Partial<Record<keyof UserFormState, string>>>({});
 
   const updateUser = useUpdateUser();
   const isSubmitting = updateUser.isPending;
@@ -37,6 +36,39 @@ export function useEditUserFormModal(
     return e;
   }
 
+  function buildChangedPayload(
+    initial: UserFormState,
+    form: UserFormState,
+  ): Partial<UpdateUserPayload> {
+    const payload: Partial<UpdateUserPayload> = {};
+
+    if (form.name !== initial.name) {
+      payload.full_name = form.name;
+    }
+
+    if (form.role !== initial.role) {
+      payload.role_id = String(ROLE_ID_MAP[form.role as AssignableRole]);
+    }
+
+    if (form.role === "Division" && form.division !== initial.division) {
+      payload.division = form.division;
+    }
+
+    if (form.position !== initial.position) {
+      payload.position = form.position.trim() ? form.position : null;
+    }
+
+    if (form.email !== initial.email) {
+      payload.email = form.email;
+    }
+
+    if (form.contact !== initial.contact) {
+      payload.contact_number = form.contact.trim() ? form.contact : null;
+    }
+
+    return payload;
+  }
+
   function handleSubmit() {
     const e = validate();
     if (Object.keys(e).length > 0) {
@@ -44,14 +76,12 @@ export function useEditUserFormModal(
       return;
     }
 
-    const payload = {
-      full_name: form.name,
-      email: form.email,
-      role_id: String(ROLE_ID_MAP[form.role as AssignableRole]),
-      division: form.role === "Division" ? (form.division as string) : undefined,
-      position: form.position.trim() ? form.position : undefined,
-      contact_number: form.contact.trim() ? form.contact : undefined,
-    };
+    const payload = buildChangedPayload(initial, form);
+
+    if (Object.keys(payload).length === 0) {
+      onClose(); // nothing changed, no need to hit the API
+      return;
+    }
 
     updateUser.mutate({ id: userId, data: payload }, { onSuccess: onClose });
   }

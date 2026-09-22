@@ -1,7 +1,6 @@
-// components/ResetPasswordModal.tsx
 import { createPortal } from "react-dom";
 import { useResetPasswordModal } from "../../../hooks/reset-password/use-reset-password-modal";
-import type { SystemUser } from "../../../type/user.type";
+import type { SystemUser } from "../../../types/user.type";
 import ChooseMethodStep from "./ChooseMethodStep";
 import DirectResetStep from "./DirectResetStep";
 import LinkResetStep from "./LinkResetStep";

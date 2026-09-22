@@ -1,4 +1,3 @@
-import type { AssignableRole } from "./type/creater-user.type";
+import type { AssignableRole } from "./types/create-user.type";
 
 export const ALL_ROLES: AssignableRole[] = ["Admin", "Receiver", "Division"];
-

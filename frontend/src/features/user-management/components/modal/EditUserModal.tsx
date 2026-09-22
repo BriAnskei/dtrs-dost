@@ -1,9 +1,8 @@
 import { createPortal } from "react-dom";
 import { THIN_SCROLLBAR } from "../../../../contant/ThinScrollBar";
-import { ALL_ROLES } from "../../constant";
+import { ALL_ROLES } from "../../constants";
 import { useEditUserFormModal } from "../../hooks/use-edit-user-form-modal";
-import type { UserFormState } from "../../type/creater-user.type";
-import type { UserRole } from "../../type/user.type";
+import type { AssignableRole, UserFormState } from "../../types/create-user.type";
 import DivisionCombobox from "../DivisionCombobox";
 
 export default function EditUserModal({
@@ -92,15 +91,13 @@ export default function EditUserModal({
                 id="role"
                 value={form.role}
                 onChange={(e) => {
-                  const nextRole = e.target.value as UserRole | "";
+                  const nextRole = e.target.value as AssignableRole | "";
+
                   setForm((f) => ({
                     ...f,
                     role: nextRole,
-                    // Clear division whenever role isn't "Division" so a stale
-                    // value can't sneak into the payload while the field is hidden.
-                    division: nextRole === "Division" ? f.division : null,
+                    division: nextRole === "Division" ? f.division : undefined,
                   }));
-                  setErrors((er) => ({ ...er, role: undefined, division: undefined }));
                 }}
                 className={`px-3 py-2 text-theme-sm rounded-lg border bg-white text-gray-700 focus:outline-none focus:ring-2 transition dark:bg-white/5 dark:text-gray-200 ${
                   errors.role
@@ -146,7 +143,7 @@ export default function EditUserModal({
               <DivisionCombobox
                 value={form.division}
                 onChange={(division) => {
-                  setForm((f) => ({ ...f, division }));
+                  setForm((f) => ({ ...f, division: division ?? undefined }));
                   setErrors((er) => ({ ...er, division: undefined }));
                 }}
                 error={errors.division}
@@ -166,12 +163,12 @@ export default function EditUserModal({
             })}
           </div>
 
-          <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-gray-100 dark:border:white/8">
+          <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-gray-100 dark:border-white/8">
             <button
               type="button"
               onClick={onClose}
               disabled={isSubmitting}
-              className="px-4 py-2 text-theme-sm text-gray-500 hover:text-gray-700 border border-gray-200 rounded-lg hover:border-gray-300 dark:border:white/8 dark:text-gray-400 dark:hover:text-gray-200 transition-colors disabled:opacity-50"
+              className="px-4 py-2 text-theme-sm text-gray-500 hover:text-gray-700 border border-gray-200 rounded-lg hover:border-gray-300 dark:border-white/8 dark:text-gray-400 dark:hover:text-gray-200 transition-colors disabled:opacity-50"
             >
               Cancel
             </button>
