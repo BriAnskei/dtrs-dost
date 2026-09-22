@@ -24,6 +24,14 @@ export class PasswordResetRepository {
     return this.repository.save(token);
   }
 
+  async findByUserId(userId: string): Promise<PasswordResetTokenEntity | null> {
+    return this.repository.findOne({
+      where: {
+        user_id: userId,
+      },
+    });
+  }
+
   async findByTokenHash(tokenHash: string): Promise<PasswordResetTokenEntity | null> {
     return this.repository.findOne({
       where: {
@@ -34,8 +42,10 @@ export class PasswordResetRepository {
 
   async findByTokenHashForUpdate(
     tokenHash: string,
+    manager: EntityManager,
   ): Promise<PasswordResetTokenEntity | null> {
-    return this.repository
+    return manager
+      .getRepository(PasswordResetTokenEntity)
       .createQueryBuilder("reset")
       .setLock("pessimistic_write")
       .where("reset.token_hash = :tokenHash", {
@@ -43,7 +53,6 @@ export class PasswordResetRepository {
       })
       .getOne();
   }
-
   async deleteByUserId(userId: string): Promise<void> {
     await this.repository.delete({
       user_id: userId,

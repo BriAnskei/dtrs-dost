@@ -5,13 +5,13 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  Param,
   Patch,
   Post,
   Query,
   Req,
 } from "@nestjs/common";
 import type { Request } from "express";
-import { AuthenticatedRequest } from "../../auth/authentication/types/authenticated-request";
 import { Roles } from "../../auth/authorization/roles.decorator";
 import { Role } from "../../auth/authorization/roles.enum";
 import { CreateUserDto } from "../dto/create-user-dto";
@@ -73,7 +73,7 @@ export class UserController {
   @Delete(":id")
   @HttpCode(HttpStatus.NO_CONTENT)
   @Roles(Role.SuperAdmin)
-  async delete(id: string): Promise<void> {
+  async delete(@Param("id") id: string): Promise<void> {
     this.service.delete(id);
   }
 }

@@ -66,7 +66,7 @@ export class RefreshTokenRepository {
   }
 
   async deleteByUserId(userId: string, manager?: EntityManager): Promise<void> {
-    const repo = manager ? manager.getRepository(EntityManager) : this.repository;
+    const repo = manager ? manager.getRepository(RefreshTokenEntity) : this.repository;
 
     repo.delete({ user_id: userId });
   }

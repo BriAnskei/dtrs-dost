@@ -19,10 +19,10 @@ import { getRoleBadgeColor } from "../helpers";
 import { useUserManagementTable } from "../hooks/use-user-management-table";
 import { EMPTY_FORM } from "../type/creater-user.type";
 import type { SystemUser, UserManagementTableProps, UserRole } from "../type/user.type";
-import AddUserModal from "./AddUserModal";
-import EditUserModal from "./EditUserModal";
 import MobileCard from "./MobileCard";
-import ResetPasswordModal from "./ResetPasswordModal";
+import AddUserModal from "./modal/AddUserModal";
+import EditUserModal from "./modal/EditUserModal";
+import ResetPasswordModal from "./modal/reset/ResetPasswordModal";
 
 const USER_TABLE_COLUMNS = [
   { label: "Name", width: "w-32", withSubline: true },

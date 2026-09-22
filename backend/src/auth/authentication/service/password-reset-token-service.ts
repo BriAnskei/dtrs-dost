@@ -1,5 +1,10 @@
 import { createHash, randomBytes } from "node:crypto";
-import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
 import * as argon2 from "argon2";
 import { DataSource } from "typeorm";
 import { UserRepository } from "../../../user/repository/user.repository";
@@ -27,23 +32,39 @@ export class PasswordResetService {
   }
 
   async createResetRequest(userId: string): Promise<{
+    id: string;
     token: string;
     expires_at: Date;
   }> {
+    const existingToken = await this.findByUserId(userId);
+
+    if (existingToken) {
+      throw new ConflictException({
+        message: "A password reset request already exists.",
+        error: "PASSWORD_RESET_ALREADY_EXISTS",
+        expires_at: existingToken.expires_at,
+      });
+    }
+
     const rawToken = this.generateToken();
-
     const tokenHash = this.hashToken(rawToken);
-
     const expiresAt = new Date(Date.now() + this.resetTokenTtlMs);
 
-    await this.passwordResetRepository.deleteByUserId(userId);
-
-    await this.passwordResetRepository.createToken(userId, tokenHash, expiresAt);
+    const created = await this.passwordResetRepository.createToken(
+      userId,
+      tokenHash,
+      expiresAt,
+    );
 
     return {
+      id: created.id,
       token: rawToken,
       expires_at: expiresAt,
     };
+  }
+
+  async findByUserId(userId: string): Promise<PasswordResetTokenEntity | null> {
+    return this.passwordResetRepository.findByUserId(userId);
   }
 
   async findByToken(token: string): Promise<PasswordResetTokenEntity> {
@@ -62,11 +83,13 @@ export class PasswordResetService {
   }
 
   async resetPassword(dto: ResetPasswordDto): Promise<void> {
-    const tokenHash = createHash("sha256").update(dto.token).digest("hex");
+    const tokenHash = this.hashToken(dto.token);
 
     await this.dataSource.transaction(async (manager) => {
-      const resetToken =
-        await this.passwordResetRepository.findByTokenHashForUpdate(tokenHash);
+      const resetToken = await this.passwordResetRepository.findByTokenHashForUpdate(
+        tokenHash,
+        manager,
+      );
 
       if (!resetToken || resetToken.expires_at.getTime() <= Date.now()) {
         throw new BadRequestException("Invalid or expired password reset link");
@@ -86,5 +109,11 @@ export class PasswordResetService {
 
       await this.passwordResetRepository.delete(resetToken.id, manager);
     });
+  }
+
+  async delete(id: string) {
+    const res = await this.passwordResetRepository.delete(id);
+
+    if (!res) throw new Error("Password token not found");
   }
 }

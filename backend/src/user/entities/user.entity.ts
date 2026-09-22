@@ -4,8 +4,10 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToOne,
   PrimaryGeneratedColumn,
 } from "typeorm";
+import { PasswordResetTokenEntity } from "../../auth/authentication/entities/password-reset-token.entity";
 import { DivisionEntity } from "./division.entity";
 import { RoleEntity } from "./role.entity";
 
@@ -66,4 +68,10 @@ export class UserEntity {
     default: () => "CURRENT_TIMESTAMP",
   })
   created_at!: Date;
+
+  @OneToOne(
+    () => PasswordResetTokenEntity,
+    (passwordResetToken) => passwordResetToken.user,
+  )
+  password_reset_token!: PasswordResetTokenEntity | null;
 }

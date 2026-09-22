@@ -1,11 +1,10 @@
 import { createPortal } from "react-dom";
-import { THIN_SCROLLBAR } from "../../../contant/ThinScrollBar";
-import { ALL_ROLES } from "../constant";
-import { useAddUserFormModal } from "../hooks/use-add-user-form-modal";
-import type { AssignableRole, UserFormState } from "../type/creater-user.type";
-import DivisionCombobox from "./DivisionCombobox";
+import { THIN_SCROLLBAR } from "../../../../contant/ThinScrollBar";
+import { ALL_ROLES } from "../../constant";
+import { useAddUserFormModal } from "../../hooks/use-add-user-form-modal";
+import type { AssignableRole, UserFormState } from "../../type/creater-user.type";
+import DivisionCombobox from "../DivisionCombobox";
 import UserCredentialsModal from "./UserCredentialsModal";
-
 export default function AddUserModal({
   initial,
   onClose,

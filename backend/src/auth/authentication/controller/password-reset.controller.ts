@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
@@ -27,6 +28,12 @@ export class PasswordResetController {
     return result;
   }
 
+  @Get("user/:userId")
+  @Roles(Role.SuperAdmin)
+  async findByUserId(@Param("userId", ParseUUIDPipe) userId: string) {
+    return this.service.findByUserId(userId);
+  }
+
   @Get("/verify")
   @Public()
   @HttpCode(HttpStatus.OK)
@@ -47,5 +54,12 @@ export class PasswordResetController {
     return {
       message: "Password changed successfully",
     };
+  }
+
+  @Delete(":id")
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Roles(Role.SuperAdmin)
+  async delete(@Param("id") id: string): Promise<void> {
+    await this.service.delete(id);
   }
 }

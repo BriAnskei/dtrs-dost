@@ -1,5 +1,11 @@
+// service/password-reset.service.ts
+import axios from "axios";
 import { apiClient } from "../../../lib/api-client";
-import type { PasswordResetRequestResponse } from "../type/password-reset.type";
+import type {
+  PasswordResetConflictBody,
+  PasswordResetRequestResponse,
+  PasswordResetTokenSummary,
+} from "../type/password-reset.type";
 
 export const passwordResetService = {
   async createResetRequest(userId: string): Promise<PasswordResetRequestResponse> {
@@ -8,4 +14,25 @@ export const passwordResetService = {
     );
     return data;
   },
+
+  async getByUserId(userId: string): Promise<PasswordResetTokenSummary | null> {
+    const { data } = await apiClient.get<PasswordResetTokenSummary | null>(
+      `/authentication/password-reset/user/${userId}`,
+    );
+    return data ?? null;
+  },
+
+  async deletePasswordResetToken(id: string): Promise<void> {
+    await apiClient.delete(`/authentication/password-reset/${id}`);
+  },
 };
+
+export function getConflictBody(err: unknown): PasswordResetConflictBody | null {
+  if (
+    axios.isAxiosError<PasswordResetConflictBody>(err) &&
+    err.response?.status === 409
+  ) {
+    return err.response.data ?? null;
+  }
+  return null;
+}

@@ -1,6 +1,6 @@
 import { QRCodeSVG } from "qrcode.react";
 import { useEffect, useState } from "react";
-import type { useResetPasswordModal } from "../../hooks/use-reset-password-modal";
+import type { useResetPasswordModal } from "../../../hooks/reset-password/use-reset-password-modal";
 
 type Props = { modal: ReturnType<typeof useResetPasswordModal> };
 
