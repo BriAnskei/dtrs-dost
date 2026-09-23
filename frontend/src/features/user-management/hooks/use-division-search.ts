@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useDebounce } from "use-debounce";
-import { divisionService } from "../services/division.service";
+import { divisionSearchNameService } from "../services/divisionSearchName.service";
 
 export function useSearchDivisions(search: string) {
   const [debounceSearch] = useDebounce(search, 500);
@@ -9,7 +9,7 @@ export function useSearchDivisions(search: string) {
 
   return useQuery({
     queryKey: ["division", "search", normalizedSearch],
-    queryFn: () => divisionService.findByName(normalizedSearch),
+    queryFn: () => divisionSearchNameService.find(normalizedSearch),
     enabled: normalizedSearch.length >= 2,
     staleTime: 30_000,
   });

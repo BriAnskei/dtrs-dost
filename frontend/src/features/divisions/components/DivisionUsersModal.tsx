@@ -1,6 +1,4 @@
 import { useMemo, useState } from "react";
-import Badge from "../../../components/ui/badge/Badge";
-import { getRoleBadgeColor } from "../../user-management/helpers";
 import type { Division } from "../type/division.type";
 
 interface DivisionUsersModalProps {
@@ -74,14 +72,11 @@ export default function DivisionUsersModal({
                     {u.email}
                   </p>
                 </div>
-                <div className="flex items-center gap-2 shrink-0 ml-3">
-                  {!u.isActive && (
-                    <span className="text-theme-xs text-red-500">Disabled</span>
-                  )}
-                  <Badge size="sm" color={getRoleBadgeColor(u.role as never)}>
-                    {u.role}
-                  </Badge>
-                </div>
+                {!u.isActive && (
+                  <span className="text-theme-xs text-red-500 shrink-0 ml-3">
+                    Disabled
+                  </span>
+                )}
               </div>
             ))
           )}

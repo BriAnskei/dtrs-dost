@@ -1,12 +1,14 @@
-import type { Division, DivisionResponse, DivisionUser } from "../type/division.type";
+import type { Division, DivisionUser } from "../type/division.type";
+import type { DivisionResponse, DivisionUserResponse } from "../type/division-api.type";
 
-function mapUser(u: DivisionResponse["users"][number]): DivisionUser {
+// API doesn't send position/role for division users — placeholder until it does.
+function mapUser(u: DivisionUserResponse): DivisionUser {
   return {
     id: u.id,
     fullName: u.full_name,
-    position: u.position,
+    position: null,
     email: u.email,
-    role: u.role?.role_name ?? "—",
+    role: "—",
     isActive: u.is_active,
   };
 }

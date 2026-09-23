@@ -1,4 +1,4 @@
-export enum SortOrder {
+export enum UserSortOrder {
   Newest = "newest",
   Oldest = "oldest",
 }

@@ -1,4 +1,4 @@
-export interface Division {
+export interface DivisionName {
   id: string;
   division_name: string;
 }

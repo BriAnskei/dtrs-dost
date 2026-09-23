@@ -1,5 +1,7 @@
 import { ConflictException, Injectable, NotFoundException } from "@nestjs/common";
-import { DivisionWithUsersResponseDto } from "../dto/divisionWithUsers-response-dto";
+import { PaginatedResponse } from "../../common/pagination/paginated-response";
+import { DivisionResponseDto } from "../dto/divisionWithUsers-response-dto";
+import { FindDivisionsQueryDto } from "../dto/find-divisions-query-dto";
 import { UpdateDivisionDto } from "../dto/update-division-dto";
 import { DivisionEntity } from "../entities/division.entity";
 import { DivisionRepository } from "../repository/division.repository";
@@ -12,29 +14,32 @@ export class DivisionService {
     private readonly userRepository: UserRepository,
   ) {}
 
+  private toDto(division: DivisionEntity): DivisionResponseDto {
+    return {
+      id: division.id,
+      division_name: division.division_name,
+      users: division.users.map((user) => ({
+        id: user.id,
+        full_name: user.full_name,
+        email: user.email,
+        is_active: user.is_active,
+      })),
+    };
+  }
+
   async searchByName(search: string): Promise<DivisionEntity[] | null> {
     return await this.repository.searchByName(search);
   }
 
-  async findAllWithUsers(): Promise<DivisionWithUsersResponseDto[]> {
-    const divisions = await this.repository.findAllWithUser();
+  async findAll(
+    query: FindDivisionsQueryDto,
+  ): Promise<PaginatedResponse<DivisionResponseDto>> {
+    const { divisions, nextCursor } = await this.repository.findAllWithUsers(query);
 
-    return divisions.map((d) => this.toDto(d));
-  }
-
-  private toDto(division: DivisionEntity): DivisionWithUsersResponseDto {
-    const dto = new DivisionWithUsersResponseDto();
-
-    dto.id = division.id;
-    dto.division_name = division.division_name;
-
-    dto.users = (division.users ?? []).map((user) => ({
-      full_name: user.full_name,
-      email: user.email,
-      is_active: user.is_active,
-    }));
-
-    return dto;
+    return {
+      data: divisions.map((division) => this.toDto(division)),
+      nextCursor,
+    };
   }
 
   async updateName(id: string, dto: UpdateDivisionDto) {

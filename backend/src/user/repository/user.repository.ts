@@ -1,12 +1,13 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { type EntityManager, ILike, MoreThan, Not, type Repository } from "typeorm";
+import { type EntityManager, ILike, type Repository } from "typeorm";
 import { Role } from "../../auth/authorization/roles.enum";
 import { decodeCursor, encodeCursor } from "../../common/pagination/cursor";
 import { escapeLike } from "../../util/escapeLike";
 import { FindUsersQueryDto } from "../dto/find-user-query-dto";
 import { UserEntity } from "../entities/user.entity";
-import { SortOrder } from "../enums/sort-order.enum";
+import { UserSortOrder } from "../enums/user-sort-order-enum";
+import { UserCursor } from "../types/user-cursor";
 
 @Injectable()
 export class UserRepository {
@@ -49,7 +50,7 @@ export class UserRepository {
   async findAllWithRelation(
     query: FindUsersQueryDto,
   ): Promise<{ users: UserEntity[]; nextCursor: string | null }> {
-    const { limit, cursor, name, role_id, sort = SortOrder.Newest } = query;
+    const { limit, cursor, name, role_id, sort = UserSortOrder.Newest } = query;
 
     const queryBuilder = this.repository
       .createQueryBuilder("user")
@@ -78,9 +79,9 @@ export class UserRepository {
 
     // Cursor
     if (cursor) {
-      const decodedCursor = decodeCursor(cursor);
+      const decodedCursor = decodeCursor<UserCursor>(cursor);
 
-      if (sort === SortOrder.Newest) {
+      if (sort === UserSortOrder.Newest) {
         queryBuilder.andWhere(
           `(
           user.created_at < :cursorCreatedAt
@@ -112,7 +113,7 @@ export class UserRepository {
     }
 
     // Sorting
-    if (sort === SortOrder.Newest) {
+    if (sort === UserSortOrder.Newest) {
       queryBuilder.orderBy("user.created_at", "DESC").addOrderBy("user.id", "DESC");
     } else {
       queryBuilder.orderBy("user.created_at", "ASC").addOrderBy("user.id", "ASC");
@@ -131,7 +132,7 @@ export class UserRepository {
 
     const nextCursor =
       hasNextPage && lastUser
-        ? encodeCursor({
+        ? encodeCursor<UserCursor>({
             createdAt: lastUser.created_at.toISOString(),
             id: lastUser.id,
           })

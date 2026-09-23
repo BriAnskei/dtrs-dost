@@ -12,6 +12,7 @@ import {
 } from "@nestjs/common";
 import { Roles } from "../../auth/authorization/roles.decorator";
 import { Role } from "../../auth/authorization/roles.enum";
+import { FindDivisionsQueryDto } from "../dto/find-divisions-query-dto";
 import { UpdateDivisionDto } from "../dto/update-division-dto";
 import { DivisionService } from "../service/division.service";
 
@@ -19,16 +20,16 @@ import { DivisionService } from "../service/division.service";
 export class DivisionController {
   constructor(private readonly service: DivisionService) {}
 
-  @Get()
+  @Get("search")
   @Roles(Role.SuperAdmin)
   async findByName(@Query("search") search: string) {
     return this.service.searchByName(search);
   }
 
-  @Get("with-users")
+  @Get()
   @Roles(Role.SuperAdmin)
-  async findAllWithUsers() {
-    return this.service.findAllWithUsers();
+  async findAll(@Query() query: FindDivisionsQueryDto) {
+    return this.service.findAll(query);
   }
 
   @Patch(":id")

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { THIN_SCROLLBAR } from "../../../contant/ThinScrollBar";
 import { useSearchDivisions } from "../hooks/use-division-search";
-import type { Division } from "../types/division.type";
+import type { DivisionName } from "../types/division-name.type";
 
 export default function DivisionCombobox({
   value,
@@ -31,7 +31,7 @@ export default function DivisionCombobox({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  function selectDivision(division: Division) {
+  function selectDivision(division: DivisionName) {
     setQuery(division.division_name);
     onChange(division.division_name);
     setOpen(false);
@@ -118,7 +118,7 @@ export default function DivisionCombobox({
             role="listbox"
             className={`absolute z-10 mt-1 w-full max-h-56 overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-lg dark:border-white/8 dark:bg-gray-900 ${THIN_SCROLLBAR}`}
           >
-            {results.map((d: Division, i: number) => (
+            {results.map((d: DivisionName, i: number) => (
               <div
                 key={d.id}
                 id={`division-option-${d.id}`}

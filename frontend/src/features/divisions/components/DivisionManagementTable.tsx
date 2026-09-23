@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import MobileCardSkeleton from "../../../components/tables/Skeleton/MobileCardSkeleton";
+import TableSkeleton from "../../../components/tables/Skeleton/TableSkeleton";
 import {
   Table,
   TableBody,
@@ -7,11 +8,10 @@ import {
   TableRow,
 } from "../../../components/ui/table";
 import { THIN_SCROLLBAR } from "../../../contant/ThinScrollBar";
-import { MOCK_DIVISIONS } from "../data/mock-divisions";
-import type { Division, DivisionResponse } from "../type/division.type";
-import { mapDivisionsResponseToDivisions } from "../util/mapDivisionsResponseToDivisions";
-import DivisionUsersModal from "./DivisionUsersModal";
+import { useDivisionManagementTable } from "../hooks/use-division-management-table";
+import type { DivisionManagementTableProps } from "../type/division.type";
 import DivisionMobileCard from "./DivisionMobileCard";
+import DivisionUsersModal from "./DivisionUsersModal";
 import EditableDivisionName from "./EditableDivisionName";
 import UserAvatarStack from "./UserAvatarStack";
 
@@ -22,58 +22,32 @@ const DIVISION_TABLE_COLUMNS = [
   { label: "Action", width: "w-6" },
 ] as const;
 
-interface DivisionManagementTableProps {
-  maxTableHeight?: string;
-  maxMobileHeight?: string;
-}
-
 export default function DivisionManagementTable({
   maxTableHeight = "560px",
   maxMobileHeight = "520px",
 }: DivisionManagementTableProps = {}) {
-  // ── Mock data as local state ──────────────────────────────────
-  // Swap this block for `const { data, isLoading, isError, error } =
-  // useDivisions();` (React Query) once the API exists. Divisions are
-  // provisioned elsewhere (seed/migration) — this screen only renames
-  // and deletes them, so there is no create mutation to wire.
-  const [rawDivisions, setRawDivisions] = useState<DivisionResponse[]>(MOCK_DIVISIONS);
-  const isLoading = false;
-  const isError = false;
-
-  const [search, setSearch] = useState("");
-  const [sortBy, setSortBy] = useState<"name" | "count">("name");
-
-  const [viewTarget, setViewTarget] = useState<Division | null>(null);
-  const [deleteTarget, setDeleteTarget] = useState<Division | null>(null);
-
-  const divisions = useMemo<Division[]>(
-    () => mapDivisionsResponseToDivisions(rawDivisions),
-    [rawDivisions],
-  );
-
-  const filtered = useMemo(() => {
-    const q = search.toLowerCase();
-    let list = divisions.filter((d) => !q || d.name.toLowerCase().includes(q));
-    list = [...list].sort((a, b) =>
-      sortBy === "name" ? a.name.localeCompare(b.name) : b.userCount - a.userCount,
-    );
-    return list;
-  }, [divisions, search, sortBy]);
-
-  // ── Local "mutations" (stand-ins for the real API calls) ──────────
-  function handleRename(id: string, newName: string) {
-    // Swap for: updateDivisionMutation.mutate({ id, payload: { division_name: newName } })
-    setRawDivisions((prev) =>
-      prev.map((d) => (d.id === id ? { ...d, division_name: newName } : d)),
-    );
-  }
-
-  function handleDelete() {
-    if (!deleteTarget || deleteTarget.userCount > 0) return;
-    // Swap for: deleteDivisionMutation.mutate(deleteTarget.id)
-    setRawDivisions((prev) => prev.filter((d) => d.id !== deleteTarget.id));
-    setDeleteTarget(null);
-  }
+  const {
+    isLoading,
+    isError,
+    error,
+    divisions,
+    search,
+    setSearch,
+    sort,
+    setSort,
+    hasNextPage,
+    isFetchingNextPage,
+    mobileScrollRef,
+    mobileSentinelRef,
+    desktopScrollRef,
+    desktopSentinelRef,
+    viewTarget,
+    setViewTarget,
+    deleteTarget,
+    setDeleteTarget,
+    handleRename,
+    handleDelete,
+  } = useDivisionManagementTable();
 
   return (
     <>
@@ -106,18 +80,36 @@ export default function DivisionManagementTable({
           </div>
 
           <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as "name" | "count")}
+            value={sort}
+            onChange={(e) => setSort(e.target.value as "name_asc" | "most_users")}
             className="px-3 py-2 text-theme-sm rounded-lg border border-gray-200 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-secondary/40 focus:border-secondary dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-gray-200 transition"
           >
-            <option value="name">Sort: Name (A–Z)</option>
-            <option value="count">Sort: Most Users</option>
+            <option value="name_asc">Sort: Name (A–Z)</option>
+            <option value="most_users">Sort: Most Users</option>
           </select>
         </div>
 
+        {isLoading && (
+          <>
+            <div className="md:hidden">
+              <MobileCardSkeleton maxHeight={maxMobileHeight} count={5} />
+            </div>
+            <div className="hidden md:block">
+              <TableSkeleton
+                maxHeight={maxTableHeight}
+                scrollbarClassName={THIN_SCROLLBAR}
+                columns={
+                  DIVISION_TABLE_COLUMNS as unknown as { label: string; width?: string }[]
+                }
+                rows={8}
+              />
+            </div>
+          </>
+        )}
+
         {isError && (
           <div className="rounded-xl border border-red-200 bg-red-50 dark:border-red-900/40 dark:bg-red-900/10 px-5 py-10 text-center text-red-600 text-theme-sm">
-            Failed to load divisions.
+            Failed to load divisions{error instanceof Error ? `: ${error.message}` : "."}
           </div>
         )}
 
@@ -126,23 +118,37 @@ export default function DivisionManagementTable({
             {/* ── Mobile ── */}
             <div className="md:hidden space-y-3">
               <div
+                ref={mobileScrollRef}
                 className={`overflow-y-auto space-y-3 pr-1 ${THIN_SCROLLBAR}`}
-                style={{ height: maxMobileHeight }}
+                style={{ height: maxMobileHeight, overflowAnchor: "none" }}
               >
-                {filtered.length === 0 ? (
+                {divisions.length === 0 ? (
                   <div className="rounded-xl border border-gray-200 bg-white dark:border-white/[0.08] dark:bg-white/[0.03] px-5 py-10 text-center text-gray-400 text-theme-sm">
                     No divisions match your search.
                   </div>
                 ) : (
-                  filtered.map((d) => (
-                    <DivisionMobileCard
-                      key={d.id}
-                      division={d}
-                      onView={() => setViewTarget(d)}
-                      onRename={(newName) => handleRename(d.id, newName)}
-                      onDelete={() => setDeleteTarget(d)}
-                    />
-                  ))
+                  <>
+                    {divisions.map((d) => (
+                      <DivisionMobileCard
+                        key={d.id}
+                        division={d}
+                        onView={() => setViewTarget(d)}
+                        onRename={(newName) => handleRename(d.id, newName)}
+                        onDelete={() => setDeleteTarget(d)}
+                      />
+                    ))}
+                    <div ref={mobileSentinelRef} className="h-px" />
+                    {isFetchingNextPage && (
+                      <p className="text-center text-theme-xs text-gray-400 py-2">
+                        Loading more…
+                      </p>
+                    )}
+                    {!hasNextPage && (
+                      <p className="text-center text-theme-xs text-gray-300 dark:text-gray-600 py-2">
+                        No more divisions
+                      </p>
+                    )}
+                  </>
                 )}
               </div>
             </div>
@@ -151,8 +157,9 @@ export default function DivisionManagementTable({
             <div className="hidden md:flex md:flex-col rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03] overflow-hidden">
               <div className="w-full overflow-x-auto">
                 <div
+                  ref={desktopScrollRef}
                   className={`overflow-y-auto ${THIN_SCROLLBAR}`}
-                  style={{ height: maxTableHeight }}
+                  style={{ height: maxTableHeight, overflowAnchor: "none" }}
                 >
                   <Table>
                     <TableHeader className="dark:border-white/[0.05] sticky top-0 z-10 bg-white dark:bg-gray-900">
@@ -170,7 +177,7 @@ export default function DivisionManagementTable({
                     </TableHeader>
 
                     <TableBody className="dark:divide-white/[0.05]">
-                      {filtered.length === 0 ? (
+                      {divisions.length === 0 ? (
                         <tr>
                           <td
                             colSpan={4}
@@ -180,7 +187,7 @@ export default function DivisionManagementTable({
                           </td>
                         </tr>
                       ) : (
-                        filtered.map((d) => {
+                        divisions.map((d) => {
                           const canDelete = d.userCount === 0;
                           return (
                             <TableRow
@@ -227,23 +234,36 @@ export default function DivisionManagementTable({
                           );
                         })
                       )}
+                      {divisions.length > 0 && (
+                        <tr>
+                          <td colSpan={4} className="h-px p-0">
+                            <div ref={desktopSentinelRef} className="h-px" />
+                          </td>
+                        </tr>
+                      )}
+                      {isFetchingNextPage && (
+                        <tr>
+                          <td
+                            colSpan={4}
+                            className="px-4 py-3 text-center text-theme-xs text-gray-400"
+                          >
+                            Loading more…
+                          </td>
+                        </tr>
+                      )}
                     </TableBody>
                   </Table>
                 </div>
               </div>
 
-              {filtered.length > 0 && (
+              {divisions.length > 0 && (
                 <div className="px-4 py-3 border-t border-gray-100 dark:border-white/[0.05]">
                   <span className="text-theme-xs text-gray-400 dark:text-gray-500">
                     Showing{" "}
                     <span className="font-medium text-gray-600 dark:text-gray-300">
-                      {filtered.length}
-                    </span>{" "}
-                    of{" "}
-                    <span className="font-medium text-gray-600 dark:text-gray-300">
                       {divisions.length}
                     </span>{" "}
-                    divisions
+                    divisions{!hasNextPage && " (all loaded)"}
                   </span>
                 </div>
               )}

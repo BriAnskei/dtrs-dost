@@ -1,6 +1,6 @@
 import { Type } from "class-transformer";
 import { IsEnum, IsInt, IsOptional, IsString, Max, Min } from "class-validator";
-import { SortOrder } from "../enums/sort-order.enum";
+import { UserSortOrder } from "../enums/user-sort-order-enum";
 
 export class FindUsersQueryDto {
   @IsOptional()
@@ -21,8 +21,8 @@ export class FindUsersQueryDto {
   role_id?: number;
 
   @IsOptional()
-  @IsEnum(SortOrder)
-  sort: SortOrder = SortOrder.Newest;
+  @IsEnum(UserSortOrder)
+  sort: UserSortOrder = UserSortOrder.Newest;
 
   @IsOptional()
   @IsString()

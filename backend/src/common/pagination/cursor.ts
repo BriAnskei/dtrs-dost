@@ -1,16 +1,11 @@
 import { Buffer } from "node:buffer";
 
-export interface UserCursor {
-  createdAt: string;
-  id: string;
-}
-
-export function encodeCursor(cursor: UserCursor): string {
+export function encodeCursor<T>(cursor: T): string {
   return Buffer.from(JSON.stringify(cursor)).toString("base64url");
 }
 
-export function decodeCursor(cursor: string): UserCursor {
+export function decodeCursor<T>(cursor: string): T {
   const decoded = Buffer.from(cursor, "base64url").toString("utf8");
 
-  return JSON.parse(decoded) as UserCursor;
+  return JSON.parse(decoded) as T;
 }
