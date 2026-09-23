@@ -274,7 +274,7 @@ export class UserService {
   }
 
   async deactivate(id: string): Promise<void> {
-    const res = this.userRepository.deactivate(id);
+    const res = await this.userRepository.deactivate(id);
 
     if (!res) throw new NotFoundException("User not found");
   }

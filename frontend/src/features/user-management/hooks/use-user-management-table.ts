@@ -75,7 +75,7 @@ export function useUserManagementTable() {
   // modal state
   const [addModal, setAddModal] = useState(false);
   const [editTarget, setEditTarget] = useState<SystemUser | null>(null);
-  const [disableTarget, setDisableTarget] = useState<SystemUser | null>(null);
+  const [deactivateTarget, setDeactivateTarget] = useState<SystemUser | null>(null);
   // Reset-password modal target — the user currently going through the
   // verify -> method -> direct/link flow. Kept separate from editTarget
   // since it's a distinct modal with its own multi-step lifecycle.
@@ -105,8 +105,8 @@ export function useUserManagementTable() {
     setAddModal,
     editTarget,
     setEditTarget,
-    disableTarget,
-    setDisableTarget,
+    deactivateTarget,
+    setDeactivateTarget,
     resetTarget,
     setResetTarget,
   };

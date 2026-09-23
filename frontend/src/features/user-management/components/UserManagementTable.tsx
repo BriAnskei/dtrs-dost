@@ -21,6 +21,7 @@ import { EMPTY_FORM } from "../types/create-user.type";
 import type { SystemUser, UserManagementTableProps, UserRole } from "../types/user.type";
 import MobileCard from "./MobileCard";
 import AddUserModal from "./modal/AddUserModal";
+import DeactivateUserModal from "./modal/DeactivateUserModal";
 import EditUserModal from "./modal/EditUserModal";
 import ResetPasswordModal from "./modal/reset/ResetPasswordModal";
 
@@ -61,7 +62,8 @@ export default function UserManagementTable({
     setAddModal,
     editTarget,
     setEditTarget,
-    setDisableTarget,
+    deactivateTarget,
+    setDeactivateTarget,
     resetTarget,
     setResetTarget,
   } = useUserManagementTable();
@@ -222,7 +224,7 @@ export default function UserManagementTable({
                         key={user.id}
                         user={user}
                         onEdit={() => setEditTarget(user)}
-                        onToggleStatus={() => setDisableTarget(user)}
+                        onToggleStatus={() => setDeactivateTarget(user)}
                       />
                     ))}
                     <div ref={mobileSentinelRef} className="h-px" />
@@ -342,9 +344,9 @@ export default function UserManagementTable({
                                     handler: () => setResetTarget(user),
                                   },
                                   {
-                                    label: "Disable",
+                                    label: "Deactivate",
                                     icon: <DisableIcon />,
-                                    handler: () => setDisableTarget(user),
+                                    handler: () => setDeactivateTarget(user),
                                     danger: true,
                                   },
                                 ]}
@@ -406,6 +408,13 @@ export default function UserManagementTable({
 
       {resetTarget && (
         <ResetPasswordModal user={resetTarget} onClose={() => setResetTarget(null)} />
+      )}
+
+      {deactivateTarget && (
+        <DeactivateUserModal
+          user={deactivateTarget}
+          onClose={() => setDeactivateTarget(null)}
+        />
       )}
     </>
   );

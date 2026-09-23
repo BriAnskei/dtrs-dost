@@ -15,10 +15,7 @@ export class UserRepository {
     private readonly repository: Repository<UserEntity>,
   ) {}
 
-  async save(
-    userData: Partial<UserEntity>,
-    manager: EntityManager,
-  ): Promise<UserEntity> {
+  async save(userData: Partial<UserEntity>, manager: EntityManager): Promise<UserEntity> {
     return manager.getRepository(UserEntity).save(userData);
   }
 
@@ -60,6 +57,9 @@ export class UserRepository {
       .leftJoinAndSelect("user.division", "division")
       .where("user.role_id != :superAdminRole", {
         superAdminRole: Role.SuperAdmin,
+      })
+      .andWhere("user.is_active = :isActive", {
+        isActive: true,
       });
 
     // Name filter
@@ -179,8 +179,6 @@ export class UserRepository {
 
     return (result.affected ?? 0) > 0;
   }
-
-  
 
   async updatePassword(
     id: string,

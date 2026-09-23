@@ -75,10 +75,9 @@ export class UserController {
   }
 
   @Patch(":id/deactivate")
-  @HttpCode(HttpStatus.NO_CONTENT)
   @Roles(Role.SuperAdmin)
-  async deactivate(id: string): Promise<void> {
-    this.service.deactivate(id);
+  async deactivate(@Param("id", ParseUUIDPipe) id: string): Promise<void> {
+    await this.service.deactivate(id);
   }
 
   @Delete(":id")

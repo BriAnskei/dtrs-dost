@@ -43,4 +43,8 @@ export const userService = {
   async update(id: string, data: Partial<UpdateUserPayload>): Promise<void> {
     await apiClient.patch(`user/${id}`, data);
   },
+
+  async deactivate(id: string): Promise<void> {
+    await apiClient.patch(`/user/${id}/deactivate`);
+  },
 };
