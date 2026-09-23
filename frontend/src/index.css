@@ -12,6 +12,7 @@ layer(base);
   --color-success: #10b981;
   --color-warning: #f59e0b;
   --color-danger: #ef4444;
+  --header-height: 4rem;
 }
 
 @custom-variant dark (&:is(.dark *));

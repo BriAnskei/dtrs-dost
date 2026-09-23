@@ -15,10 +15,16 @@ export function useUpdateUser() {
   return useMutation<void, Error, UpdateUserVariables>({
     mutationFn: ({ id, data }) => userService.update(id, data),
 
-    onSuccess: async () => {
+    onSuccess: async (_, varibales) => {
       await queryClient.invalidateQueries({
         queryKey: ["users"],
       });
+
+      if (varibales.data.division !== undefined) {
+        await queryClient.invalidateQueries({
+          queryKey: ["divisions"],
+        });
+      }
 
       toast.success("User updated successfully.", {
         id: "update-user-success",

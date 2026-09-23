@@ -1,13 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Link, matchPath, useLocation } from "react-router";
+import { Link, useLocation } from "react-router";
 import CompanyLogo from "../components/logo/CompanyLogo";
 import type { NavItem } from "../config/navConfig";
 import { useSidebar } from "../context/SidebarContext";
 import { useFilteredNav } from "../hooks/useFilteredNav";
 import { useFilteredOthersNav } from "../hooks/useFilteredOthersNav";
 import { ChevronDownIcon, HorizontaLDots } from "../icons";
-
-// Assume these icons are imported from an icon library
 
 const AppSidebar: React.FC = () => {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
@@ -183,7 +181,11 @@ const AppSidebar: React.FC = () => {
 
   return (
     <aside
-      className={`sidebar-nav fixed mt-16 flex flex-col lg:mt-0 top-0 px-5 left-0 bg-sidebar text-white/80 dark:bg-sidebar dark:border-gray-800 h-screen transition-all duration-300 ease-in-out z-50 border-r border-white/10
+      className={`sidebar-nav fixed flex flex-col px-5 left-0
+        top-[var(--header-height)] lg:top-0
+        h-[calc(100vh-var(--header-height))] lg:h-screen
+        bg-sidebar text-white/80 dark:bg-sidebar dark:border-gray-800
+        transition-all duration-300 ease-in-out z-50 border-r border-white/10
         ${isExpanded || isMobileOpen ? "w-[220px]" : isHovered ? "w-[220px]" : "w-[70px]"}
         ${isMobileOpen ? "translate-x-0" : "-translate-x-full"}
         lg:translate-x-0`}

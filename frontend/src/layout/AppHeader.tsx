@@ -10,8 +10,7 @@ import UserDropdown from "../features/authentication/components/UserDropdown";
 const AppHeader: React.FC = () => {
   const [isApplicationMenuOpen, setApplicationMenuOpen] = useState(false);
 
-  const { isMobileOpen, toggleSidebar, toggleMobileSidebar, isExpanded, isHovered } =
-    useSidebar();
+  const { isMobileOpen, toggleSidebar, toggleMobileSidebar } = useSidebar();
 
   const handleToggle = () => {
     if (window.innerWidth >= 1024) {
@@ -44,7 +43,7 @@ const AppHeader: React.FC = () => {
 
   return (
     <header
-      className="sticky top-0 flex w-full bg-white border-gray-200 z-99999 dark:border-gray-800 dark:bg-gray-900 lg:border-b"
+      className="sticky top-0 flex h-16 w-full items-center bg-white border-gray-200 z-99999 dark:border-gray-800 dark:bg-gray-900 lg:border-b"
       style={{ borderColor: "var(--color-gray-200)" }}
     >
       <div className="flex flex-col items-center justify-between grow lg:flex-row px-4">
