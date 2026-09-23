@@ -6,9 +6,11 @@ import type { DivisionSort } from "../type/division-api.type";
 import { mapDivisionsResponseToDivisions } from "../util/mapDivisionsResponseToDivisions";
 import { useDivisions } from "./use-divisions";
 
+const DEFAULT_SORT: DivisionSort = "name_asc";
+
 export function useDivisionManagementTable() {
   const [search, setSearch] = useState("");
-  const [sort, setSort] = useState<DivisionSort>("name_asc");
+  const [sort, setSort] = useState<DivisionSort>(DEFAULT_SORT);
 
   const [debouncedSearch] = useDebounce(search, 400);
 
@@ -58,6 +60,13 @@ export function useDivisionManagementTable() {
     setDeleteTarget(null);
   }
 
+  const isFiltered = search.trim() !== "" || sort !== DEFAULT_SORT;
+
+  function clearFilters() {
+    setSearch("");
+    setSort(DEFAULT_SORT);
+  }
+
   return {
     isLoading,
     isError,
@@ -67,6 +76,8 @@ export function useDivisionManagementTable() {
     setSearch,
     sort,
     setSort,
+    isFiltered,
+    clearFilters,
     hasNextPage,
     isFetchingNextPage,
     mobileScrollRef: mobileScroll.rootRef,

@@ -13,6 +13,7 @@ import type { DivisionManagementTableProps } from "../type/division.type";
 import DivisionMobileCard from "./DivisionMobileCard";
 import DivisionUsersModal from "./DivisionUsersModal";
 import EditableDivisionName from "./EditableDivisionName";
+import DeleteDivisionModal from "./modal/DeleteDivisionModal";
 import UserAvatarStack from "./UserAvatarStack";
 
 const DIVISION_TABLE_COLUMNS = [
@@ -35,6 +36,8 @@ export default function DivisionManagementTable({
     setSearch,
     sort,
     setSort,
+    isFiltered,
+    clearFilters,
     hasNextPage,
     isFetchingNextPage,
     mobileScrollRef,
@@ -53,8 +56,8 @@ export default function DivisionManagementTable({
     <>
       <div className="space-y-4">
         {/* ── Toolbar ── */}
-        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
-          <div className="relative w-full sm:flex-1 sm:min-w-50">
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
+          <div className="relative w-full sm:flex-1 sm:min-w-50 sm:max-w-md">
             <span className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-gray-400">
               <svg
                 className="w-4 h-4"
@@ -62,6 +65,7 @@ export default function DivisionManagementTable({
                 viewBox="0 0 24 24"
                 stroke="currentColor"
                 strokeWidth={2}
+                aria-hidden="true"
               >
                 <path
                   strokeLinecap="round"
@@ -79,14 +83,26 @@ export default function DivisionManagementTable({
             />
           </div>
 
-          <select
-            value={sort}
-            onChange={(e) => setSort(e.target.value as "name_asc" | "most_users")}
-            className="px-3 py-2 text-theme-sm rounded-lg border border-gray-200 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-secondary/40 focus:border-secondary dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-gray-200 transition"
-          >
-            <option value="name_asc">Sort: Name (A–Z)</option>
-            <option value="most_users">Sort: Most Users</option>
-          </select>
+          <div className="flex gap-3 flex-wrap items-center">
+            <select
+              value={sort}
+              onChange={(e) => setSort(e.target.value as "name_asc" | "most_users")}
+              className="px-3 py-2 text-theme-sm rounded-lg border border-gray-200 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-secondary/40 focus:border-secondary dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-gray-200 transition"
+            >
+              <option value="name_asc">Sort: Name (A–Z)</option>
+              <option value="most_users">Sort: Most Users</option>
+            </select>
+
+            {isFiltered && (
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="px-3 py-2 text-theme-sm text-gray-500 hover:text-danger border border-gray-200 rounded-lg hover:border-danger/40 transition-colors dark:border-white/[0.08] dark:text-gray-400 dark:hover:text-danger whitespace-nowrap"
+              >
+                Clear
+              </button>
+            )}
+          </div>
         </div>
 
         {isLoading && (
@@ -214,6 +230,7 @@ export default function DivisionManagementTable({
 
                               <TableCell className="px-4 py-3">
                                 <button
+                                  type="button"
                                   onClick={() => setDeleteTarget(d)}
                                   disabled={!canDelete}
                                   title={
@@ -277,30 +294,11 @@ export default function DivisionManagementTable({
       )}
 
       {deleteTarget && (
-        <div className="fixed inset-0 z-[999999] flex items-center justify-center bg-black/40 px-4">
-          <div className="w-full max-w-sm rounded-xl bg-white dark:bg-gray-900 shadow-xl p-5 space-y-4">
-            <h3 className="text-theme-md font-semibold text-gray-800 dark:text-white/90">
-              Delete "{deleteTarget.name}"?
-            </h3>
-            <p className="text-theme-sm text-gray-500 dark:text-gray-400">
-              This division has no users, so it can be removed safely.
-            </p>
-            <div className="flex justify-end gap-2 pt-2">
-              <button
-                onClick={() => setDeleteTarget(null)}
-                className="px-4 py-2 text-theme-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleDelete}
-                className="px-4 py-2 text-theme-sm font-medium text-white bg-danger hover:bg-danger/90 rounded-lg transition-colors"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
+        <DeleteDivisionModal
+          division={deleteTarget}
+          onClose={() => setDeleteTarget(null)}
+          onConfirm={handleDelete}
+        />
       )}
     </>
   );

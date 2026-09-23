@@ -2,6 +2,7 @@ import Badge from "../../../components/ui/badge/Badge";
 import KebabMenu, {
   DisableIcon,
   EditIcon,
+  KeyIcon,
 } from "../../../components/ui/kebab-menu/KebabMenu";
 import { getRoleBadgeColor } from "../helpers";
 import type { SystemUser } from "../types/user.type";
@@ -9,10 +10,12 @@ import type { SystemUser } from "../types/user.type";
 export default function MobileCard({
   user,
   onEdit,
+  onResetPassword,
   onToggleStatus,
 }: {
   user: SystemUser;
   onEdit: () => void;
+  onResetPassword: () => void;
   onToggleStatus: () => void;
 }) {
   return (
@@ -33,6 +36,11 @@ export default function MobileCard({
               label: "Edit",
               icon: <EditIcon />,
               handler: onEdit,
+            },
+            {
+              label: "Reset Password",
+              icon: <KeyIcon />,
+              handler: onResetPassword,
             },
             {
               label: "Disable",

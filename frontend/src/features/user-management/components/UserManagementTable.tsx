@@ -97,7 +97,7 @@ export default function UserManagementTable({
                 name="user-search-no-autofill"
                 data-form-type="other"
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search by name"
+                placeholder="Search name..."
                 autoComplete="new-password"
                 className="w-full pl-9 pr-4 py-2 text-theme-sm rounded-lg border border-gray-200 bg-white text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-secondary/40 focus:border-secondary dark:border-white/8 dark:bg-white/3 dark:text-gray-200 dark:placeholder-gray-500 transition"
               />
@@ -224,6 +224,7 @@ export default function UserManagementTable({
                         key={user.id}
                         user={user}
                         onEdit={() => setEditTarget(user)}
+                        onResetPassword={() => setResetTarget(user)}
                         onToggleStatus={() => setDeactivateTarget(user)}
                       />
                     ))}
