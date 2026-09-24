@@ -6,7 +6,6 @@ import { authenticationService } from "../../../authentication/service/authentic
 export function useVerifyPasswordStep(onVerified: () => void) {
   const [adminPassword, setAdminPassword] = useState("");
   const [adminPasswordError, setAdminPasswordError] = useState<string | undefined>();
-  const [showAdminPassword, setShowAdminPassword] = useState(false);
 
   const verifyPasswordMutation = useMutation({
     mutationFn: (password: string) => authenticationService.verifyPassword(password),
@@ -28,8 +27,6 @@ export function useVerifyPasswordStep(onVerified: () => void) {
     setAdminPassword,
     adminPasswordError,
     setAdminPasswordError,
-    showAdminPassword,
-    setShowAdminPassword,
     isVerifying: verifyPasswordMutation.isPending,
     handleVerifyPassword,
   };

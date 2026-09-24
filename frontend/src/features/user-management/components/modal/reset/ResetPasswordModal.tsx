@@ -1,4 +1,4 @@
-import { createPortal } from "react-dom";
+import Modal from "../../../../../components/Modal";
 import { useResetPasswordModal } from "../../../hooks/reset-password/use-reset-password-modal";
 import type { SystemUser } from "../../../types/user.type";
 import ChooseMethodStep from "./ChooseMethodStep";
@@ -25,31 +25,23 @@ export default function ResetPasswordModal({
   const hideFooter =
     step === "verify" || step === "conflict" || (step === "direct" && resetComplete);
 
-  return createPortal(
-    <div className="fixed inset-0 z-99999 flex items-center justify-center p-4">
-      <button
-        type="button"
-        aria-label="Close modal"
-        className="absolute inset-0 bg-black/40 backdrop-blur-sm cursor-default"
-        onClick={handleClose}
-      />
+  const renderStep = () => {
+    if (step === "verify") return <VerifyPasswordStep modal={modal} />;
+    if (step === "method") return <ChooseMethodStep modal={modal} />;
+    if (step === "conflict") return <TokenConflictStep modal={modal} />;
+    if (step === "direct") return <DirectResetStep modal={modal} />;
+    if (step === "link") return <LinkResetStep modal={modal} />;
+    return null;
+  };
 
-      <div className="relative w-full max-w-md rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-white/8 dark:bg-gray-900 flex flex-col max-h-[90vh]">
-        <form
-          autoComplete="off"
-          onSubmit={(e) => e.preventDefault()}
-          className="contents"
-        >
-          <input type="hidden" autoComplete="username" name="username" tabIndex={-1} />
-          <input
-            type="hidden"
-            autoComplete="new-password"
-            name="password"
-            tabIndex={-1}
-          />
-
-          {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-white/8">
+  return (
+    <Modal
+      onClose={handleClose}
+      size="md"
+      scrollable
+      header={
+        <div className="w-full">
+          <div className="flex items-center justify-between">
             <div>
               <h2 className="text-theme-sm font-semibold text-gray-800 dark:text-white/90">
                 Reset Password
@@ -81,8 +73,7 @@ export default function ResetPasswordModal({
             </button>
           </div>
 
-          {/* Step indicator */}
-          <div className="flex items-center px-6 pt-4">
+          <div className="flex items-center pt-4">
             {stepLabels.map((label, i) => (
               <div key={label} className="flex items-center flex-1 last:flex-none">
                 <div className="flex items-center gap-1.5">
@@ -113,32 +104,21 @@ export default function ResetPasswordModal({
               </div>
             ))}
           </div>
-
-          {/* Body */}
-          <div className="flex-1 overflow-y-auto px-5 py-5">
-            {step === "verify" && <VerifyPasswordStep modal={modal} />}
-            {step === "method" && <ChooseMethodStep modal={modal} />}
-            {step === "conflict" && <TokenConflictStep modal={modal} />}
-            {step === "direct" && <DirectResetStep modal={modal} />}
-            {step === "link" && <LinkResetStep modal={modal} />}
-          </div>
-
-          {/* Footer */}
-          {!hideFooter && (
-            <div className="px-6 py-4 border-t border-gray-100 dark:border-white/8">
-              <button
-                type="button"
-                onClick={goBack}
-                disabled={modal.isAbandoningLink}
-                className="text-theme-xs font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {modal.isAbandoningLink ? "Discarding link…" : "← Back"}
-              </button>
-            </div>
-          )}
-        </form>
-      </div>
-    </div>,
-    document.body,
+        </div>
+      }
+      body={<div className="pt-2">{renderStep()}</div>}
+      footer={
+        !hideFooter && (
+          <button
+            type="button"
+            onClick={goBack}
+            disabled={modal.isAbandoningLink}
+            className="text-theme-xs font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {modal.isAbandoningLink ? "Discarding link…" : "← Back"}
+          </button>
+        )
+      }
+    />
   );
 }

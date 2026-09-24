@@ -5,19 +5,21 @@ import MobileCardSkeleton from "./Skeleton/MobileCardSkeleton";
 import type { TableSkeletonColumn } from "./Skeleton/TableSkeleton";
 import TableSkeleton from "./Skeleton/TableSkeleton";
 
-export type TableShellColumn = TableSkeletonColumn;
+/** A column now owns its own cell content, so usage never writes <TableRow>/<TableCell> directly. */
+export interface TableShellColumn<T> extends TableSkeletonColumn {
+  /** Renders this column's cell content for a given row. */
+  render: (item: T, index: number) => ReactNode;
+  /** Extra classes for this column's <td>. Can depend on the row's data. */
+  cellClassName?: string | ((item: T) => string);
+}
 
 export interface TableShellProps<T> {
-  /** Column definitions — used for both header rendering and the loading skeleton. */
-  columns: TableShellColumn[];
-  /** Data items to render (via renderMobileCard / renderDesktopRow). */
+  columns: TableShellColumn<T>[];
   data: T[];
   isLoading: boolean;
   isError: boolean;
   error: unknown;
-  /** Plural entity name, e.g. "users" or "divisions" — used in error + count text. */
   entityName: string;
-  /** Shown in both the desktop empty-state cell and the mobile empty-state card. */
   emptyMessage: string;
   hasNextPage: boolean;
   isFetchingNextPage: boolean;
@@ -29,25 +31,23 @@ export interface TableShellProps<T> {
   maxMobileHeight?: string;
   mobileSkeletonCount?: number;
   tableSkeletonRows?: number;
-  /** Show the "Showing N x" footer on mobile. Default true. */
   showMobileCount?: boolean;
-  /** Full toolbar JSX — search, filters, add button, etc. */
+  /** Unique key per row — required since TableShell now builds <TableRow> itself. */
+  getRowKey: (item: T, index: number) => string | number;
+  /** Optional row-level classes (e.g. hover state, conditional tint). */
+  getRowClassName?: (item: T) => string;
   renderToolbar: () => ReactNode;
-  /** Render a mobile card for the given item. */
   renderMobileCard: (item: T, index: number) => ReactNode;
-  /** Render a <tr> for the given item. */
-  renderDesktopRow: (item: T, index: number) => ReactNode;
 }
 
-/**
- * Reusable layout shell that abstracts the shared table + mobile-card pattern:
- * toolbar, loading skeletons, error state, infinite-scroll containers
- * (mobile + desktop), empty states, and count footers.
- *
- * Only the column definitions, data items, and row/card render functions
- * are delegated to the caller — everything else (sentinels, scroll refs,
- * skeleton wiring, dark-mode classes) lives here.
- */
+function resolveCellClassName<T>(
+  cellClassName: TableShellColumn<T>["cellClassName"],
+  item: T,
+): string {
+  if (!cellClassName) return "";
+  return typeof cellClassName === "function" ? cellClassName(item) : cellClassName;
+}
+
 export default function TableShell<T>({
   columns,
   data,
@@ -67,9 +67,10 @@ export default function TableShell<T>({
   mobileSkeletonCount = 5,
   tableSkeletonRows = 8,
   showMobileCount = true,
+  getRowKey,
+  getRowClassName,
   renderToolbar,
   renderMobileCard,
-  renderDesktopRow,
 }: TableShellProps<T>) {
   return (
     <div className="space-y-4">
@@ -151,7 +152,7 @@ export default function TableShell<T>({
                 style={{ height: maxTableHeight, overflowAnchor: "none" }}
               >
                 <Table>
-                  <TableHeader className="dark:border-white/[0.05] sticky top-0 z-10 bg-white dark:bg-gray-900">
+                  <TableHeader className="dark:border-white/[0.05] sticky top-0 z-10 bg-[#f1f5f9] dark:bg-gray-900">
                     <TableRow>
                       {columns.map((col) => (
                         <TableCell
@@ -176,7 +177,26 @@ export default function TableShell<T>({
                         </td>
                       </tr>
                     ) : (
-                      data.map((item, index) => renderDesktopRow(item, index))
+                      data.map((item, index) => (
+                        <TableRow
+                          key={getRowKey(item, index)}
+                          className={`hover:bg-gray-50/60 dark:hover:bg-white/[0.02] transition-colors ${
+                            getRowClassName?.(item) ?? ""
+                          }`}
+                        >
+                          {columns.map((col) => (
+                            <TableCell
+                              key={col.label}
+                              className={`px-4 py-3 ${resolveCellClassName(
+                                col.cellClassName,
+                                item,
+                              )}`}
+                            >
+                              {col.render(item, index)}
+                            </TableCell>
+                          ))}
+                        </TableRow>
+                      ))
                     )}
 
                     {data.length > 0 && (

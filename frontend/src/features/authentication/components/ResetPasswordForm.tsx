@@ -1,13 +1,8 @@
-import { useState } from "react";
 import { Link } from "react-router";
 import Input from "../../../components/form/input/InputField";
-import Label from "../../../components/form/Label";
-import { EyeCloseIcon, EyeIcon } from "../../../icons";
 import { useResetPasswordFlow } from "../hooks/use-authReset-password";
 
 export default function ResetPasswordForm({ token }: { token: string | undefined }) {
-  const [showPassword, setShowPassword] = useState(false);
-
   const {
     isVerifying,
     isTokenInvalid,
@@ -105,7 +100,7 @@ export default function ResetPasswordForm({ token }: { token: string | undefined
               className={`mb-5 flex items-center justify-between rounded-lg border px-3 py-2 text-theme-xs transition-colors ${
                 isUrgent
                   ? "border-danger/30 bg-danger/5 text-danger"
-                  : "border-gray-200 bg-gray-50 text-gray-500 dark:border-white/8 dark:bg-white/[0.03] dark:text-gray-400"
+                  : "border-gray-200 bg-gray-5 text-gray-500 dark:border-white/8 dark:bg-white/[0.03] dark:text-gray-400"
               }`}
             >
               <span>{isUrgent ? "Link expiring soon" : "This link will expire"}</span>
@@ -121,64 +116,37 @@ export default function ResetPasswordForm({ token }: { token: string | undefined
             noValidate
           >
             <div className="space-y-6">
-              <div>
-                <Label>
-                  New Password <span className="text-danger">*</span>
-                </Label>
-                <div className="relative">
-                  <Input
-                    type={showPassword ? "text" : "password"}
-                    name="new-password"
-                    autoComplete="new-password"
-                    placeholder="Enter your new password"
-                    value={password}
-                    onChange={(e) => {
-                      setPassword(e.target.value);
-                      setFormErrors((er) => ({ ...er, password: undefined }));
-                    }}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword((s) => !s)}
-                    aria-label={showPassword ? "Hide password" : "Show password"}
-                    aria-pressed={showPassword}
-                    className="absolute right-4 top-1/2 z-30 -translate-y-1/2"
-                  >
-                    {showPassword ? (
-                      <EyeIcon className="size-5 fill-gray-500 dark:fill-gray-400" />
-                    ) : (
-                      <EyeCloseIcon className="size-5 fill-gray-500 dark:fill-gray-400" />
-                    )}
-                  </button>
-                </div>
-                {formErrors.password && (
-                  <span className="mt-1 block text-theme-xs text-danger">
-                    {formErrors.password}
-                  </span>
-                )}
-              </div>
+              <Input
+                type="password"
+                size="md"
+                label="New Password"
+                labelRequired
+                name="new-password"
+                autoComplete="new-password"
+                placeholder="Enter your new password"
+                error={formErrors.password}
+                value={password}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  setFormErrors((er) => ({ ...er, password: undefined }));
+                }}
+              />
 
-              <div>
-                <Label>
-                  Confirm Password <span className="text-danger">*</span>
-                </Label>
-                <Input
-                  type={showPassword ? "text" : "password"}
-                  name="confirm-password"
-                  autoComplete="new-password"
-                  placeholder="Re-enter your new password"
-                  value={confirmPassword}
-                  onChange={(e) => {
-                    setConfirmPassword(e.target.value);
-                    setFormErrors((er) => ({ ...er, confirmPassword: undefined }));
-                  }}
-                />
-                {formErrors.confirmPassword && (
-                  <span className="mt-1 block text-theme-xs text-danger">
-                    {formErrors.confirmPassword}
-                  </span>
-                )}
-              </div>
+              <Input
+                type="password"
+                size="md"
+                label="Confirm Password"
+                labelRequired
+                name="confirm-password"
+                autoComplete="new-password"
+                placeholder="Re-enter your new password"
+                error={formErrors.confirmPassword}
+                value={confirmPassword}
+                onChange={(e) => {
+                  setConfirmPassword(e.target.value);
+                  setFormErrors((er) => ({ ...er, confirmPassword: undefined }));
+                }}
+              />
 
               <button
                 type="submit"

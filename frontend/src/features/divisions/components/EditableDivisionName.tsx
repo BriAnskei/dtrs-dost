@@ -1,19 +1,27 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 interface EditableDivisionNameProps {
   name: string;
   onSave: (newName: string) => void;
+  isSaving?: boolean;
   className?: string;
 }
 
 export default function EditableDivisionName({
   name,
   onSave,
+  isSaving = false,
   className = "",
 }: EditableDivisionNameProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [value, setValue] = useState(name);
   const [error, setError] = useState<string | null>(null);
+
+  // Once the mutation resolves and `name` updates from the refetch,
+  // drop out of edit mode automatically.
+  useEffect(() => {
+    if (!isSaving) setIsEditing(false);
+  }, [isSaving]);
 
   function startEditing() {
     setValue(name);
@@ -37,7 +45,6 @@ export default function EditableDivisionName({
       return;
     }
     onSave(trimmed);
-    setIsEditing(false);
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
@@ -50,18 +57,19 @@ export default function EditableDivisionName({
       <div className={className}>
         <div className="flex items-center gap-1.5">
           <input
-            autoFocus
             type="text"
             value={value}
+            disabled={isSaving}
             onChange={(e) => setValue(e.target.value)}
             onKeyDown={handleKeyDown}
-            className="w-full px-2 py-1 text-theme-sm rounded-md border border-secondary/50 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-secondary/40 dark:bg-white/[0.05] dark:text-gray-200 transition"
+            className="w-full px-2 py-1 text-theme-sm rounded-md border border-secondary/50 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-secondary/40 dark:bg-white/[0.05] dark:text-gray-200 transition disabled:opacity-60"
           />
           <button
             type="button"
             onClick={save}
+            disabled={isSaving}
             aria-label="Save"
-            className="shrink-0 text-emerald-600 hover:text-emerald-700 dark:text-emerald-400"
+            className="shrink-0 text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 disabled:opacity-50"
           >
             <svg
               className="w-4 h-4"
@@ -69,15 +77,19 @@ export default function EditableDivisionName({
               viewBox="0 0 24 24"
               stroke="currentColor"
               strokeWidth={2.5}
+              role="img"
+              aria-labelledby="save-icon-title"
             >
+              <title id="save-icon-title">Save</title>
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
             </svg>
           </button>
           <button
             type="button"
             onClick={cancel}
+            disabled={isSaving}
             aria-label="Cancel"
-            className="shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+            className="shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 disabled:opacity-50"
           >
             <svg
               className="w-4 h-4"
@@ -85,7 +97,10 @@ export default function EditableDivisionName({
               viewBox="0 0 24 24"
               stroke="currentColor"
               strokeWidth={2.5}
+              role="img"
+              aria-labelledby="cancel-icon-title"
             >
+              <title id="cancel-icon-title">Cancel</title>
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -116,7 +131,10 @@ export default function EditableDivisionName({
           viewBox="0 0 24 24"
           stroke="currentColor"
           strokeWidth={2}
+          role="img"
+          aria-labelledby="rename-icon-title"
         >
+          <title id="rename-icon-title">Rename division</title>
           <path
             strokeLinecap="round"
             strokeLinejoin="round"

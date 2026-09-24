@@ -3,6 +3,7 @@ import type {
   FindDivisionsParams,
   FindDivisionsResponse,
 } from "../type/division-api.type";
+import type { UpdateDivisionDto } from "../type/update-divition.type";
 
 export const divisionService = {
   async findAll(params: FindDivisionsParams): Promise<FindDivisionsResponse> {
@@ -12,5 +13,9 @@ export const divisionService = {
     });
 
     return data;
+  },
+
+  async updateName(id: string, dto: UpdateDivisionDto): Promise<void> {
+    await apiClient.patch(`/division/${id}`, dto);
   },
 };

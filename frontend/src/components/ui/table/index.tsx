@@ -1,64 +1,81 @@
 import type { ReactNode } from "react";
 
-// Props for Table
+/**
+ * Joins class name fragments, dropping any that are falsy.
+ * Prevents the "undefined" leaking into className when a prop is omitted.
+ */
+function cx(...classes: Array<string | false | null | undefined>): string {
+  return classes.filter(Boolean).join(" ");
+}
+
+// ── Table ───────────────────────────────────────────────────────────────────
+
 interface TableProps {
-  children: ReactNode; // Table content (thead, tbody, etc.)
-  className?: string; // Optional className for styling
+  children: ReactNode;
+  className?: string;
 }
 
-// Props for TableHeader
-interface TableHeaderProps {
-  children: ReactNode; // Header row(s)
-  className?: string; // Optional className for styling
-}
-
-// Props for TableBody
-interface TableBodyProps {
-  children: ReactNode; // Body row(s)
-  className?: string; // Optional className for styling
-}
-
-// Props for TableRow
-interface TableRowProps {
-  children: ReactNode; // Cells (th or td)
-  className?: string; // Optional className for styling
-}
-
-// Props for TableCell
-interface TableCellProps {
-  children: ReactNode; // Cell content
-  isHeader?: boolean; // If true, renders as <th>, otherwise <td>
-  className?: string; // Optional className for styling
-}
-
-// Table Component
 const Table: React.FC<TableProps> = ({ children, className }) => {
-  return <table className={`min-w-full ${className}`}>{children}</table>;
+  return <table className={cx("min-w-full", className)}>{children}</table>;
 };
 
-// TableHeader Component
+// ── TableHeader ─────────────────────────────────────────────────────────────
+
+interface TableHeaderProps {
+  children: ReactNode;
+  className?: string;
+}
+
 const TableHeader: React.FC<TableHeaderProps> = ({ children, className }) => {
-  return <thead className={`bg-[#f1f5f9] ${className}`}>{children}</thead>;
+  return <thead className={cx("bg-[#f1f5f9]", className)}>{children}</thead>;
 };
 
-// TableBody Component
+// ── TableBody ───────────────────────────────────────────────────────────────
+
+interface TableBodyProps {
+  children: ReactNode;
+  className?: string;
+}
+
 const TableBody: React.FC<TableBodyProps> = ({ children, className }) => {
-  return <tbody className={`divide-y divide-[#f1f5f9] ${className}`}>{children}</tbody>;
+  return <tbody className={cx("divide-y divide-[#f1f5f9]", className)}>{children}</tbody>;
 };
 
-// TableRow Component
-const TableRow: React.FC<TableRowProps> = ({ children, className }) => {
-  return <tr className={className}>{children}</tr>;
+// ── TableRow ────────────────────────────────────────────────────────────────
+
+interface TableRowProps {
+  children: ReactNode;
+  className?: string;
+  /**
+   * Background color/tint for the whole row, e.g. "bg-red-50/40 dark:bg-red-900/5".
+   * Kept separate from `className` so row-state styling (status, selection, etc.)
+   * doesn't need to be hand-spliced into a template literal every time it's used.
+   */
+  bgColor?: string;
+}
+
+const TableRow: React.FC<TableRowProps> = ({ children, className, bgColor }) => {
+  return <tr className={cx(bgColor, className)}>{children}</tr>;
 };
 
-// TableCell Component
+// ── TableCell ───────────────────────────────────────────────────────────────
+
+interface TableCellProps {
+  children: ReactNode;
+  isHeader?: boolean;
+  className?: string;
+  /** Background color/tint for this specific cell, e.g. "bg-amber-50/50". */
+  bgColor?: string;
+}
+
 const TableCell: React.FC<TableCellProps> = ({
   children,
   isHeader = false,
   className,
+  bgColor,
 }) => {
   const CellTag = isHeader ? "th" : "td";
-  return <CellTag className={` ${className}`}>{children}</CellTag>;
+  return <CellTag className={cx(bgColor, className)}>{children}</CellTag>;
 };
 
 export { Table, TableBody, TableCell, TableHeader, TableRow };

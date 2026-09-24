@@ -1,3 +1,4 @@
+import Input from "../../../components/form/input/InputField";
 import TableShell, { type TableShellColumn } from "../../../components/tables/TableShell";
 import { useDivisionManagementTable } from "../hooks/use-division-management-table";
 import type { Division, DivisionManagementTableProps } from "../type/division.type";
@@ -5,13 +6,6 @@ import DivisionUsersModal from "./DivisionUsersModal";
 import EditableDivisionName from "./EditableDivisionName";
 import DeleteDivisionModal from "./modal/DeleteDivisionModal";
 import UserAvatarStack from "./UserAvatarStack";
-
-const DIVISION_TABLE_COLUMNS: TableShellColumn[] = [
-  { label: "Division Name", width: "w-40" },
-  { label: "Users", width: "w-40" },
-  { label: "Total", width: "w-16" },
-  { label: "Action", width: "w-6" },
-];
 
 export default function DivisionManagementTable({
   maxTableHeight = "560px",
@@ -39,13 +33,66 @@ export default function DivisionManagementTable({
     deleteTarget,
     setDeleteTarget,
     handleRename,
+    isRenaming,
+    renamingId,
     handleDelete,
   } = useDivisionManagementTable();
+
+  const canDelete = (d: Division) => d.userCount === 0;
+
+  const DeleteButton = ({ d }: { d: Division }) => (
+    <button
+      type="button"
+      onClick={() => setDeleteTarget(d)}
+      disabled={!canDelete(d)}
+      title={canDelete(d) ? "Delete division" : "Can't delete — division still has users"}
+      className={`text-theme-xs ${
+        canDelete(d)
+          ? "text-danger hover:underline"
+          : "text-gray-300 dark:text-gray-600 cursor-not-allowed"
+      }`}
+    >
+      Delete
+    </button>
+  );
+
+  const columns: TableShellColumn<Division>[] = [
+    {
+      label: "Division Name",
+      width: "w-40",
+      render: (d) => (
+        <EditableDivisionName
+          name={d.name}
+          onSave={(newName) => handleRename(d.id, newName)}
+          isSaving={isRenaming && renamingId === d.id}
+        />
+      ),
+    },
+    {
+      label: "Users",
+      width: "w-40",
+      render: (d) => <UserAvatarStack users={d.users} onClick={() => setViewTarget(d)} />,
+    },
+    {
+      label: "Total",
+      width: "w-16",
+      render: (d) => (
+        <span className="text-gray-500 text-theme-sm dark:text-gray-400">
+          {d.userCount}
+        </span>
+      ),
+    },
+    {
+      label: "Action",
+      width: "w-6",
+      render: (d) => <DeleteButton d={d} />,
+    },
+  ];
 
   return (
     <>
       <TableShell<Division>
-        columns={DIVISION_TABLE_COLUMNS}
+        columns={columns}
         data={divisions}
         isLoading={isLoading}
         isError={isError}
@@ -61,31 +108,32 @@ export default function DivisionManagementTable({
         maxTableHeight={maxTableHeight}
         maxMobileHeight={maxMobileHeight}
         showMobileCount={false}
+        getRowKey={(d) => d.id}
         renderToolbar={() => (
           <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
             <div className="relative w-full sm:flex-1 sm:min-w-50 sm:max-w-md">
-              <span className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-gray-400">
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                  aria-hidden="true"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M21 21l-4.35-4.35M17 11A6 6 0 1 15 11a6 6 0 0112 0z"
-                  />
-                </svg>
-              </span>
-              <input
+              <Input
                 type="text"
+                size="sm"
+                leadingIcon={
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                    aria-hidden="true"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M21 21l-4.35-4.35M17 11A6 6 0 1 15 11a6 6 0 0112 0z"
+                    />
+                  </svg>
+                }
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search divisions…"
-                className="w-full pl-9 pr-4 py-2 text-theme-sm rounded-lg border border-gray-200 bg-white text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-secondary/40 focus:border-secondary dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-gray-200 dark:placeholder-gray-500 transition"
               />
             </div>
 
@@ -111,83 +159,27 @@ export default function DivisionManagementTable({
             </div>
           </div>
         )}
-        renderMobileCard={(d) => {
-          const canDelete = d.userCount === 0;
-          return (
-            <div
-              key={d.id}
-              className="rounded-xl border border-gray-200 bg-white dark:border-white/[0.08] dark:bg-white/[0.03] p-4 space-y-3"
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0 flex-1">
-                  <EditableDivisionName name={d.name} onSave={(newName) => handleRename(d.id, newName)} />
-                  <p className="text-theme-xs text-gray-400 dark:text-gray-500 mt-0.5">
-                    {d.userCount} user{d.userCount === 1 ? "" : "s"}
-                  </p>
-                </div>
-                <button
-                  onClick={() => setDeleteTarget(d)}
-                  disabled={!canDelete}
-                  title={
-                    canDelete ? "Delete division" : "Can't delete — division still has users"
-                  }
-                  className={`text-theme-xs shrink-0 ${
-                    canDelete
-                      ? "text-danger hover:underline"
-                      : "text-gray-300 dark:text-gray-600 cursor-not-allowed"
-                  }`}
-                >
-                  Delete
-                </button>
-              </div>
-              <UserAvatarStack users={d.users} onClick={() => setViewTarget(d)} />
-            </div>
-          );
-        }}
-        renderDesktopRow={(d) => {
-          const canDelete = d.userCount === 0;
-          return (
-            <tr key={d.id} className="hover:bg-gray-50/60 dark:hover:bg-white/[0.02] transition-colors">
-              <td className="px-4 py-3">
+        renderMobileCard={(d) => (
+          <div
+            key={d.id}
+            className="rounded-xl border border-gray-200 bg-white dark:border-white/[0.08] dark:bg-white/[0.03] p-4 space-y-3"
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0 flex-1">
                 <EditableDivisionName
                   name={d.name}
                   onSave={(newName) => handleRename(d.id, newName)}
+                  isSaving={isRenaming && renamingId === d.id}
                 />
-              </td>
-
-              <td className="px-4 py-3">
-                <UserAvatarStack
-                  users={d.users}
-                  onClick={() => setViewTarget(d)}
-                />
-              </td>
-
-              <td className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
-                {d.userCount}
-              </td>
-
-              <td className="px-4 py-3">
-                <button
-                  type="button"
-                  onClick={() => setDeleteTarget(d)}
-                  disabled={!canDelete}
-                  title={
-                    canDelete
-                      ? "Delete division"
-                      : "Can't delete — division still has users"
-                  }
-                  className={`text-theme-xs ${
-                    canDelete
-                      ? "text-danger hover:underline"
-                      : "text-gray-300 dark:text-gray-600 cursor-not-allowed"
-                  }`}
-                >
-                  Delete
-                </button>
-              </td>
-            </tr>
-          );
-        }}
+                <p className="text-theme-xs text-gray-400 dark:text-gray-500 mt-0.5">
+                  {d.userCount} user{d.userCount === 1 ? "" : "s"}
+                </p>
+              </div>
+              <DeleteButton d={d} />
+            </div>
+            <UserAvatarStack users={d.users} onClick={() => setViewTarget(d)} />
+          </div>
+        )}
       />
 
       {viewTarget && (

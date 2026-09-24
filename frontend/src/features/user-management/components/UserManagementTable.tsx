@@ -1,3 +1,4 @@
+import Input from "../../../components/form/input/InputField";
 import TableShell, { type TableShellColumn } from "../../../components/tables/TableShell";
 import Badge from "../../../components/ui/badge/Badge";
 import KebabMenu, {
@@ -14,15 +15,6 @@ import AddUserModal from "./modal/AddUserModal";
 import DeactivateUserModal from "./modal/DeactivateUserModal";
 import EditUserModal from "./modal/EditUserModal";
 import ResetPasswordModal from "./modal/reset/ResetPasswordModal";
-
-const USER_TABLE_COLUMNS: TableShellColumn[] = [
-  { label: "Name", width: "w-32", withSubline: true },
-  { label: "Role", width: "w-16", pill: true },
-  { label: "Email", width: "w-40" },
-  { label: "Contact", width: "w-24" },
-  { label: "Created At", width: "w-20" },
-  { label: "Action", width: "w-6" },
-];
 
 export default function UserManagementTable({
   maxTableHeight = "560px",
@@ -58,10 +50,91 @@ export default function UserManagementTable({
     setResetTarget,
   } = useUserManagementTable();
 
+  const userActions = (user: SystemUser) => [
+    { label: "Edit", icon: <EditIcon />, handler: () => setEditTarget(user) },
+    { label: "Reset Password", icon: <KeyIcon />, handler: () => setResetTarget(user) },
+    {
+      label: "Deactivate",
+      icon: <DisableIcon />,
+      handler: () => setDeactivateTarget(user),
+      danger: true,
+    },
+  ];
+
+  const columns: TableShellColumn<SystemUser>[] = [
+    {
+      label: "Name",
+      width: "w-32",
+      withSubline: true,
+      render: (user) => (
+        <>
+          <span className="block font-medium text-gray-800 text-theme-sm dark:text-white/90">
+            {user.name}
+          </span>
+          <span className="block text-gray-400 text-theme-xs dark:text-gray-500 mt-0.5">
+            {user.position}
+          </span>
+        </>
+      ),
+    },
+    {
+      label: "Role",
+      width: "w-16",
+      pill: true,
+      render: (user) => (
+        <>
+          <Badge size="sm" color={getRoleBadgeColor(user.role)}>
+            {user.role}
+          </Badge>
+          {user.role === "Division" && user.divisionName && (
+            <span className="block text-gray-400 text-theme-xs dark:text-gray-500 mt-0.5">
+              {user.divisionName}
+            </span>
+          )}
+        </>
+      ),
+    },
+    {
+      label: "Email",
+      width: "w-40",
+      render: (user) => (
+        <span
+          className="block truncate max-w-[200px] text-gray-500 text-theme-sm dark:text-gray-400"
+          title={user.email}
+        >
+          {user.email}
+        </span>
+      ),
+    },
+    {
+      label: "Contact",
+      width: "w-24",
+      render: (user) => (
+        <span className="text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap">
+          {user.contact}
+        </span>
+      ),
+    },
+    {
+      label: "Created At",
+      width: "w-20",
+      render: (user) => (
+        <span className="text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap">
+          {user.createtAt}
+        </span>
+      ),
+    },
+    {
+      label: "Action",
+      width: "w-6",
+      render: (user) => <KebabMenu actions={userActions(user)} />,
+    },
+  ];
+
   return (
     <>
       <TableShell<SystemUser>
-        columns={USER_TABLE_COLUMNS}
+        columns={columns}
         data={filtered}
         isLoading={isLoading}
         isError={isError}
@@ -76,35 +149,36 @@ export default function UserManagementTable({
         desktopSentinelRef={desktopSentinelRef}
         maxTableHeight={maxTableHeight}
         maxMobileHeight={maxMobileHeight}
+        getRowKey={(user) => user.id}
         renderToolbar={() => (
           <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
             <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end flex-1">
               <div className="relative w-full sm:flex-1 sm:min-w-50">
-                <span className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-gray-400">
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                    aria-hidden="true"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M21 21l-4.35-4.35M17 11A6 6 0 1 15 11a6 6 0 0112 0z"
-                    />
-                  </svg>
-                </span>
-                <input
+                <Input
                   type="text"
+                  size="sm"
+                  leadingIcon={
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                      aria-hidden="true"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M21 21l-4.35-4.35M17 11A6 6 0 1 15 11a6 6 0 0112 0z"
+                      />
+                    </svg>
+                  }
                   value={search}
                   name="user-search-no-autofill"
                   data-form-type="other"
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Search name..."
                   autoComplete="new-password"
-                  className="w-full pl-9 pr-4 py-2 text-theme-sm rounded-lg border border-gray-200 bg-white text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-secondary/40 focus:border-secondary dark:border-white/8 dark:bg-white/3 dark:text-gray-200 dark:placeholder-gray-500 transition"
                 />
               </div>
 
@@ -196,26 +270,7 @@ export default function UserManagementTable({
                   {user.position}
                 </p>
               </div>
-              <KebabMenu
-                actions={[
-                  {
-                    label: "Edit",
-                    icon: <EditIcon />,
-                    handler: () => setEditTarget(user),
-                  },
-                  {
-                    label: "Reset Password",
-                    icon: <KeyIcon />,
-                    handler: () => setResetTarget(user),
-                  },
-                  {
-                    label: "Deactivate",
-                    icon: <DisableIcon />,
-                    handler: () => setDeactivateTarget(user),
-                    danger: true,
-                  },
-                ]}
-              />
+              <KebabMenu actions={userActions(user)} />
             </div>
 
             <div className="grid grid-cols-2 gap-x-4 gap-y-2">
@@ -260,69 +315,6 @@ export default function UserManagementTable({
               </div>
             </div>
           </div>
-        )}
-        renderDesktopRow={(user) => (
-          <tr
-            key={user.id}
-            className="hover:bg-gray-50/60 dark:hover:bg-white/[0.02] transition-colors"
-          >
-            <td className="px-4 py-3">
-              <span className="block font-medium text-gray-800 text-theme-sm dark:text-white/90">
-                {user.name}
-              </span>
-              <span className="block text-gray-400 text-theme-xs dark:text-gray-500 mt-0.5">
-                {user.position}
-              </span>
-            </td>
-
-            <td className="px-4 py-3 whitespace-nowrap">
-              <Badge size="sm" color={getRoleBadgeColor(user.role)}>
-                {user.role}
-              </Badge>
-              {user.role === "Division" && user.divisionName && (
-                <span className="block text-gray-400 text-theme-xs dark:text-gray-500 mt-0.5">
-                  {user.divisionName}
-                </span>
-              )}
-            </td>
-
-            <td className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
-              <span className="block truncate max-w-[200px]" title={user.email}>
-                {user.email}
-              </span>
-            </td>
-
-            <td className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap">
-              {user.contact}
-            </td>
-
-            <td className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap">
-              {user.createtAt}
-            </td>
-
-            <td className="px-4 py-3">
-              <KebabMenu
-                actions={[
-                  {
-                    label: "Edit",
-                    icon: <EditIcon />,
-                    handler: () => setEditTarget(user),
-                  },
-                  {
-                    label: "Reset Password",
-                    icon: <KeyIcon />,
-                    handler: () => setResetTarget(user),
-                  },
-                  {
-                    label: "Deactivate",
-                    icon: <DisableIcon />,
-                    handler: () => setDeactivateTarget(user),
-                    danger: true,
-                  },
-                ]}
-              />
-            </td>
-          </tr>
         )}
       />
 

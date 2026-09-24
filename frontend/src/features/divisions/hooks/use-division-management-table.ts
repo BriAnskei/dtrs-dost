@@ -5,6 +5,7 @@ import type { Division } from "../type/division.type";
 import type { DivisionSort } from "../type/division-api.type";
 import { mapDivisionsResponseToDivisions } from "../util/mapDivisionsResponseToDivisions";
 import { useDivisions } from "./use-divisions";
+import { useUpdateDivisionName } from "./use-update-division-name";
 
 const DEFAULT_SORT: DivisionSort = "name_asc";
 
@@ -36,8 +37,6 @@ export function useDivisionManagementTable() {
     if (hasNextPage && !isFetchingNextPage) fetchNextPage();
   }
 
-  // Separate sentinels: mobile cards and the desktop table are two distinct
-  // scroll containers, each needs its own IntersectionObserver + root.
   const mobileScroll = useInfiniteScrollSentinel<HTMLDivElement>({
     onIntersect: loadMore,
     enabled: hasNextPage,
@@ -51,13 +50,22 @@ export function useDivisionManagementTable() {
   const [viewTarget, setViewTarget] = useState<Division | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Division | null>(null);
 
-  // TODO: divisionService has no update/delete endpoints yet — wire these to
-  // updateDivisionMutation.mutate({ id, payload }) / deleteDivisionMutation.mutate(id)
-  // once those land. Left as no-ops so the UI doesn't silently pretend to work.
-  function handleRename(_id: string, _newName: string) {}
+  const updateDivisionNameMutation = useUpdateDivisionName();
 
+  // TODO: divisionService has no delete endpoint yet — wire this to
+  // deleteDivisionMutation.mutate(id) once it lands.
   function handleDelete() {
     setDeleteTarget(null);
+  }
+
+  function handleRename(id: string, newName: string) {
+    const trimmed = newName.trim();
+    if (!trimmed) return;
+
+    updateDivisionNameMutation.mutate({
+      id,
+      dto: { division_name: trimmed },
+    });
   }
 
   const isFiltered = search.trim() !== "" || sort !== DEFAULT_SORT;
@@ -89,6 +97,8 @@ export function useDivisionManagementTable() {
     deleteTarget,
     setDeleteTarget,
     handleRename,
+    isRenaming: updateDivisionNameMutation.isPending,
+    renamingId: updateDivisionNameMutation.variables?.id,
     handleDelete,
   };
 }

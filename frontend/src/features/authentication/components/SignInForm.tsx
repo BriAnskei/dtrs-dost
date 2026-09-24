@@ -1,12 +1,9 @@
 import { useState } from "react";
 import Checkbox from "../../../components/form/input/Checkbox";
 import Input from "../../../components/form/input/InputField";
-import Label from "../../../components/form/Label";
-import { EyeCloseIcon, EyeIcon } from "../../../icons";
 import { useSignin } from "../hooks/useSignin";
 
 export default function SignInForm() {
-  const [showPassword, setShowPassword] = useState(false);
   const [showAdminContact, setShowAdminContact] = useState(false);
 
   const {
@@ -60,48 +57,29 @@ export default function SignInForm() {
                 </div>
               )}
 
-              <div>
-                <Label>
-                  Email <span className="text-danger">*</span>
-                </Label>
-                <Input
-                  type="text"
-                  name="email"
-                  autoComplete="username"
-                  placeholder="Enter your username or email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-              </div>
+              <Input
+                type="text"
+                size="md"
+                label="Email"
+                labelRequired
+                name="email"
+                autoComplete="username"
+                placeholder="Enter your username or email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
 
-              <div>
-                <Label>
-                  Password <span className="text-danger">*</span>
-                </Label>
-                <div className="relative">
-                  <Input
-                    type={showPassword ? "text" : "password"}
-                    name="password"
-                    autoComplete="current-password"
-                    placeholder="Enter your password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    aria-label={showPassword ? "Hide password" : "Show password"}
-                    aria-pressed={showPassword}
-                    className="absolute z-30 -translate-y-1/2 right-4 top-1/2"
-                  >
-                    {showPassword ? (
-                      <EyeIcon className="fill-gray-500 dark:fill-gray-400 size-5" />
-                    ) : (
-                      <EyeCloseIcon className="fill-gray-500 dark:fill-gray-400 size-5" />
-                    )}
-                  </button>
-                </div>
-              </div>
+              <Input
+                type="password"
+                size="md"
+                label="Password"
+                labelRequired
+                name="password"
+                autoComplete="current-password"
+                placeholder="Enter your password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
 
               <div>
                 <div className="flex items-center justify-between">
