@@ -63,6 +63,9 @@ export class UserEntity {
   @Column({ type: "bool", default: true })
   is_active!: boolean;
 
+  @Column({ type: "timestamptz", nullable: true })
+  deactivated_at!: Date | null;
+
   @CreateDateColumn({
     type: "timestamptz",
     default: () => "CURRENT_TIMESTAMP",

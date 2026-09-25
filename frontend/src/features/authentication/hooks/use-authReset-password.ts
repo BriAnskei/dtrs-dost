@@ -1,6 +1,6 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import axios from "axios";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { getErrorMessage } from "../../../lib/api-error";
 import { authPasswordResetService } from "../service/authPassword-reset.service";
@@ -19,9 +19,11 @@ export function useResetPasswordFlow(token: string | undefined) {
     staleTime: 0,
   });
 
-  const expiresAt = verifyQuery.data
-    ? new Date(verifyQuery.data.resetToken.expires_at)
-    : null;
+  const expiresAt = useMemo(() => {
+    const value = verifyQuery.data?.resetToken.expires_at;
+
+    return value ? new Date(value) : null;
+  }, [verifyQuery.data?.resetToken.expires_at]);
 
   const [remaining, setRemaining] = useState("");
   const [isUrgent, setIsUrgent] = useState(false);

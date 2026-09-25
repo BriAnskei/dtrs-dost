@@ -1,6 +1,7 @@
 import { createBrowserRouter } from "react-router";
 import ResetPassword from "../features/authentication/components/ResetPassword";
 import SignIn from "../features/authentication/components/SignIn";
+import DeactivatedUsersPage from "../features/deactivated-user-management/components/DeactivatedUsersPage";
 import DivisionManagementPage from "../features/divisions/components/DivisionManagementPage";
 import UserManagementPage from "../features/user-management/components/UserManagementPage";
 import UserManagementTable from "../features/user-management/components/UserManagementTable";
@@ -120,6 +121,16 @@ const SUPER_ADMIN_ROUTES: RouteType[] = [
       </RoleRoute>
     ),
   },
+
+  {
+    path: "/deactive",
+    element: (
+      <RoleRoute allowedRoles={[1]}>
+        <DeactivatedUsersPage />
+      </RoleRoute>
+    ),
+  },
+
   {
     path: "/access",
     element: (
@@ -217,7 +228,7 @@ export const router = createBrowserRouter([
 
   {
     element: (
-      <ProtectedRoute> 
+      <ProtectedRoute>
         <AppLayout />
       </ProtectedRoute>
     ),

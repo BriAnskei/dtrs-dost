@@ -24,6 +24,13 @@ export function mapUserResponseToSystemUser(user: UserWithRelationResponse): Sys
       month: "short",
       day: "numeric",
     }),
+    ...(user.deactivated_at && {
+      deactivatedAt: new Date(user.deactivated_at).toLocaleDateString(undefined, {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      }),
+    }),
   };
 }
 

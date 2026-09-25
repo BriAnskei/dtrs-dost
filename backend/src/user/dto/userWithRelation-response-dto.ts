@@ -7,4 +7,5 @@ export class UserWithRelationResponseDto {
   division_name?: string;
   email!: string;
   created_at!: Date;
+  deactivated_at!: Date | null;
 }

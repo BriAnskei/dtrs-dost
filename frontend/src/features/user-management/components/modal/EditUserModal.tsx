@@ -22,6 +22,7 @@ export default function EditUserModal({
       onClose={onClose}
       size="md"
       closeDisabled={isSubmitting}
+      onSubmit={handleSubmit}
       header={
         <>
           <div>
@@ -198,8 +199,7 @@ export default function EditUserModal({
             Cancel
           </button>
           <button
-            type="button"
-            onClick={handleSubmit}
+            type="submit"
             disabled={isSubmitting}
             className="px-4 py-2 text-theme-sm font-medium text-white bg-primary hover:bg-primary/90 rounded-lg transition-colors disabled:opacity-50"
           >

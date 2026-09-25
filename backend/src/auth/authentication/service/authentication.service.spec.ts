@@ -229,7 +229,7 @@ describe("AuthenticationService", () => {
 
     /**
      * Verifies that when the user account is inactive (is_active: false),
-     * an UnauthorizedException with "User account is inactive" is thrown
+     * an UnauthorizedException with "Account has been deactivated" is thrown
      * before password verification.
      */
     it("should throw UnauthorizedException when user is inactive", async () => {
@@ -243,7 +243,7 @@ describe("AuthenticationService", () => {
         UnauthorizedException,
       );
       await expect(service.login(loginDto)).rejects.toThrow(
-        "User account is inactive",
+        "Account has been deactivated",
       );
 
       expect(argon2Verify).not.toHaveBeenCalled();

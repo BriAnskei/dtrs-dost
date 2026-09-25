@@ -45,7 +45,7 @@ export class DivisionController {
   @Delete(":id")
   @HttpCode(HttpStatus.NO_CONTENT)
   @Roles(Role.SuperAdmin)
-  async delete(id: string) {
+  async delete(@Param("id") id: string) {
     return this.service.delete(id);
   }
 }

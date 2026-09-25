@@ -1,5 +1,6 @@
 import { ConflictException, Injectable, NotFoundException } from "@nestjs/common";
 import { PaginatedResponse } from "../../common/pagination/paginated-response";
+import { capitalizeWords } from "../../util/capitalizer";
 import { DivisionResponseDto } from "../dto/divisionWithUsers-response-dto";
 import { FindDivisionsQueryDto } from "../dto/find-divisions-query-dto";
 import { UpdateDivisionDto } from "../dto/update-division-dto";
@@ -43,7 +44,7 @@ export class DivisionService {
   }
 
   async updateName(id: string, dto: UpdateDivisionDto) {
-    const res = await this.repository.updateName(id, dto.division_name);
+    const res = await this.repository.updateName(id, capitalizeWords(dto.division_name));
 
     if (!res) throw new NotFoundException("Division not found");
   }

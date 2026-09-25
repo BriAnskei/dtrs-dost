@@ -7,7 +7,6 @@ import type { UpdateDivisionDto } from "../type/update-divition.type";
 
 export const divisionService = {
   async findAll(params: FindDivisionsParams): Promise<FindDivisionsResponse> {
-    console.log("fetcher");
     const { data } = await apiClient.get<FindDivisionsResponse>("/division", {
       params,
     });
@@ -17,5 +16,9 @@ export const divisionService = {
 
   async updateName(id: string, dto: UpdateDivisionDto): Promise<void> {
     await apiClient.patch(`/division/${id}`, dto);
+  },
+
+  async delete(id: string): Promise<void> {
+    await apiClient.delete(`/division/${id}`);
   },
 };

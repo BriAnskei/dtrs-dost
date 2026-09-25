@@ -4,6 +4,7 @@ import { useInfiniteScrollSentinel } from "../../../hooks/user-infinite-scroll-s
 import type { Division } from "../type/division.type";
 import type { DivisionSort } from "../type/division-api.type";
 import { mapDivisionsResponseToDivisions } from "../util/mapDivisionsResponseToDivisions";
+import { useDeleteDivision } from "./use-delete-division";
 import { useDivisions } from "./use-divisions";
 import { useUpdateDivisionName } from "./use-update-division-name";
 
@@ -49,13 +50,17 @@ export function useDivisionManagementTable() {
   // modal state
   const [viewTarget, setViewTarget] = useState<Division | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Division | null>(null);
+  const [editTarget, setEditTarget] = useState<Division | null>(null);
 
   const updateDivisionNameMutation = useUpdateDivisionName();
+  const deleteDivisionMutation = useDeleteDivision();
 
-  // TODO: divisionService has no delete endpoint yet — wire this to
-  // deleteDivisionMutation.mutate(id) once it lands.
   function handleDelete() {
-    setDeleteTarget(null);
+    if (!deleteTarget) return;
+
+    deleteDivisionMutation.mutate(deleteTarget.id, {
+      onSuccess: () => setDeleteTarget(null),
+    });
   }
 
   function handleRename(id: string, newName: string) {
@@ -96,9 +101,13 @@ export function useDivisionManagementTable() {
     setViewTarget,
     deleteTarget,
     setDeleteTarget,
+    editTarget,
+    setEditTarget,
     handleRename,
     isRenaming: updateDivisionNameMutation.isPending,
     renamingId: updateDivisionNameMutation.variables?.id,
     handleDelete,
+    isDeleting: deleteDivisionMutation.isPending,
+    deleteError: deleteDivisionMutation.error,
   };
 }

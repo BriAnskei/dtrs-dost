@@ -1,4 +1,4 @@
-import type { UserRole } from "../type/user.type";
+import type { UserRole } from "../types/user.type";
 
 /**
  * Maps the raw role string returned by the API (e.g. "super_admin")

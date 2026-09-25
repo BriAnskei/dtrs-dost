@@ -16,6 +16,7 @@ import type { Request } from "express";
 import { Roles } from "../../auth/authorization/roles.decorator";
 import { Role } from "../../auth/authorization/roles.enum";
 import { CreateUserDto } from "../dto/create-user-dto";
+import { FindDeactivatedUsersQueryDto } from "../dto/find-deactivated-user-query-dto";
 import { FindUsersQueryDto } from "../dto/find-user-query-dto";
 import { UpdateUserDto } from "../dto/update-user-dto";
 import { UpdateUserPasswordDto } from "../dto/update-user-password.dto";
@@ -52,10 +53,10 @@ export class UserController {
     return this.service.findAll(query);
   }
 
-  @Get()
+  @Get("deactivated")
   @Roles(Role.SuperAdmin)
-  async findAllDeactivated() {
-    return this.service.findAllDeactivated();
+  async findAllDeactivated(@Query() query: FindDeactivatedUsersQueryDto) {
+    return this.service.findAllDeactivated(query);
   }
 
   @Patch("password")

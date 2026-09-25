@@ -199,6 +199,7 @@ const AppSidebar: React.FC = () => {
       >
         <Link to="/" className="flex items-center gap-2">
           <CompanyLogo
+            forceLight
             size={isExpanded || isHovered || isMobileOpen ? 36 : 32}
             className="flex-shrink-0"
           />

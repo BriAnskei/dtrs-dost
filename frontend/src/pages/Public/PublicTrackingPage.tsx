@@ -364,7 +364,7 @@ export default function PublicTrackingPage() {
         {/* Header */}
         <header className="flex items-center border-b border-gray-100 bg-white px-6 py-4">
           <Link to="/" className="flex items-center gap-3">
-            <CompanyLogo size={36} />
+            <CompanyLogo forceLight size={36} />
             <div className="leading-tight">
               <p className="text-theme-sm font-semibold text-gray-800">
                 Document Tracking System

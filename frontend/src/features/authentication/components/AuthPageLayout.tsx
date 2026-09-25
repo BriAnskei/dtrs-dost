@@ -14,9 +14,14 @@ export default function AuthLayout({
     <div className="bg-background relative z-1 p-6 sm:p-0 dark:bg-gray-900">
       <div className="relative flex h-screen w-full flex-col justify-center sm:p-0 lg:flex-row dark:bg-gray-900">
         {children}
-        <div className="bg-primary dark:bg-primary hidden h-full w-full items-center lg:grid lg:w-1/2">
+        {/* Gradient runs sidebar -> primary so this panel reads as the same dark
+            navy family as the app shell, with a little depth instead of a flat
+            fill. Always dark regardless of light/dark mode, same as the sidebar. */}
+        <div className="hidden h-full w-full items-center bg-gradient-to-br from-sidebar to-primary lg:grid lg:w-1/2">
           <div className="relative z-1 flex items-center justify-center">
-            <GridShape />
+            {/* Tinted with the accent color so the pattern ties into the brand
+                palette instead of sitting there as neutral gray. */}
+            <GridShape className="text-accent" />
             <div className="flex max-w-xs flex-col items-center">
               <Link to="/" className="mb-5 block">
                 <CompanyLogo size={176} forceLight={forceLightLogo} />

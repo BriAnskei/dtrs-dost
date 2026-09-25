@@ -49,7 +49,7 @@ const { mockRefresh, mockToastError } = vi.hoisted(() => ({
   mockToastError: vi.fn(),
 }));
 
-vi.mock("../features/authentication/authentication.service", () => ({
+vi.mock("../features/authentication/service/authentication.service", () => ({
   authenticationService: {
     refresh: mockRefresh,
     login: vi.fn(),

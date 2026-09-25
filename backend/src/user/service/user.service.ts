@@ -8,11 +8,11 @@ import {
 
 import * as argon2 from "argon2";
 import { DataSource, EntityManager } from "typeorm";
-import { $ZodUndefinedInternals } from "zod/v4/core";
 import { Role } from "../../auth/authorization/roles.enum";
 import { PaginatedResponse } from "../../common/pagination/paginated-response";
 import { capitalizeWords } from "../../util/capitalizer";
 import { CreateUserDto } from "../dto/create-user-dto";
+import { FindDeactivatedUsersQueryDto } from "../dto/find-deactivated-user-query-dto";
 import { FindUsersQueryDto } from "../dto/find-user-query-dto";
 import { UpdateUserDto } from "../dto/update-user-dto";
 import { UpdateUserPasswordDto } from "../dto/update-user-password.dto";
@@ -43,6 +43,8 @@ export class UserService {
     dto.division_name = user.division?.division_name;
     dto.role = user.role.name;
     dto.created_at = user.created_at;
+    dto.deactivated_at = user.deactivated_at ?? null;
+
     return dto;
   }
 
@@ -181,10 +183,16 @@ export class UserService {
     };
   }
 
-  async findAllDeactivated(): Promise<UserWithRelationResponseDto[]> {
-    const res = await this.userRepository.findAllDeactivated();
+  async findAllDeactivated(
+    query: FindDeactivatedUsersQueryDto,
+  ): Promise<PaginatedResponse<UserWithRelationResponseDto>> {
+    const { users, nextCursor } =
+      await this.userRepository.findAllDeactivatedWithRelation(query);
 
-    return res.map((u) => this.toDto(u));
+    return {
+      data: users.map((user) => this.toDto(user)),
+      nextCursor,
+    };
   }
 
   async update(id: string, dto: UpdateUserDto): Promise<void> {

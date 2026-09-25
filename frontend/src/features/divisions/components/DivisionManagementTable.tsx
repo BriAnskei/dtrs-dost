@@ -1,10 +1,14 @@
 import Input from "../../../components/form/input/InputField";
 import TableShell, { type TableShellColumn } from "../../../components/tables/TableShell";
+import KebabMenu, {
+  EditIcon,
+  TrashIcon,
+} from "../../../components/ui/kebab-menu/KebabMenu";
 import { useDivisionManagementTable } from "../hooks/use-division-management-table";
 import type { Division, DivisionManagementTableProps } from "../type/division.type";
 import DivisionUsersModal from "./DivisionUsersModal";
-import EditableDivisionName from "./EditableDivisionName";
 import DeleteDivisionModal from "./modal/DeleteDivisionModal";
+import EditDivisionModal from "./modal/EditDivisionModal";
 import UserAvatarStack from "./UserAvatarStack";
 
 export default function DivisionManagementTable({
@@ -32,28 +36,36 @@ export default function DivisionManagementTable({
     setViewTarget,
     deleteTarget,
     setDeleteTarget,
+    editTarget,
+    setEditTarget,
     handleRename,
     isRenaming,
     renamingId,
     handleDelete,
+    isDeleting,
+    deleteError,
   } = useDivisionManagementTable();
 
   const canDelete = (d: Division) => d.userCount === 0;
 
-  const DeleteButton = ({ d }: { d: Division }) => (
-    <button
-      type="button"
-      onClick={() => setDeleteTarget(d)}
-      disabled={!canDelete(d)}
-      title={canDelete(d) ? "Delete division" : "Can't delete — division still has users"}
-      className={`text-theme-xs ${
-        canDelete(d)
-          ? "text-danger hover:underline"
-          : "text-gray-300 dark:text-gray-600 cursor-not-allowed"
-      }`}
-    >
-      Delete
-    </button>
+  const DivisionActions = ({ d }: { d: Division }) => (
+    <KebabMenu
+      title="Division actions"
+      actions={[
+        {
+          label: "Rename",
+          icon: <EditIcon />,
+          handler: () => setEditTarget(d),
+        },
+        {
+          label: "Delete",
+          icon: <TrashIcon />,
+          handler: () => setDeleteTarget(d),
+          danger: true,
+          disabled: !canDelete(d),
+        },
+      ]}
+    />
   );
 
   const columns: TableShellColumn<Division>[] = [
@@ -61,11 +73,9 @@ export default function DivisionManagementTable({
       label: "Division Name",
       width: "w-40",
       render: (d) => (
-        <EditableDivisionName
-          name={d.name}
-          onSave={(newName) => handleRename(d.id, newName)}
-          isSaving={isRenaming && renamingId === d.id}
-        />
+        <span className="font-medium text-gray-800 text-theme-sm dark:text-white/90">
+          {d.name}
+        </span>
       ),
     },
     {
@@ -85,7 +95,7 @@ export default function DivisionManagementTable({
     {
       label: "Action",
       width: "w-6",
-      render: (d) => <DeleteButton d={d} />,
+      render: (d) => <DivisionActions d={d} />,
     },
   ];
 
@@ -166,16 +176,14 @@ export default function DivisionManagementTable({
           >
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0 flex-1">
-                <EditableDivisionName
-                  name={d.name}
-                  onSave={(newName) => handleRename(d.id, newName)}
-                  isSaving={isRenaming && renamingId === d.id}
-                />
+                <span className="font-medium text-gray-800 text-theme-sm dark:text-white/90">
+                  {d.name}
+                </span>
                 <p className="text-theme-xs text-gray-400 dark:text-gray-500 mt-0.5">
                   {d.userCount} user{d.userCount === 1 ? "" : "s"}
                 </p>
               </div>
-              <DeleteButton d={d} />
+              <DivisionActions d={d} />
             </div>
             <UserAvatarStack users={d.users} onClick={() => setViewTarget(d)} />
           </div>
@@ -191,6 +199,17 @@ export default function DivisionManagementTable({
           division={deleteTarget}
           onClose={() => setDeleteTarget(null)}
           onConfirm={handleDelete}
+          isDeleting={isDeleting}
+          error={deleteError}
+        />
+      )}
+
+      {editTarget && (
+        <EditDivisionModal
+          division={editTarget}
+          onClose={() => setEditTarget(null)}
+          onSave={(newName) => handleRename(editTarget.id, newName)}
+          isSaving={isRenaming && renamingId === editTarget.id}
         />
       )}
     </>

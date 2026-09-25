@@ -75,7 +75,6 @@ export class PasswordResetService {
     if (!resetToken) throw new BadRequestException("Invalid or expired reset token");
 
     if (resetToken.expires_at.getTime() <= Date.now()) {
-      await this.passwordResetRepository.delete(resetToken.id);
       throw new BadRequestException("Expired password reset link");
     }
 
@@ -92,6 +91,8 @@ export class PasswordResetService {
       );
 
       if (!resetToken || resetToken.expires_at.getTime() <= Date.now()) {
+        if (resetToken) await this.passwordResetRepository.delete(resetToken.id);
+
         throw new BadRequestException("Invalid or expired password reset link");
       }
 

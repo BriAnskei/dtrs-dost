@@ -88,7 +88,7 @@ const AppHeader: React.FC = () => {
           </button>
 
           <Link to="/" className="lg:hidden">
-            <CompanyLogo size={24} />
+            <CompanyLogo forceLight size={24} />
           </Link>
 
           <button

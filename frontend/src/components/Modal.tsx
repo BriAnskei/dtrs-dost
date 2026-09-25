@@ -1,4 +1,4 @@
-import { type ReactNode } from "react";
+import type { ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { THIN_SCROLLBAR } from "../contant/ThinScrollBar";
 
@@ -22,6 +22,12 @@ interface ModalProps {
   footer?: ReactNode;
   /** Block all close paths while busy (prevents backdrop + ESC close). Default `false`. */
   closeDisabled?: boolean;
+  /**
+   * Called when the form is submitted — i.e. pressing Enter inside an input,
+   * or clicking a `type="submit"` button in the footer. If omitted, submit
+   * is just swallowed (old behavior).
+   */
+  onSubmit?: () => void;
 }
 
 const CARD_SIZE: Record<NonNullable<ModalProps["size"]>, string> = {
@@ -52,6 +58,7 @@ export default function Modal({
   body,
   footer,
   closeDisabled = false,
+  onSubmit,
 }: ModalProps) {
   if (!isOpen) return null;
 
@@ -75,11 +82,19 @@ export default function Modal({
       >
         <form
           autoComplete="off"
-          onSubmit={(e) => e.preventDefault()}
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (!closeDisabled) onSubmit?.();
+          }}
           className="contents"
         >
           <input type="hidden" autoComplete="username" name="username" tabIndex={-1} />
-          <input type="hidden" autoComplete="new-password" name="password" tabIndex={-1} />
+          <input
+            type="hidden"
+            autoComplete="new-password"
+            name="password"
+            tabIndex={-1}
+          />
 
           {header && (
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-white/8">

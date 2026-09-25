@@ -7,6 +7,7 @@ export interface UserWithRelationResponse {
   role: string;
   contact?: string;
   created_at: string;
+  deactivated_at?: string;
 }
 
 export type UserRole = "Super Admin" | "Admin" | "Receiver" | "Division";
@@ -26,6 +27,7 @@ export interface SystemUser {
   role: UserRole;
   email: string;
   createtAt: string;
+  deactivatedAt?: string;
 }
 
 export interface UserManagementTableProps {
@@ -38,12 +40,12 @@ export interface UserManagementTableProps {
 /** Shown when the API doesn't provide a value for an optional field. */
 export const NO_VALUE_PLACEHOLDER = "—";
 
+export type SortDirection = "newest" | "oldest";
+
 export interface FindUsersParams {
   limit?: number;
   name?: string;
   role_id?: number;
-  sort?: "newest" | "oldest";
+  sort?: SortDirection;
   cursor?: string;
 }
-
-export type SortDirection = "newest" | "oldest";

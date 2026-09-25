@@ -29,7 +29,7 @@ import { DashboardRedirect } from "./Redirect";
 
 const { mockUseUser } = vi.hoisted(() => ({ mockUseUser: vi.fn() }));
 
-vi.mock("../context/currentUser/user-user", () => ({ useUser: mockUseUser }));
+vi.mock("../context/currentUser/use-user", () => ({ useUser: mockUseUser }));
 
 function userWith(role_id: 1 | 2 | 3 | 4) {
   return {
