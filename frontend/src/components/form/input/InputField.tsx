@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import type { InputHTMLAttributes, ReactNode } from "react";
+import type { CSSProperties, InputHTMLAttributes, ReactNode } from "react";
 import { forwardRef, useId, useState } from "react";
 import { EyeCloseIcon, EyeIcon } from "../../../icons";
 
@@ -110,6 +110,30 @@ export interface InputProps
   /** Controlled visibility (uncontrolled by default). */
   visible?: boolean;
   onVisibleChange?: (visible: boolean) => void;
+  /**
+   * When `type="password"`, render the field as a real `type="text"` input
+   * and fake the dot-masking with `-webkit-text-security` (falling back to
+   * the `text-security-disc` web font for non-WebKit browsers) instead of
+   * ever setting `type="password"` on the DOM node.
+   *
+   * Chrome/Edge's "Save password?" prompt is keyed off `input[type="password"]`
+   * inside a submitted `<form>` — it doesn't care what the field is named or
+   * what autocomplete hint it has. Fields using this flag never trigger it,
+   * because the browser never sees a password input.
+   *
+   * Use this for admin-generated / one-off credentials that aren't the
+   * current browser user's own login (e.g. AddUserModal, ResetPasswordModal)
+   * — not for the actual sign-in form, where saving *is* wanted.
+   *
+   * Trade-off: opts the field out of any password-manager-adjacent browser
+   * protections (leaked-password warnings, etc.) and it won't be announced
+   * as a password field to screen readers. Default: false.
+   */
+  noBrowserPassword?: boolean;
+}
+
+interface MaskStyle extends CSSProperties {
+  WebkitTextSecurity?: "none" | "disc" | "circle" | "square";
 }
 
 /**
@@ -143,10 +167,12 @@ export const Input = forwardRef<HTMLInputElement, InputProps>((props, ref) => {
     showPasswordToggle,
     visible: controlledVisible,
     onVisibleChange,
+    noBrowserPassword = false,
     id,
     className,
     disabled,
     autoComplete,
+    style,
     ...rest
   } = props;
 
@@ -161,6 +187,19 @@ export const Input = forwardRef<HTMLInputElement, InputProps>((props, ref) => {
   const withToggle = type === "password" && showPasswordToggle !== false;
   const hasError = Boolean(error);
   const errorMessage = typeof error === "string" ? error : undefined;
+
+  // "Fake" password mode: never emit type="password" to the DOM, so Chrome/
+  // Edge never flag the field as a credential and offer to save it.
+  const isFakePassword = type === "password" && noBrowserPassword;
+
+  const domType = isFakePassword ? "text" : withToggle && showPassword ? "text" : type;
+
+  const maskStyle: MaskStyle | undefined = isFakePassword
+    ? {
+        WebkitTextSecurity: showPassword ? "none" : "disc",
+        fontFamily: showPassword ? undefined : "text-security-disc",
+      }
+    : undefined;
 
   const cfg = SIZE_CONFIG[size];
 
@@ -183,6 +222,14 @@ export const Input = forwardRef<HTMLInputElement, InputProps>((props, ref) => {
     stateClass,
     className,
   ].join(" ");
+
+  const resolvedAutoComplete =
+    autoComplete ??
+    (isFakePassword
+      ? "off" // no "new-password"/"current-password" hint once it's not type=password
+      : type === "password"
+        ? "new-password"
+        : undefined);
 
   return (
     <div className="flex flex-col gap-1">
@@ -223,10 +270,9 @@ export const Input = forwardRef<HTMLInputElement, InputProps>((props, ref) => {
         <input
           ref={ref}
           id={inputId}
-          type={withToggle && showPassword ? "text" : type}
-          autoComplete={
-            autoComplete ?? (type === "password" ? "new-password" : undefined)
-          }
+          type={domType}
+          style={{ ...maskStyle, ...style }}
+          autoComplete={resolvedAutoComplete}
           className={inputClasses}
           disabled={disabled}
           {...rest}

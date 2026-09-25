@@ -1,12 +1,15 @@
 import { useInfiniteQuery } from "@tanstack/react-query";
-import type { FindUsersParams } from "../../user-management/types/user.type";
-import { DeactivatedUserService } from "../service/deactivated-user.service";
+import { DeactivatedUserService } from "../../service/deactivated-user.service";
+import type { FindDeactivatedUsersParams } from "../../types/deactivated-user.types";
 
-type DeactivatedUserFilters = Pick<FindUsersParams, "name" | "role_id" | "sort">;
+type DeactivatedUserFilters = Pick<
+  FindDeactivatedUsersParams,
+  "name" | "role_id" | "sort"
+>;
 
 export function useDeactivatedUsers(filters: DeactivatedUserFilters) {
   return useInfiniteQuery({
-    queryKey: ["users", "deactivated", filters],
+    queryKey: ["deactivated-users", filters],
     queryFn: ({ pageParam }) =>
       DeactivatedUserService.findAllDeactivated({
         ...filters,

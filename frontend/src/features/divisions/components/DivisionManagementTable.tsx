@@ -4,8 +4,9 @@ import KebabMenu, {
   EditIcon,
   TrashIcon,
 } from "../../../components/ui/kebab-menu/KebabMenu";
+import type { TableShellProp } from "../../../type/table-shell-prop";
 import { useDivisionManagementTable } from "../hooks/use-division-management-table";
-import type { Division, DivisionManagementTableProps } from "../type/division.type";
+import type { Division } from "../type/division.type";
 import DivisionUsersModal from "./DivisionUsersModal";
 import DeleteDivisionModal from "./modal/DeleteDivisionModal";
 import EditDivisionModal from "./modal/EditDivisionModal";
@@ -14,7 +15,7 @@ import UserAvatarStack from "./UserAvatarStack";
 export default function DivisionManagementTable({
   maxTableHeight = "560px",
   maxMobileHeight = "520px",
-}: DivisionManagementTableProps = {}) {
+}: TableShellProp = {}) {
   const {
     isLoading,
     isError,

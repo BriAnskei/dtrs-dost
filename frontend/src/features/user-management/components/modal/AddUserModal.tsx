@@ -210,6 +210,7 @@ export default function AddUserModal({
 
           <Input
             type="password"
+            noBrowserPassword
             size="sm"
             label="Password"
             labelRequired
@@ -237,7 +238,6 @@ export default function AddUserModal({
             id="new-user-password"
             name="new-password"
             ref={passwordRef}
-            autoComplete="new-password"
             placeholder="Temporary password"
             error={errors.password}
             value={form.password ?? ""}

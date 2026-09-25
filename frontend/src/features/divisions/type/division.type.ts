@@ -13,8 +13,3 @@ export interface Division {
   users: DivisionUser[];
   userCount: number;
 }
-
-export interface DivisionManagementTableProps {
-  maxTableHeight?: string;
-  maxMobileHeight?: string;
-}

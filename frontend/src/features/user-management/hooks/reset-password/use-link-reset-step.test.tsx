@@ -23,8 +23,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { passwordResetService } from "../../services/password-reset.service";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { PasswordResetRequestResponse } from "../../types/password-reset.type";
 import { useLinkResetStep } from "./use-link-reset-step";
 
@@ -313,20 +312,27 @@ describe("useLinkResetStep", () => {
         }),
       );
 
-      // Start abandon but don't resolve yet.
-      void act(() => {
-        result.current.abandon();
+      // Start abandon and flush the notification so isAbandoningLink propagates.
+      let abandonPromise: Promise<void>;
+      await act(async () => {
+        abandonPromise = result.current.abandon();
+        await new Promise((r) => setTimeout(r, 0));
       });
-      await new Promise((r) => setTimeout(r, 0));
 
       expect(result.current.isAbandoningLink).toBe(true);
       expect(result.current.linkData).toEqual(LINK_RESPONSE); // still set during deletion
 
+      // Resolve the pending delete — abandon()'s finally block calls
+      // setLinkData(null) as a microtask. Await the full promise + flush
+      // the post-settlement notification inside a single act scope.
       await act(async () => {
         resolveDelete();
-        await waitFor(() => expect(result.current.isAbandoningLink).toBe(false));
+        await abandonPromise;
+        await new Promise((r) => setTimeout(r, 0));
+        await new Promise((r) => setTimeout(r, 0));
       });
 
+      expect(result.current.isAbandoningLink).toBe(false);
       expect(result.current.linkData).toBeNull();
 
       client.clear();
@@ -385,9 +391,7 @@ describe("useLinkResetStep", () => {
       expect(writeText).toHaveBeenCalledWith(
         `${window.location.origin}/reset-password/reset-token-xyz`,
       );
-      expect(mockToast.success).toHaveBeenCalledWith(
-        "Reset link copied to clipboard.",
-      );
+      expect(mockToast.success).toHaveBeenCalledWith("Reset link copied to clipboard.");
 
       client.clear();
     });

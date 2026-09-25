@@ -275,6 +275,15 @@ export class UserRepository {
     return (result.affected ?? 0) > 0;
   }
 
+  async reactivate(id: string): Promise<boolean> {
+    const res = await this.repository.update(id, {
+      is_active: true,
+      deactivated_at: null,
+    });
+
+    return (res.affected ?? 0) > 0;
+  }
+
   async updatePassword(
     id: string,
     password: string,

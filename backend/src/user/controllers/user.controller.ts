@@ -81,6 +81,13 @@ export class UserController {
     await this.service.deactivate(id);
   }
 
+  @Patch(":id/reactivate")
+  @Roles(Role.SuperAdmin)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async reactivate(@Param("id", ParseUUIDPipe) id: string): Promise<void> {
+    await this.service.reactivate(id);
+  }
+
   @Delete(":id")
   @HttpCode(HttpStatus.NO_CONTENT)
   @Roles(Role.SuperAdmin)

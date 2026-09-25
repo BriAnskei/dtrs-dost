@@ -53,7 +53,7 @@ export class DivisionService {
     const assignedUser = await this.userRepository.findAllByDivisionId(id);
 
     if (assignedUser.length > 0)
-      throw new ConflictException("Division with assign users should not be deleted");
+      throw new ConflictException("Division with assign users cannot not be deleted");
 
     const res = await this.repository.delete(id);
 

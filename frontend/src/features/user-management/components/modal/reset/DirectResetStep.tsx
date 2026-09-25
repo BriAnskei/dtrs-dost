@@ -57,6 +57,7 @@ export default function DirectResetStep({ modal }: Props) {
     <div className="space-y-4">
       <Input
         type="password"
+        noBrowserPassword
         size="sm"
         label="New Password"
         labelRequired
@@ -84,6 +85,7 @@ export default function DirectResetStep({ modal }: Props) {
 
       <Input
         type="password"
+        noBrowserPassword
         size="sm"
         label="Confirm Password"
         labelRequired

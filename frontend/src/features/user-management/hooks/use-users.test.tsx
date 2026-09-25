@@ -26,12 +26,8 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type {
-  FindUsersParams,
-  UserWithRelationResponse,
-} from "../types/user.type";
-import { userService } from "../services/user.service";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import type { FindUsersParams } from "../types/user.type";
 import { useUsers } from "./use-users";
 
 const { mockFindAll } = vi.hoisted(() => ({
@@ -109,13 +105,6 @@ function makeWrapper(client: QueryClient) {
   return function Wrapper({ children }: { children: ReactNode }) {
     return <QueryClientProvider client={client}>{children}</QueryClientProvider>;
   };
-}
-
-/** Build a query key the same way the hook does — for assertion convenience. */
-function lastCallArg(
-  mock: ReturnType<typeof vi.fn>,
-): FindUsersParams | undefined {
-  return mock.mock.calls[0]?.[0];
 }
 
 /**
@@ -342,13 +331,10 @@ describe("useUsers", () => {
     mockFindAll.mockResolvedValueOnce(LAST_PAGE);
 
     const client = makeClient();
-    const { result, rerender } = renderHook(
-      ({ filters }) => useUsers(filters),
-      {
-        wrapper: makeWrapper(client),
-        initialProps: { filters: { name: "alice" as string | undefined } },
-      },
-    );
+    const { result, rerender } = renderHook(({ filters }) => useUsers(filters), {
+      wrapper: makeWrapper(client),
+      initialProps: { filters: { name: "alice" as string | undefined } },
+    });
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
     expect(result.current.data?.pages).toHaveLength(1);

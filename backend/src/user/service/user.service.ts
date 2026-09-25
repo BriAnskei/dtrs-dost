@@ -287,6 +287,12 @@ export class UserService {
     if (!res) throw new NotFoundException("User not found");
   }
 
+  async reactivate(id: string): Promise<void> {
+    const res = this.userRepository.reactivate(id);
+
+    if (!res) throw new NotFoundException("User not found");
+  }
+
   async delete(id: string): Promise<void> {
     const res = this.userRepository.delete(id);
 

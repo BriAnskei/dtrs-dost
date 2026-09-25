@@ -18,4 +18,12 @@ export const DeactivatedUserService = {
 
     return data;
   },
+
+  async reactivate(id: string): Promise<void> {
+    await apiClient.patch(`/user/${id}/reactivate`);
+  },
+
+  async delete(id: string): Promise<void> {
+    await apiClient.delete(`/user/${id}`);
+  },
 };

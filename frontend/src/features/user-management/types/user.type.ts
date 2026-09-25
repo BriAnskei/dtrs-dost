@@ -30,13 +30,6 @@ export interface SystemUser {
   deactivatedAt?: string;
 }
 
-export interface UserManagementTableProps {
-  /** Max height of the scrollable desktop table body (CSS value, e.g. "560px" or "70vh"). */
-  maxTableHeight?: string;
-  /** Max height of the scrollable mobile card list (CSS value). */
-  maxMobileHeight?: string;
-}
-
 /** Shown when the API doesn't provide a value for an optional field. */
 export const NO_VALUE_PLACEHOLDER = "—";
 

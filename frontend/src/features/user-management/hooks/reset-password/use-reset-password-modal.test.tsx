@@ -355,6 +355,12 @@ describe("useResetPasswordModal", () => {
         result.current.handleVerifyPassword();
       });
 
+      // Flush React Query v5's mutation notification so the isVerifying
+      // state update doesn't leak outside act().
+      await act(async () => {
+        await new Promise((r) => setTimeout(r, 0));
+      });
+
       expect(result.current.adminPasswordError).toBeUndefined();
 
       client.clear();
@@ -810,11 +816,12 @@ describe("useResetPasswordModal", () => {
         }),
       );
 
-      void act(async () => {
-        result.current.selectMethod("direct");
+      await act(async () => {
+        void result.current.selectMethod("direct");
+        await new Promise((r) => setTimeout(r, 0));
       });
 
-      await waitFor(() => expect(result.current.isCheckingMethod).toBe(true));
+      expect(result.current.isCheckingMethod).toBe(true);
 
       await act(async () => {
         resolveGet(null);

@@ -26,7 +26,6 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import { AxiosError } from "axios";
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { userService } from "../../services/user.service";
 import type { SystemUser } from "../../types/user.type";
 import { useDirectResetStep } from "./use-direct-reset-step";
 
@@ -94,6 +93,8 @@ function axiosError(status: number, message: string) {
 
 describe("useDirectResetStep", () => {
   beforeEach(() => {
+    // Suppress debug console.log("error") from the source's onError handler.
+    vi.spyOn(console, "log").mockImplementation(() => undefined);
     mockUpdatePassword.mockReset();
     mockPasswordGenerator.mockReset();
     mockToast.success.mockReset();
@@ -152,7 +153,10 @@ describe("useDirectResetStep", () => {
       });
 
       act(() => {
-        result.current.setDirectForm({ password: "long-enough", confirmPassword: "mismatch" });
+        result.current.setDirectForm({
+          password: "long-enough",
+          confirmPassword: "mismatch",
+        });
       });
 
       act(() => {
@@ -234,7 +238,10 @@ describe("useDirectResetStep", () => {
       });
 
       act(() => {
-        result.current.setDirectForm({ password: "new-password-123", confirmPassword: "new-password-123" });
+        result.current.setDirectForm({
+          password: "new-password-123",
+          confirmPassword: "new-password-123",
+        });
       });
 
       await act(async () => {
@@ -275,7 +282,10 @@ describe("useDirectResetStep", () => {
       });
 
       act(() => {
-        result.current.setDirectForm({ password: "new-password-123", confirmPassword: "new-password-123" });
+        result.current.setDirectForm({
+          password: "new-password-123",
+          confirmPassword: "new-password-123",
+        });
       });
 
       act(() => {
@@ -305,9 +315,7 @@ describe("useDirectResetStep", () => {
        * the password field (NO toast — the error is field-level), and
        * resetComplete stays false so the form stays open for retry.
        */
-      mockUpdatePassword.mockRejectedValueOnce(
-        axiosError(500, "Internal server error"),
-      );
+      mockUpdatePassword.mockRejectedValueOnce(axiosError(500, "Internal server error"));
 
       const client = makeClient();
       const { result } = renderHook(() => useDirectResetStep(USER), {
@@ -315,7 +323,10 @@ describe("useDirectResetStep", () => {
       });
 
       act(() => {
-        result.current.setDirectForm({ password: "new-password-123", confirmPassword: "new-password-123" });
+        result.current.setDirectForm({
+          password: "new-password-123",
+          confirmPassword: "new-password-123",
+        });
       });
 
       await act(async () => {
@@ -339,7 +350,10 @@ describe("useDirectResetStep", () => {
       });
 
       act(() => {
-        result.current.setDirectForm({ password: "new-password-123", confirmPassword: "new-password-123" });
+        result.current.setDirectForm({
+          password: "new-password-123",
+          confirmPassword: "new-password-123",
+        });
       });
 
       await act(async () => {

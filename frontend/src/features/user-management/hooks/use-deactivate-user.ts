@@ -14,11 +14,19 @@ export function useDeactivateUser() {
         queryKey: ["users"],
       });
 
+      await queryClient.invalidateQueries({
+        queryKey: ["deactivated-users"],
+      });
+
+      await queryClient.invalidateQueries({
+        queryKey: ["divisions"],
+      });
+
       toast.success("User deactivated successfully");
     },
 
     onError: (error) => {
-      toast.error(getApiErrorMessage(error));
+      toast.error(getApiErrorMessage(error, "Failed to deactivate user"));
     },
   });
 }

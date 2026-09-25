@@ -8,7 +8,7 @@ import type {
   UserRole,
 } from "../../user-management/types/user.type";
 import { mapUsersResponseToSystemUsers } from "../../user-management/utils/mapUserResponseToSystemUser";
-import { useDeactivatedUsers } from "./use-deactivated-users";
+import { useDeactivatedUsers } from "./api/use-deactivated-users";
 
 export function useDeactivatedUserTable() {
   const [search, setSearch] = useState("");
@@ -67,16 +67,6 @@ export function useDeactivatedUserTable() {
   const [reactivateTarget, setReactivateTarget] = useState<SystemUser | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<SystemUser | null>(null);
 
-  // TODO(api): replace with real mutations (e.g. PATCH /users/:id/reactivate,
-  // DELETE /users/:id) + query invalidation once the endpoints exist.
-  function reactivateUser(_user: SystemUser) {
-    setReactivateTarget(null);
-  }
-
-  function deleteUser(_user: SystemUser) {
-    setDeleteTarget(null);
-  }
-
   return {
     isLoading,
     isError,
@@ -100,7 +90,5 @@ export function useDeactivatedUserTable() {
     setReactivateTarget,
     deleteTarget,
     setDeleteTarget,
-    reactivateUser,
-    deleteUser,
   };
 }
