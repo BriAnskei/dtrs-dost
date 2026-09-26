@@ -1,7 +1,7 @@
 import { UnauthorizedException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { Test, type TestingModule } from "@nestjs/testing";
-import { UserService } from "../../../user/service/user.service";
+import { UserService } from "../../../features/user/service/user.service";
 import { JwtStrategy } from "./jwt.strategy";
 
 jest.mock("@nestjs/passport", () => ({

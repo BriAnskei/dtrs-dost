@@ -6,7 +6,7 @@ import {
   OneToOne,
   PrimaryGeneratedColumn,
 } from "typeorm";
-import { UserEntity } from "../../../user/entities/user.entity";
+import { UserEntity } from "../../../features/user/entities/user.entity";
 
 @Entity("password_reset_tokens")
 export class PasswordResetTokenEntity {

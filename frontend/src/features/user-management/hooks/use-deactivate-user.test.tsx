@@ -147,10 +147,12 @@ describe("useDeactivateUser", () => {
     client.clear();
   });
 
-  it("invalidates the ['users'] query on success", async () => {
+  it("invalidates the ['users'], ['deactivated-users'] and ['divisions'] queries on success", async () => {
     /*
-     * After deactivation, the user list cache is stale — the hook invalidates
-     * ["users"] so the table refetches and removes the deactivated user.
+     * After deactivation the cached lists are stale — the hook invalidates
+     * ["users"] (active-user table), ["deactivated-users"] (the row that was
+     * just moved here) and ["divisions"] (division totals) so all affected
+     * views refetch in one go.
      */
     mockDeactivate.mockResolvedValueOnce(undefined);
 
@@ -167,9 +169,15 @@ describe("useDeactivateUser", () => {
       });
     });
 
-    // The mutation's own onSuccess invalidates ["users"].
-    await waitFor(() => expect(invalidateQueries).toHaveBeenCalledTimes(1));
+    // The mutation's own onSuccess invalidates all three query keys.
+    await waitFor(() => expect(invalidateQueries).toHaveBeenCalledTimes(3));
     expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: ["users"] });
+    expect(invalidateQueries).toHaveBeenCalledWith({
+      queryKey: ["deactivated-users"],
+    });
+    expect(invalidateQueries).toHaveBeenCalledWith({
+      queryKey: ["divisions"],
+    });
 
     client.clear();
   });

@@ -67,17 +67,21 @@ vi.mock("./modal/AddUserModal", () => ({
 
 vi.mock("./modal/EditUserModal", () => ({
   default: function EditUserModalStub({
-    user,
+    initial,
     onClose,
     userId,
   }: {
-    user?: SystemUser | null;
+    // Mirrors the REAL EditUserModal contract: UserManagementTable passes
+    // `initial` (pre-filled form state) + `userId` + `onClose` — it never
+    // passes the raw `user`, so the targeted user's name is surfaced from
+    // `initial.name` (populated by toFormState(editTarget)).
+    initial?: { name?: string };
     onClose: () => void;
     userId: string;
   }) {
     return (
       <div data-testid="edit-user-modal">
-        Edit {user?.name ?? user?.id ?? userId}
+        Edit {initial?.name ?? userId}
         <button onClick={onClose}>Close</button>
       </div>
     );
@@ -389,8 +393,9 @@ describe("UserManagementTable (UI)", () => {
 
     render(<UserManagementTable />);
 
-    // Open the kebab for Alice's row (single row → single trigger).
-    fireEvent.click(screen.getByTitle("More actions"));
+    // Each row mounts TWO kebabs — one in the mobile card, one in the desktop
+    // row — so pick the first trigger rather than asserting a single match.
+    fireEvent.click(screen.getAllByTitle("More actions")[0]);
 
     fireEvent.click(screen.getByRole("button", { name: "Reset Password" }));
 
@@ -409,7 +414,7 @@ describe("UserManagementTable (UI)", () => {
 
     render(<UserManagementTable />);
 
-    fireEvent.click(screen.getByTitle("More actions"));
+    fireEvent.click(screen.getAllByTitle("More actions")[0]);
 
     fireEvent.click(screen.getByRole("button", { name: "Deactivate" }));
 
@@ -424,7 +429,7 @@ describe("UserManagementTable (UI)", () => {
 
     render(<UserManagementTable />);
 
-    fireEvent.click(screen.getByTitle("More actions"));
+    fireEvent.click(screen.getAllByTitle("More actions")[0]);
 
     fireEvent.click(screen.getByRole("button", { name: "Edit" }));
 
@@ -536,8 +541,11 @@ describe("UserManagementTable (UI)", () => {
 
     render(<UserManagementTable />);
 
-    expect(screen.getAllByText(/No more users/i)).toHaveLength(2);
+    // Mobile-only footer: TableShell never renders "No more" in the desktop
+    // table — there the summary row switches to "(all loaded)" instead.
+    expect(screen.getAllByText(/No more users/i)).toHaveLength(1);
     expect(screen.queryByText(/Loading more/i)).not.toBeInTheDocument();
+    expect(document.body.textContent).toMatch(/\(all loaded\)/);
   });
 
   it("hides both footers while fetching is idle and more pages remain", () => {
@@ -564,7 +572,7 @@ describe("UserManagementTable (UI)", () => {
      * we simulate a filter applied server-side by re-binding the implementation
      * with only Alice, then confirm Bob is gone while Alice remains.
      */
-    render(<UserManagementTable />);
+    const { rerender } = render(<UserManagementTable />);
 
     // Initial render shows both users.
     expect(screen.getAllByText("Alice Reyes")).toHaveLength(2);
@@ -576,7 +584,10 @@ describe("UserManagementTable (UI)", () => {
     mockUseUserManagementTable.mockImplementation(
       makeHookImpl({ filtered: [ALICE], hasNextPage: false }),
     );
-    render(<UserManagementTable />);
+    // Re-render the SAME container with the narrowed filter. Using `rerender`
+    // (not a second `render`) avoids the double-mount that previously left
+    // Bob's rows behind and triple-counted Alice.
+    rerender(<UserManagementTable />);
 
     expect(screen.getAllByText("Alice Reyes")).toHaveLength(2);
     expect(screen.queryByText("Bob Santos")).not.toBeInTheDocument();

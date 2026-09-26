@@ -5,7 +5,7 @@ import { Test, type TestingModule } from "@nestjs/testing";
 import * as argon2 from "argon2";
 import { DataSource, type EntityManager } from "typeorm";
 import { AuthenticationService } from "./authentication.service";
-import { UserRepository } from "../../../user/repository/user.repository";
+import { UserRepository } from "../../../features/user/repository/user.repository";
 import { RefreshTokenRepository } from "../repository/refresh-token.repository";
 
 jest.mock("argon2", () => ({

@@ -7,7 +7,7 @@ import {
 import { Test, type TestingModule } from "@nestjs/testing";
 import { DataSource, type EntityManager } from "typeorm";
 import { PasswordResetService } from "./password-reset-token-service";
-import { UserRepository } from "../../../user/repository/user.repository";
+import { UserRepository } from "../../../features/user/repository/user.repository";
 import { PasswordResetRepository } from "../repository/password-reset-token-repository";
 import { RefreshTokenRepository } from "../repository/refresh-token.repository";
 

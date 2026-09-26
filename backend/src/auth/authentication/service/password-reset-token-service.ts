@@ -7,7 +7,7 @@ import {
 } from "@nestjs/common";
 import * as argon2 from "argon2";
 import { DataSource } from "typeorm";
-import { UserRepository } from "../../../user/repository/user.repository";
+import { UserRepository } from "../../../features/user/repository/user.repository";
 import { ResetPasswordDto } from "../dto/reset-password.dto";
 import { PasswordResetTokenEntity } from "../entities/password-reset-token.entity";
 import { PasswordResetRepository } from "../repository/password-reset-token-repository";
