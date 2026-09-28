@@ -41,19 +41,22 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       id: user.id,
       email: user.email,
       role_id: Number(user.role_id),
-      user_management_permissions:
-        Number(user.role_id) === Role.Admin &&
-        user.user_permissions?.managementPermissions
-          ? {
-              view: user.user_permissions.managementPermissions !== undefined,
-              add: user.user_permissions.managementPermissions.add,
-              edit: user.user_permissions.managementPermissions.edit,
-              reset_password: user.user_permissions.managementPermissions.reset_password,
-              deactivate: user.user_permissions.managementPermissions.deactivate,
-              reactivate: user.user_permissions.managementPermissions.reactivate,
-              delete: user.user_permissions.managementPermissions.delete,
-            }
-          : null,
+      permissions: {
+        user_management_permissions:
+          Number(user.role_id) === Role.Admin &&
+          user.user_permissions?.managementPermissions
+            ? {
+                view: user.user_permissions.managementPermissions !== undefined,
+                add: user.user_permissions.managementPermissions.add,
+                edit: user.user_permissions.managementPermissions.edit,
+                reset_password:
+                  user.user_permissions.managementPermissions.reset_password,
+                deactivate: user.user_permissions.managementPermissions.deactivate,
+                reactivate: user.user_permissions.managementPermissions.reactivate,
+                delete: user.user_permissions.managementPermissions.delete,
+              }
+            : null,
+      },
     };
   }
 }

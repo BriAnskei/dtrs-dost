@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router";
-import UserDropdown from "../../features/authentication/components/UserDropdown";
+import UserDropdown from "../../features/auth/authentication/components/UserDropdown";
 import { ThemeToggleButton } from "../common/ThemeToggleButton";
 import NotificationDropdown from "./NotificationDropdown";
 

@@ -2,7 +2,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { getErrorMessage } from "../../../lib/api-error";
+import { getErrorMessage } from "../../../../lib/api-error";
 import { authPasswordResetService } from "../service/authPassword-reset.service";
 
 interface FormErrors {

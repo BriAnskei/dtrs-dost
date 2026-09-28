@@ -5,7 +5,7 @@ import { ThemeToggleButton } from "../components/common/ThemeToggleButton";
 import NotificationDropdown from "../components/header/NotificationDropdown";
 import CompanyLogo from "../components/logo/CompanyLogo";
 import { useSidebar } from "../context/SidebarContext";
-import UserDropdown from "../features/authentication/components/UserDropdown";
+import UserDropdown from "../features/auth/authentication/components/UserDropdown";
 
 const AppHeader: React.FC = () => {
   const [isApplicationMenuOpen, setApplicationMenuOpen] = useState(false);

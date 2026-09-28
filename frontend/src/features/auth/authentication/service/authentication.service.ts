@@ -1,5 +1,5 @@
-import type { User } from "../../../context/currentUser/curr-user.type";
-import { apiClient } from "../../../lib/api-client";
+import type { User } from "../../../../context/currentUser/curr-user.type";
+import { apiClient } from "../../../../lib/api-client";
 import type { LoginDto, LoginResponse } from "../type/authentication.type";
 
 export const authenticationService = {

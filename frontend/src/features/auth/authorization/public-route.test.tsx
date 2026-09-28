@@ -16,7 +16,7 @@
 import { screen } from "@testing-library/react";
 import { Route } from "react-router";
 import { describe, expect, it, vi } from "vitest";
-import { LocationDisplay, renderRoutes } from "../tests/test-utils";
+import { LocationDisplay, renderRoutes } from "../../../tests/test-utils";
 import PublicRoute from "./PublicRoute";
 
 const { mockUseUser } = vi.hoisted(() => ({ mockUseUser: vi.fn() }));

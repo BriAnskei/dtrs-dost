@@ -1,4 +1,5 @@
 export class UserManagementPermissionsResponseDto {
+  view!: boolean;
   add!: boolean;
   edit!: boolean;
   reset_password!: boolean;
@@ -16,5 +17,8 @@ export class CurrentUserResponseDto {
   contact_number!: string | null;
   position!: string | null;
   is_active!: boolean;
-  user_management_permissions!: UserManagementPermissionsResponseDto | null;
+
+  permissions!: {
+    user_management_permissions: UserManagementPermissionsResponseDto | null;
+  };
 }

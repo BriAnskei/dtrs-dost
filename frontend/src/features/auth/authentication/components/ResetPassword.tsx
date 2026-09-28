@@ -1,5 +1,5 @@
 import { useParams } from "react-router";
-import PageMeta from "../../../components/common/PageMeta";
+import PageMeta from "../../../../components/common/PageMeta";
 import AuthLayout from "./AuthPageLayout";
 import ResetPasswordForm from "./ResetPasswordForm";
 

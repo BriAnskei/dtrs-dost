@@ -29,7 +29,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   AUTH_SESSION_EXPIRED,
   notifySessionExpired,
-} from "../../features/authentication/authentication.events";
+} from "../../features/auth/authentication/authentication.events";
 import { renderRoutes } from "../../tests/test-utils";
 import { UserProvider } from "./user-provider";
 import { useUser } from "./use-user";

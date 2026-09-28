@@ -5,5 +5,7 @@ export interface AuthenticatedUser {
   id: string;
   email: string;
   role_id: Role;
-  user_management_permissions: UserManagementPermissions | null;
+  permissions: {
+    user_management_permissions: UserManagementPermissions | null;
+  };
 }

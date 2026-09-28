@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Dropdown } from "../../../components/ui/dropdown/Dropdown";
-import { useUser } from "../../../context/currentUser/use-user";
+import { Dropdown } from "../../../../components/ui/dropdown/Dropdown";
+import { useUser } from "../../../../context/currentUser/use-user";
 import { useSignOut } from "../hooks/useSignout";
 
 function formatDisplayName(fullName: string) {

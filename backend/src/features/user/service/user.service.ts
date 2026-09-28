@@ -176,16 +176,20 @@ export class UserService {
       contact_number: user.contact_number,
       position: user.position,
       is_active: user.is_active,
-      user_management_permissions: managementPermissions
-        ? {
-            add: managementPermissions.add,
-            edit: managementPermissions.edit,
-            reset_password: managementPermissions.reset_password,
-            deactivate: managementPermissions.deactivate,
-            reactivate: managementPermissions.reactivate,
-            delete: managementPermissions.delete,
-          }
-        : null,
+
+      permissions: {
+        user_management_permissions: managementPermissions
+          ? {
+              view: managementPermissions !== null,
+              add: managementPermissions.add,
+              edit: managementPermissions.edit,
+              reset_password: managementPermissions.reset_password,
+              deactivate: managementPermissions.deactivate,
+              reactivate: managementPermissions.reactivate,
+              delete: managementPermissions.delete,
+            }
+          : null,
+      },
     };
   }
 

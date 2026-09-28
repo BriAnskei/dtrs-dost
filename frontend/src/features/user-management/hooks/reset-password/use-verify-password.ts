@@ -1,7 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import { getErrorMessage } from "../../../../lib/api-error";
-import { authenticationService } from "../../../authentication/service/authentication.service";
+import { authenticationService } from "../../../auth/authentication/service/authentication.service";
 
 export function useVerifyPasswordStep(onVerified: () => void) {
   const [adminPassword, setAdminPassword] = useState("");

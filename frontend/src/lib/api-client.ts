@@ -1,12 +1,12 @@
 import axios, { type AxiosError } from "axios";
 import { toast } from "sonner";
-import { notifySessionExpired } from "../features/authentication/authentication.events";
+import { notifySessionExpired } from "../features/auth/authentication/authentication.events";
 import {
   clearAuthenticated,
   isAuthenticated,
-} from "../features/authentication/authentication.session";
-import { authenticationService } from "../features/authentication/service/authentication.service";
-import type { AuthenticationRequestConfig } from "../features/authentication/type/authentication.type";
+} from "../features/auth/authentication/authentication.session";
+import { authenticationService } from "../features/auth/authentication/service/authentication.service";
+import type { AuthenticationRequestConfig } from "../features/auth/authentication/type/authentication.type";
 
 const API_URL = import.meta.env.VITE_API_URL;
 

@@ -1,7 +1,7 @@
 import type React from "react";
 import { Link } from "react-router";
-import GridShape from "../../../components/common/GridShape";
-import CompanyLogo from "../../../components/logo/CompanyLogo";
+import GridShape from "../../../../components/common/GridShape";
+import CompanyLogo from "../../../../components/logo/CompanyLogo";
 
 export default function AuthLayout({
   children,

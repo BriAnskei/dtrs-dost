@@ -1,7 +1,13 @@
 import { createBrowserRouter } from "react-router";
 import AccessControlPage from "../features/access-control/components/AccessControlPage";
-import ResetPassword from "../features/authentication/components/ResetPassword";
-import SignIn from "../features/authentication/components/SignIn";
+import ResetPassword from "../features/auth/authentication/components/ResetPassword";
+import SignIn from "../features/auth/authentication/components/SignIn";
+import { UserManagementPermissionEnum } from "../features/auth/authorization/enum/user-management-permission";
+import { hasPermission } from "../features/auth/authorization/helpers/has-permission";
+import PermissionRoute from "../features/auth/authorization/PermissionRoute";
+import PublicRoute from "../features/auth/authorization/PublicRoute";
+import ProtectedRoute from "../features/auth/authorization/protectedRoute";
+import RoleRoute from "../features/auth/authorization/RoleRoutes";
 import DeactivatedUsersPage from "../features/deactivated-user-management/components/DeactivatedUsersPage";
 import DivisionManagementPage from "../features/divisions/components/DivisionManagementPage";
 import UserManagementPage from "../features/user-management/components/UserManagementPage";
@@ -27,10 +33,7 @@ import NotificationPage from "../pages/notification/NotificationPage";
 import NotFound from "../pages/OtherPage/NotFound";
 import Unauthorized from "../pages/OtherPage/Unauthorized";
 import PublicTrackingPage from "../pages/Public/PublicTrackingPage";
-import PublicRoute from "./PublicRoute";
-import ProtectedRoute from "./protectedRoute";
 import { DashboardRedirect, UploadRedirect } from "./Redirect";
-import RoleRoute from "./RoleRoutes";
 
 type RouteType = {
   path: string;
@@ -108,26 +111,47 @@ const SUPER_ADMIN_ROUTES: RouteType[] = [
   {
     path: "/users",
     element: (
-      <RoleRoute allowedRoles={[1]}>
+      <PermissionRoute
+        hasPermission={(user) =>
+          hasPermission(
+            user.permissions.user_management_permissions,
+            UserManagementPermissionEnum.View,
+          )
+        }
+      >
         <UserManagementPage />
-      </RoleRoute>
+      </PermissionRoute>
     ),
   },
   {
     path: "/divisions",
     element: (
-      <RoleRoute allowedRoles={[1]}>
+      <PermissionRoute
+        hasPermission={(user) =>
+          hasPermission(
+            user.permissions.user_management_permissions,
+            UserManagementPermissionEnum.View,
+          )
+        }
+      >
         <DivisionManagementPage />
-      </RoleRoute>
+      </PermissionRoute>
     ),
   },
 
   {
     path: "/deactive",
     element: (
-      <RoleRoute allowedRoles={[1]}>
+      <PermissionRoute
+        hasPermission={(user) =>
+          hasPermission(
+            user.permissions.user_management_permissions,
+            UserManagementPermissionEnum.Deactivate,
+          )
+        }
+      >
         <DeactivatedUsersPage />
-      </RoleRoute>
+      </PermissionRoute>
     ),
   },
 

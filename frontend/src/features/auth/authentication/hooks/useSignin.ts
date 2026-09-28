@@ -1,8 +1,8 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { type SubmitEventHandler, useState } from "react";
 import { useNavigate } from "react-router";
-import { CURRENT_USER_QUERY_KEY } from "../../../context/currentUser/use-current-user";
-import { getApiErrorMessage, isNetworkError } from "../../../lib/api-error";
+import { CURRENT_USER_QUERY_KEY } from "../../../../context/currentUser/use-current-user";
+import { getApiErrorMessage, isNetworkError } from "../../../../lib/api-error";
 import { markAuthenticated } from "../authentication.session";
 import { authenticationService } from "../service/authentication.service";
 import type { LoginDto } from "../type/authentication.type";

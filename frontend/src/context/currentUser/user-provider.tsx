@@ -1,6 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { type ReactNode, useCallback, useEffect, useMemo } from "react";
-import { AUTH_SESSION_EXPIRED } from "../../features/authentication/authentication.events";
+import { AUTH_SESSION_EXPIRED } from "../../features/auth/authentication/authentication.events";
 import { isNetworkError } from "../../lib/api-error";
 import type { User } from "./curr-user.type";
 import { CURRENT_USER_QUERY_KEY, useCurrentUser } from "./use-current-user";

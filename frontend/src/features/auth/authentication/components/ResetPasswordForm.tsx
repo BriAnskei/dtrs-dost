@@ -1,5 +1,5 @@
 import { Link } from "react-router";
-import Input from "../../../components/form/input/InputField";
+import Input from "../../../../components/form/input/InputField";
 import { useResetPasswordFlow } from "../hooks/use-authReset-password";
 
 export default function ResetPasswordForm({ token }: { token: string | undefined }) {

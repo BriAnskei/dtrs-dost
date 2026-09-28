@@ -1,3 +1,5 @@
+import type { UserManagementPermissions } from "../../features/auth/authorization/types/user-management-permission.type";
+
 export type User = {
   id: string;
   division_id: string | null;
@@ -7,16 +9,9 @@ export type User = {
   contact_number: string | null;
   position: string | null;
   is_active: boolean;
-  user_management_permissions: UserManagementPermissions | null;
-};
-
-export type UserManagementPermissions = {
-  add: boolean;
-  edit: boolean;
-  reset_password: boolean;
-  deactivate: boolean;
-  reactivate: boolean;
-  delete: boolean;
+  permissions: {
+    user_management_permissions: UserManagementPermissions | null;
+  };
 };
 
 export type Roles = 1 | 2 | 3 | 4;

@@ -1,9 +1,3 @@
-export interface UserManagementPermissions {
-  view: boolean;
-  add: boolean;
-  edit: boolean;
-  reset_password: boolean;
-  deactivate: boolean;
-  reactivate: boolean;
-  delete: boolean;
-}
+import { UserManagementPermission } from "../../../auth/authorization/enum/user-management-permissions.enum";
+
+export type UserManagementPermissions = Record<UserManagementPermission, boolean>;
