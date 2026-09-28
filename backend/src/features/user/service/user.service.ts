@@ -8,15 +8,17 @@ import {
 
 import * as argon2 from "argon2";
 import { DataSource, EntityManager } from "typeorm";
-import { Role } from "../../../auth/authorization/roles.enum";
+import { Role } from "../../../auth/authorization/enum/roles.enum";
 import { PaginatedResponse } from "../../../common/pagination/paginated-response";
 import { capitalizeWords } from "../../../util/capitalizer";
-import { CreateUserDto } from "../dto/create-user-dto";
-import { FindDeactivatedUsersQueryDto } from "../dto/find-deactivated-user-query-dto";
-import { FindUsersQueryDto } from "../dto/find-user-query-dto";
-import { UpdateUserDto } from "../dto/update-user-dto";
-import { UpdateUserPasswordDto } from "../dto/update-user-password.dto";
-import { UserWithRelationResponseDto } from "../dto/userWithRelation-response-dto";
+import { UserPermissionsRepository } from "../../permissions/repository/user-permissions.repository";
+import { CreateUserDto } from "../dto/create/create-user-dto";
+import { FindDeactivatedUsersQueryDto } from "../dto/queries/find-deactivated-user-query-dto";
+import { FindUsersQueryDto } from "../dto/queries/find-user-query-dto";
+import { CurrentUserResponseDto } from "../dto/response/current-user-response-dto";
+import { UserWithRelationResponseDto } from "../dto/response/userWithRelation-response-dto";
+import { UpdateUserDto } from "../dto/updates/update-user-dto";
+import { UpdateUserPasswordDto } from "../dto/updates/update-user-password.dto";
 import { DivisionEntity } from "../entities/division.entity";
 import { UserEntity } from "../entities/user.entity";
 import { DivisionRepository } from "../repository/division.repository";
@@ -27,10 +29,13 @@ import { formatPhoneNumber } from "../util/formatPhoneNumber";
 @Injectable()
 export class UserService {
   constructor(
+    private readonly dataSource: DataSource,
     private readonly userRepository: UserRepository,
     private readonly divisionRepository: DivisionRepository,
     private readonly roleRepository: RoleRepository,
-    private readonly dataSource: DataSource,
+
+    // admin repo for permission
+    private readonly userPermissionRepository: UserPermissionsRepository,
   ) {}
 
   private toDto(user: UserEntity): UserWithRelationResponseDto {
@@ -66,8 +71,28 @@ export class UserService {
 
       const division = await this.makeDivisionAsync(userData.division, manager);
 
-      await this.createNewUser(userData, manager, division);
+      const createdUser = await this.createNewUser(userData, manager, division);
+
+      await this.createPermissionForAdmin(createdUser, manager);
     });
+  }
+
+  async createPermissionForAdmin(
+    userData: UserEntity,
+    manager: EntityManager,
+  ): Promise<void> {
+    const isRoleAdmin = [Role.Admin].includes(Number(userData.role_id));
+    const existingPermission = await this.userPermissionRepository.findByUserId(
+      userData.id,
+      manager,
+    );
+
+    if (!isRoleAdmin && existingPermission)
+      await this.userPermissionRepository.delete(existingPermission.id, manager);
+
+    if (!isRoleAdmin || existingPermission) return;
+
+    await this.userPermissionRepository.save({ user_id: userData.id }, manager);
   }
 
   async findByIdWithRelation(
@@ -130,12 +155,17 @@ export class UserService {
     return users.map((u) => this.toDto(u));
   }
 
-  async findCurrentUser(id: string) {
-    const user = await this.userRepository.findById(id);
+  async findCurrentUser(id: string): Promise<CurrentUserResponseDto> {
+    const user = await this.userRepository.findCurrentUser(id);
 
     if (!user) {
       throw new UnauthorizedException("User no longer exist");
     }
+
+    const managementPermissions =
+      Number(user.role_id) === Role.Admin
+        ? (user.user_permissions?.managementPermissions ?? null)
+        : null;
 
     return {
       id: user.id,
@@ -143,9 +173,19 @@ export class UserService {
       full_name: user.full_name,
       role_id: user.role_id,
       email: user.email,
-      contect_number: user.contact_number,
+      contact_number: user.contact_number,
       position: user.position,
       is_active: user.is_active,
+      user_management_permissions: managementPermissions
+        ? {
+            add: managementPermissions.add,
+            edit: managementPermissions.edit,
+            reset_password: managementPermissions.reset_password,
+            deactivate: managementPermissions.deactivate,
+            reactivate: managementPermissions.reactivate,
+            delete: managementPermissions.delete,
+          }
+        : null,
     };
   }
 
@@ -267,7 +307,8 @@ export class UserService {
           : null;
       }
 
-      await this.userRepository.save(user, manager);
+      const newUserData = await this.userRepository.save(user, manager);
+      await this.createPermissionForAdmin(newUserData, manager);
     });
   }
 

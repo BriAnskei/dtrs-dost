@@ -3,7 +3,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { EntityManager, ILike, Repository } from "typeorm";
 import { decodeCursor, encodeCursor } from "../../../common/pagination/cursor";
 import { escapeLike } from "../../../util/escapeLike";
-import { FindDivisionsQueryDto } from "../dto/find-divisions-query-dto";
+import { FindDivisionsQueryDto } from "../dto/queries/find-divisions-query-dto";
 import { DivisionEntity } from "../entities/division.entity";
 import { DivisionSortOrder } from "../enums/division-sort-order-enum";
 import { DivisionCursor } from "../types/division-cursor";

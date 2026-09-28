@@ -43,7 +43,7 @@ export class AuthenticationController {
       maxAge: 15 * 60 * 1000, //15 minutes
     });
     return {
-      user_data: result.user_data,
+      verified: true,
     };
   }
 

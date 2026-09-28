@@ -1,5 +1,6 @@
 import { Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
+import { PermissionsModule } from "../permissions/permissions.module";
 import { DivisionController } from "./controllers/division.controller";
 import { UserController } from "./controllers/user.controller";
 import { DivisionEntity } from "./entities/division.entity";
@@ -12,7 +13,10 @@ import { DivisionService } from "./service/division.service";
 import { UserService } from "./service/user.service";
 
 @Module({
-  imports: [TypeOrmModule.forFeature([UserEntity, RoleEntity, DivisionEntity])],
+  imports: [
+    TypeOrmModule.forFeature([UserEntity, RoleEntity, DivisionEntity]),
+    PermissionsModule,
+  ],
   controllers: [UserController, DivisionController],
   providers: [
     UserService,

@@ -1,67 +1,50 @@
-import { type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { type ReactNode, useCallback, useEffect, useMemo } from "react";
 import { AUTH_SESSION_EXPIRED } from "../../features/authentication/authentication.events";
 import { isNetworkError } from "../../lib/api-error";
 import type { User } from "./curr-user.type";
-import { currentUserService } from "./current-user.service";
+import { CURRENT_USER_QUERY_KEY, useCurrentUser } from "./use-current-user";
 import { UserContext } from "./user-context";
 
 export function UserProvider({ children }: { children: ReactNode }) {
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const queryClient = useQueryClient();
 
-  const [isLoading, setIsLoading] = useState(true);
+  const { data: currentUser = null, isLoading, error } = useCurrentUser();
 
-  const [serverError, setServerError] = useState(false);
+  const serverError = error ? isNetworkError(error) : false;
 
-  // A retry from the "server unreachable" screen is just a hard reload: the
-  // whole provider re-mounts and re-resolves the session fresh. This sidesteps
-  // any mid-flight state where currentUser is null but serverError is false —
-  // which would otherwise let ProtectedRoute bounce to /signin while the
-  // retry is still in flight.
+  const setCurrentUser = useCallback(
+    (user: User | null) => {
+      queryClient.setQueryData(CURRENT_USER_QUERY_KEY, user);
+    },
+    [queryClient],
+  );
+
+  const clear = useCallback(() => {
+    queryClient.setQueryData(CURRENT_USER_QUERY_KEY, null);
+  }, [queryClient]);
+
+  // A retry from the "server unreachable" screen is just a hard reload.
+  // The whole provider re-mounts and re-resolves the session fresh.
   const refetch = useCallback(() => {
     window.location.reload();
   }, []);
 
   useEffect(() => {
-    let isMounted = true;
+    if (!error) return;
 
-    async function fetchCurrentUser() {
-      try {
-        const user = await currentUserService.getCurrentUser();
+    if (!isNetworkError(error)) {
+      // Auth failure (401 / 403 after refresh attempts): the session is
+      // genuinely gone, so there is no user to keep around.
+      console.error("Failed to fetch current user:", error);
 
-        if (isMounted) {
-          setCurrentUser(user);
-        }
-      } catch (error) {
-        if (!isMounted) return;
-
-        if (isNetworkError(error)) {
-          // Connectivity failure (server down / offline). This is NOT a session
-          // problem, so don't null-out the user or bounce to /signin — keep the
-          // recovery screen up instead. The interceptor already toasted.
-          setServerError(true);
-        } else {
-          // Auth failure (401 / 403 after refresh attempts): the session is
-          // genuinely gone, so there's no user to keep around.
-          console.error("Failed to fetch current user:", error);
-          setCurrentUser(null);
-        }
-      } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
-      }
+      queryClient.setQueryData(CURRENT_USER_QUERY_KEY, null);
     }
-
-    fetchCurrentUser();
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+  }, [error, queryClient]);
 
   useEffect(() => {
     const handleSessionExpired = () => {
-      setCurrentUser(null);
+      queryClient.setQueryData(CURRENT_USER_QUERY_KEY, null);
     };
 
     window.addEventListener(AUTH_SESSION_EXPIRED, handleSessionExpired);
@@ -69,18 +52,18 @@ export function UserProvider({ children }: { children: ReactNode }) {
     return () => {
       window.removeEventListener(AUTH_SESSION_EXPIRED, handleSessionExpired);
     };
-  }, []);
+  }, [queryClient]);
 
   const value = useMemo(
     () => ({
       currentUser,
       setCurrentUser,
-      clear: () => setCurrentUser(null),
+      clear,
       isLoading,
       serverError,
       refetch,
     }),
-    [currentUser, isLoading, serverError, refetch],
+    [currentUser, setCurrentUser, clear, isLoading, serverError, refetch],
   );
 
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>;

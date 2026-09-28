@@ -12,14 +12,14 @@ import {
   Query,
   Req,
 } from "@nestjs/common";
-import type { Request } from "express";
-import { Roles } from "../../../auth/authorization/roles.decorator";
-import { Role } from "../../../auth/authorization/roles.enum";
-import { CreateUserDto } from "../dto/create-user-dto";
-import { FindDeactivatedUsersQueryDto } from "../dto/find-deactivated-user-query-dto";
-import { FindUsersQueryDto } from "../dto/find-user-query-dto";
-import { UpdateUserDto } from "../dto/update-user-dto";
-import { UpdateUserPasswordDto } from "../dto/update-user-password.dto";
+import type { AuthenticatedRequest } from "../../../auth/authentication/types/authenticated-request";
+import { Roles } from "../../../auth/authorization/decorator/roles.decorator";
+import { Role } from "../../../auth/authorization/enum/roles.enum";
+import { CreateUserDto } from "../dto/create/create-user-dto";
+import { FindDeactivatedUsersQueryDto } from "../dto/queries/find-deactivated-user-query-dto";
+import { FindUsersQueryDto } from "../dto/queries/find-user-query-dto";
+import { UpdateUserDto } from "../dto/updates/update-user-dto";
+import { UpdateUserPasswordDto } from "../dto/updates/update-user-password.dto";
 import { UserService } from "../service/user.service";
 
 @Controller("user")
@@ -33,12 +33,8 @@ export class UserController {
   }
 
   @Get("me")
-  async getCurrentUser(@Req() req: Request) {
-    const user = req.user as {
-      id: string;
-    };
-
-    return this.service.findCurrentUser(user.id);
+  async getCurrentUser(@Req() req: AuthenticatedRequest) {
+    return this.service.findCurrentUser(req.user.id);
   }
 
   @Get("/search")
@@ -48,7 +44,7 @@ export class UserController {
   }
 
   @Get()
-  @Roles(Role.SuperAdmin)
+  @Roles(Role.SuperAdmin, Role.Admin)
   async findAll(@Query() query: FindUsersQueryDto) {
     return this.service.findAll(query);
   }

@@ -1,4 +1,5 @@
 import { createBrowserRouter } from "react-router";
+import AccessControlPage from "../features/access-control/components/AccessControlPage";
 import ResetPassword from "../features/authentication/components/ResetPassword";
 import SignIn from "../features/authentication/components/SignIn";
 import DeactivatedUsersPage from "../features/deactivated-user-management/components/DeactivatedUsersPage";
@@ -6,7 +7,6 @@ import DivisionManagementPage from "../features/divisions/components/DivisionMan
 import UserManagementPage from "../features/user-management/components/UserManagementPage";
 import UserManagementTable from "../features/user-management/components/UserManagementTable";
 import AppLayout from "../layout/AppLayout";
-import AccessControlPage from "../pages/Administration/AcessControlPage";
 import AdminDashboard from "../pages/Dashboard/AdminDashboard";
 import Home from "../pages/Dashboard/Home";
 import ReceiverDashboard from "../pages/Dashboard/ReceiverDashboard";

@@ -4,6 +4,8 @@ import { PassportStrategy } from "@nestjs/passport";
 import type { Request } from "express";
 import { ExtractJwt, Strategy } from "passport-jwt";
 import { UserService } from "../../../features/user/service/user.service";
+import { Role } from "../../authorization/enum/roles.enum";
+import { AuthenticatedUser } from "../types/authenticated-user";
 
 interface JwtPayload {
   sub: string;
@@ -24,7 +26,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(payload: JwtPayload) {
+  async validate(payload: JwtPayload): Promise<AuthenticatedUser> {
     if (!payload.sub) {
       throw new UnauthorizedException("Invalid token payload");
     }
@@ -38,7 +40,20 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     return {
       id: user.id,
       email: user.email,
-      role_id: user.role_id,
+      role_id: Number(user.role_id),
+      user_management_permissions:
+        Number(user.role_id) === Role.Admin &&
+        user.user_permissions?.managementPermissions
+          ? {
+              view: user.user_permissions.managementPermissions !== undefined,
+              add: user.user_permissions.managementPermissions.add,
+              edit: user.user_permissions.managementPermissions.edit,
+              reset_password: user.user_permissions.managementPermissions.reset_password,
+              deactivate: user.user_permissions.managementPermissions.deactivate,
+              reactivate: user.user_permissions.managementPermissions.reactivate,
+              delete: user.user_permissions.managementPermissions.delete,
+            }
+          : null,
     };
   }
 }

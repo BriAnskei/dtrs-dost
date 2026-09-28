@@ -10,10 +10,10 @@ import {
   Patch,
   Query,
 } from "@nestjs/common";
-import { Roles } from "../../../auth/authorization/roles.decorator";
-import { Role } from "../../../auth/authorization/roles.enum";
-import { FindDivisionsQueryDto } from "../dto/find-divisions-query-dto";
-import { UpdateDivisionDto } from "../dto/update-division-dto";
+import { Roles } from "../../../auth/authorization/decorator/roles.decorator";
+import { Role } from "../../../auth/authorization/enum/roles.enum";
+import { FindDivisionsQueryDto } from "../dto/queries/find-divisions-query-dto";
+import { UpdateDivisionDto } from "../dto/updates/update-division-dto";
 import { DivisionService } from "../service/division.service";
 
 @Controller("division")

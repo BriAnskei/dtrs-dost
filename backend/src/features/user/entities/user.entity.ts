@@ -8,6 +8,7 @@ import {
   PrimaryGeneratedColumn,
 } from "typeorm";
 import { PasswordResetTokenEntity } from "../../../auth/authentication/entities/password-reset-token.entity";
+import { UserPermissionsEntity } from "../../permissions/entities/user-permissions-entity";
 import { DivisionEntity } from "./division.entity";
 import { RoleEntity } from "./role.entity";
 
@@ -77,4 +78,10 @@ export class UserEntity {
     (passwordResetToken) => passwordResetToken.user,
   )
   password_reset_token!: PasswordResetTokenEntity | null;
+
+  @OneToOne(
+    () => UserPermissionsEntity,
+    (userPermissions) => userPermissions.user,
+  )
+  user_permissions!: UserPermissionsEntity | null;
 }

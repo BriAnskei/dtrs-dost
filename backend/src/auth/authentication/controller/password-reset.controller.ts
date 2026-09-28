@@ -10,8 +10,8 @@ import {
   Post,
   Query,
 } from "@nestjs/common";
-import { Roles } from "../../authorization/roles.decorator";
-import { Role } from "../../authorization/roles.enum";
+import { Roles } from "../../authorization/decorator/roles.decorator";
+import { Role } from "../../authorization/enum/roles.enum";
 import { Public } from "../decorators/public.decorator";
 import { ResetPasswordDto } from "../dto/reset-password.dto";
 import { PasswordResetService } from "../service/password-reset-token-service";

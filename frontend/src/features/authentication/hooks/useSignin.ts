@@ -1,7 +1,7 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { type SubmitEventHandler, useState } from "react";
 import { useNavigate } from "react-router";
-import { useUser } from "../../../context/currentUser/use-user";
+import { CURRENT_USER_QUERY_KEY } from "../../../context/currentUser/use-current-user";
 import { getApiErrorMessage, isNetworkError } from "../../../lib/api-error";
 import { markAuthenticated } from "../authentication.session";
 import { authenticationService } from "../service/authentication.service";
@@ -9,7 +9,7 @@ import type { LoginDto } from "../type/authentication.type";
 
 export function useSignin() {
   const navigate = useNavigate();
-  const { setCurrentUser } = useUser();
+  const queryClient = useQueryClient();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -19,14 +19,15 @@ export function useSignin() {
   const loginMutation = useMutation({
     mutationFn: (dto: LoginDto) => authenticationService.signIn(dto),
 
-    onSuccess: (userData) => {
+    onSuccess: async () => {
+      await queryClient.refetchQueries({
+        queryKey: CURRENT_USER_QUERY_KEY,
+      });
       navigate("/", { replace: true });
-      setCurrentUser(userData);
       markAuthenticated();
     },
 
     onError: (error) => {
-      console.log(error);
       const message = isNetworkError(error)
         ? "Could not connect to the server. Check your connection."
         : getApiErrorMessage(error, "Login failed.");

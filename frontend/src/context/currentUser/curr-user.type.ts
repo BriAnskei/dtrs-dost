@@ -4,10 +4,21 @@ export type User = {
   full_name: string;
   role_id: Roles;
   email: string;
-  contect_number: string | null;
+  contact_number: string | null;
+  position: string | null;
   is_active: boolean;
+  user_management_permissions: UserManagementPermissions | null;
 };
 
-export type Roles = 1 | 2 | 3 | 4; // super_admin, admin, receiver_officer, division
+export type UserManagementPermissions = {
+  add: boolean;
+  edit: boolean;
+  reset_password: boolean;
+  deactivate: boolean;
+  reactivate: boolean;
+  delete: boolean;
+};
+
+export type Roles = 1 | 2 | 3 | 4;
 
 export type RoleName = "super_admin" | "admin" | "receiver_officer" | "division";

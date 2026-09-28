@@ -1,9 +1,6 @@
 import type { Request } from "express";
+import { AuthenticatedUser } from "./authenticated-user";
 
 export interface AuthenticatedRequest extends Request {
-  user: {
-    id: string;
-    email: string;
-    role_id: number;
-  };
+  user: AuthenticatedUser;
 }

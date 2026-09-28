@@ -1,11 +1,11 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { type EntityManager, ILike, type Repository } from "typeorm";
-import { Role } from "../../../auth/authorization/roles.enum";
+import { Role } from "../../../auth/authorization/enum/roles.enum";
 import { decodeCursor, encodeCursor } from "../../../common/pagination/cursor";
 import { escapeLike } from "../../../util/escapeLike";
-import { FindDeactivatedUsersQueryDto } from "../dto/find-deactivated-user-query-dto";
-import { FindUsersQueryDto } from "../dto/find-user-query-dto";
+import { FindDeactivatedUsersQueryDto } from "../dto/queries/find-deactivated-user-query-dto";
+import { FindUsersQueryDto } from "../dto/queries/find-user-query-dto";
 import { UserEntity } from "../entities/user.entity";
 import { UserSortOrder } from "../enums/user-sort-order-enum";
 import { DeactivatedUserCursor, UserCursor } from "../types/user-cursor";
@@ -33,6 +33,22 @@ export class UserRepository {
 
     return repo.findOne({
       where: { id },
+      relations: {
+        user_permissions: {
+          managementPermissions: true,
+        },
+      },
+    });
+  }
+
+  async findCurrentUser(id: string): Promise<UserEntity | null> {
+    return this.repository.findOne({
+      where: { id },
+      relations: {
+        user_permissions: {
+          managementPermissions: true,
+        },
+      },
     });
   }
 

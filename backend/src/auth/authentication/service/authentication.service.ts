@@ -32,16 +32,6 @@ export class AuthenticationService {
     const refreshToken = await this.createRefreshToken(user.id, dto.remember_me);
 
     return {
-      user_data: {
-        id: user.id,
-        division_id: user.division_id,
-        full_name: user.full_name,
-        role_id: user.role_id,
-        email: user.email,
-        contect_number: user.contact_number,
-        is_active: user.is_active,
-      },
-
       access_token: accessToken,
       refresh_token: refreshToken,
       refresh_token_max_age_ms: dto.remember_me
@@ -113,10 +103,8 @@ export class AuthenticationService {
     if (!user) {
       throw new UnauthorizedException("Invalid credentials");
     }
-    
-    
-    if(!user.is_active)
-      throw new UnauthorizedException("Account has been deactivated");
+
+    if (!user.is_active) throw new UnauthorizedException("Account has been deactivated");
 
     await this.verifyPassword(user.id, password, user);
 
