@@ -1,9 +1,16 @@
 import Input from "../../../components/form/input/InputField";
+import { THIN_SCROLLBAR } from "../../../contant/ThinScrollBar";
 import { USER_MANAGEMENT_PERMISSIONS } from "../contants";
 import { useUserManagementAccessTable } from "../hooks/user-user-management-access-table";
 import AdminAccessRow from "./AdminAccessRow";
 
-export default function UserManagementAccessTable() {
+interface UserManagementAccessTableProps {
+  maxListHeight?: string;
+}
+
+export default function UserManagementAccessTable({
+  maxListHeight = "560px",
+}: UserManagementAccessTableProps = {}) {
   const {
     search,
     setSearch,
@@ -15,7 +22,8 @@ export default function UserManagementAccessTable() {
     isError,
     hasNextPage,
     isFetchingNextPage,
-    fetchNextPage,
+    scrollRef,
+    sentinelRef,
   } = useUserManagementAccessTable();
 
   const hasFilters = search.trim().length > 0;
@@ -87,8 +95,12 @@ export default function UserManagementAccessTable() {
         )}
       </div>
 
-      {/* Admin list */}
-      <div className="space-y-2">
+      {/* Admin list — scroll container is ALWAYS mounted so the observer's root stays valid */}
+      <div
+        ref={scrollRef}
+        className={`overflow-y-auto space-y-2 pr-1 ${THIN_SCROLLBAR}`}
+        style={{ maxHeight: maxListHeight, overflowAnchor: "none" }}
+      >
         {isLoading ? (
           <div className="rounded-xl border border-gray-200 bg-white dark:border-white/[0.08] dark:bg-white/[0.03] px-5 py-10 text-center text-gray-400 text-theme-sm">
             Loading admins…
@@ -102,31 +114,34 @@ export default function UserManagementAccessTable() {
             No admins match your search.
           </div>
         ) : (
-          admins.map((admin) => (
-            <AdminAccessRow
-              key={admin.id}
-              admin={admin}
-              permissions={USER_MANAGEMENT_PERMISSIONS}
-              savedValues={permissionsByAdmin[admin.id]}
-              isSaving={savingAdminId === admin.id}
-              onSave={saveAdminPermissions}
-            />
-          ))
+          <>
+            {admins.map((admin) => (
+              <AdminAccessRow
+                key={admin.id}
+                admin={admin}
+                permissions={USER_MANAGEMENT_PERMISSIONS}
+                savedValues={permissionsByAdmin[admin.id]}
+                isSaving={savingAdminId === admin.id}
+                onSave={saveAdminPermissions}
+              />
+            ))}
+
+            {/* Sentinel: must be inside the scroll container, after the last row */}
+            <div ref={sentinelRef} className="h-px" />
+
+            {isFetchingNextPage && (
+              <p className="text-center text-theme-xs text-gray-400 py-2">
+                Loading more…
+              </p>
+            )}
+            {!hasNextPage && (
+              <p className="text-center text-theme-xs text-gray-300 dark:text-gray-600 py-2">
+                No more admins
+              </p>
+            )}
+          </>
         )}
       </div>
-
-      {hasNextPage && (
-        <div className="flex justify-center pt-2">
-          <button
-            type="button"
-            onClick={() => fetchNextPage()}
-            disabled={isFetchingNextPage}
-            className="px-4 py-2 text-theme-xs font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 border border-gray-200 dark:border-white/[0.08] rounded-lg transition-colors disabled:opacity-50"
-          >
-            {isFetchingNextPage ? "Loading…" : "Load more"}
-          </button>
-        </div>
-      )}
     </div>
   );
 }

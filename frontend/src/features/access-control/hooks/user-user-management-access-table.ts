@@ -1,5 +1,6 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
+import { useInfiniteScrollSentinel } from "../../../hooks/user-infinite-scroll-sentinel";
 import type { AdminPermissions } from "../types/access-controll-types";
 import {
   mapAdminPermissionsToGrantDto,
@@ -19,6 +20,8 @@ export function useUserManagementAccessTable() {
   const query = useUserManagementPermissions({
     name: debouncedSearch.trim() || undefined,
   });
+
+  const { hasNextPage, isFetchingNextPage, fetchNextPage } = query;
 
   const permissions = useMemo(
     () => query.data?.pages.flatMap((page) => page.data) ?? [],
@@ -47,10 +50,7 @@ export function useUserManagementAccessTable() {
     [savedPermissionsByAdmin, overrides],
   );
 
-  // Which single admin row currently has a save/revoke in flight, so
-  // only that row shows "Saving…" — both mutations below are shared
-  // across every row, so their own isPending is table-wide, not
-  // per-row.
+  // Which single admin row currently has a save/revoke in flight.
   const [savingAdminId, setSavingAdminId] = useState<string | null>(null);
 
   const { mutate: setUserManagementPermission } = useSetUserManagementPermission();
@@ -66,10 +66,6 @@ export function useUserManagementAccessTable() {
     setOverrides((prev) => ({ ...prev, [adminId]: values }));
     setSavingAdminId(adminId);
 
-    // Master toggle switched off → drop the row entirely, not a PUT
-    // with every field set to false. Mirrors the backend: revoke
-    // deletes the user_management_permission row so future reads
-    // come back with data: null again.
     if (previous[MASTER_KEY] && !values[MASTER_KEY]) {
       revokeUserManagementPermission(adminId, {
         onError: () => {
@@ -80,8 +76,6 @@ export function useUserManagementAccessTable() {
       return;
     }
 
-    // Master toggle switched on, or any function permission changed
-    // while access is already on → PUT just the changed fields.
     const dto = mapAdminPermissionsToGrantDto(values, previous);
 
     setUserManagementPermission(
@@ -95,6 +89,16 @@ export function useUserManagementAccessTable() {
     );
   }
 
+  // ── Infinite scroll ──
+  const loadMore = useCallback(() => {
+    if (hasNextPage && !isFetchingNextPage) fetchNextPage();
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  const { rootRef, sentinelRef } = useInfiniteScrollSentinel<HTMLDivElement>({
+    onIntersect: loadMore,
+    enabled: hasNextPage,
+  });
+
   return {
     search,
     setSearch,
@@ -104,8 +108,9 @@ export function useUserManagementAccessTable() {
     saveAdminPermissions,
     isLoading: query.isLoading,
     isError: query.isError,
-    hasNextPage: query.hasNextPage,
-    isFetchingNextPage: query.isFetchingNextPage,
-    fetchNextPage: query.fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    scrollRef: rootRef,
+    sentinelRef,
   };
 }

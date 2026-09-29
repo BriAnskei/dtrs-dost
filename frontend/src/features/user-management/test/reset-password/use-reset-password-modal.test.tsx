@@ -32,7 +32,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   useResetPasswordModal,
   type ResetPasswordStep,
-} from "./use-reset-password-modal";
+} from "../../hooks/reset-password/use-reset-password-modal";
 import type { SystemUser } from "../../types/user.type";
 import type { PasswordResetRequestResponse, PasswordResetTokenSummary } from "../../types/password-reset.type";
 
@@ -67,7 +67,7 @@ vi.mock("../../services/user.service", () => ({
   userService: { updatePassword: mockUpdatePassword },
 }));
 
-vi.mock("../../../authentication/service/authentication.service", () => ({
+vi.mock("../../../auth/authentication/service/authentication.service", () => ({
   authenticationService: { verifyPassword: mockVerifyPassword },
 }));
 

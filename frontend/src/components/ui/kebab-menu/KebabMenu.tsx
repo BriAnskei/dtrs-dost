@@ -11,6 +11,9 @@ export interface KebabAction {
   danger?: boolean;
   /** When true, the item is non-interactive and visually dimmed. */
   disabled?: boolean;
+
+  /** Tooltip shown when the action is disabled, e.g. missing permission. */
+  disabledReason?: string;
 }
 
 export interface KebabMenuProps {
@@ -266,22 +269,23 @@ export default function KebabMenu({
             <button
               type="button"
               key={action.label}
+              aria-disabled={action.disabled || undefined}
+              title={action.disabled ? action.disabledReason : undefined}
               onClick={() => {
-                if (!action.disabled) {
-                  action.handler();
-                  setOpen(false);
-                }
+                if (action.disabled) return;
+                action.handler();
+                setOpen(false);
               }}
-              disabled={action.disabled}
               className={`flex w-full items-center gap-2.5 px-3 py-2 text-left text-theme-xs transition-colors
                 ${idx === 0 ? "rounded-t-lg" : ""}
                 ${idx === actions.length - 1 ? "rounded-b-lg" : ""}
                 ${
-                  action.danger
-                    ? "text-danger hover:bg-red-50 dark:hover:bg-red-500/10"
-                    : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/[0.05]"
-                }
-                ${action.disabled ? "opacity-50 cursor-not-allowed" : ""}`}
+                  action.disabled
+                    ? "opacity-50 cursor-not-allowed text-gray-400 dark:text-gray-500"
+                    : action.danger
+                      ? "text-danger hover:bg-red-50 dark:hover:bg-red-500/10"
+                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/[0.05]"
+                }`}
             >
               {action.icon}
               {action.label}

@@ -28,7 +28,7 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { FindUsersParams } from "../types/user.type";
-import { useUsers } from "./use-users";
+import { useUsers } from "../hooks/use-users";
 
 const { mockFindAll } = vi.hoisted(() => ({
   mockFindAll: vi.fn(),

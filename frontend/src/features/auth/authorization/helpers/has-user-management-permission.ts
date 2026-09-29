@@ -6,6 +6,7 @@ export function hasUserManagementPermission(
   user: User,
   permission: UserManagementPermissionEnum,
 ): boolean {
+  // bypass for super admin
   if (user.role_id === 1) return true;
 
   return hasPermission(user.permissions.user_management_permissions, permission);

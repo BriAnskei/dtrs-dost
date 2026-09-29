@@ -26,7 +26,7 @@ import { AxiosError } from "axios";
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { passwordResetService } from "../../services/password-reset.service";
-import { useChooseMethodStep } from "./use-choose-method";
+import { useChooseMethodStep } from "../../hooks/reset-password/use-choose-method";
 
 const { mockGetByUserId, mockCreateResetRequest, mockGetConflictBody, mockToast } =
   vi.hoisted(() => ({

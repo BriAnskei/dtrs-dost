@@ -84,8 +84,11 @@ export class UserController {
   @Patch(":id/deactivate")
   @Roles(Role.SuperAdmin, Role.Admin)
   @RequirePermission(PERMISSION_DOMAIN, UserManagementPermission.Deactivate)
-  async deactivate(@Param("id", ParseUUIDPipe) id: string): Promise<void> {
-    await this.service.deactivate(id);
+  async deactivate(
+    @Param("id", ParseUUIDPipe) id: string,
+    @Req() req: AuthenticatedRequest,
+  ): Promise<void> {
+    await this.service.deactivate(id, req.user.id);
   }
 
   @Patch(":id/reactivate")

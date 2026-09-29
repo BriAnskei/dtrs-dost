@@ -23,7 +23,7 @@
 
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { useUserManagementTable } from "./use-user-management-table";
+import { useUserManagementTable } from "../hooks/use-user-management-table";
 
 const { mockUseUsers, mockUseInfiniteScrollSentinel, mockFetchNextPage } =
   vi.hoisted(() => ({
@@ -32,7 +32,7 @@ const { mockUseUsers, mockUseInfiniteScrollSentinel, mockFetchNextPage } =
     mockUseInfiniteScrollSentinel: vi.fn(),
   }));
 
-vi.mock("./use-users", () => ({
+vi.mock("../hooks/use-users", () => ({
   useUsers: mockUseUsers,
 }));
 

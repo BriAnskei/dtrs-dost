@@ -25,14 +25,14 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import { AxiosError } from "axios";
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { authenticationService } from "../../../auth/authentication/service/authentication.servicervice";
-import { useVerifyPasswordStep } from "./use-verify-password";
+import { authenticationService } from "../../../auth/authentication/service/authentication.service";
+import { useVerifyPasswordStep } from "../../hooks/reset-password/use-verify-password";
 
 const { mockVerifyPassword } = vi.hoisted(() => ({
   mockVerifyPassword: vi.fn(),
 }));
 
-vi.mock("../../../authentication/service/authentication.service", () => ({
+vi.mock("../../../auth/authentication/service/authentication.service", () => ({
   authenticationService: {
     verifyPassword: mockVerifyPassword,
   },

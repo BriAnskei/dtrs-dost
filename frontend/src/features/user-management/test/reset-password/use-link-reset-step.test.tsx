@@ -25,7 +25,7 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { PasswordResetRequestResponse } from "../../types/password-reset.type";
-import { useLinkResetStep } from "./use-link-reset-step";
+import { useLinkResetStep } from "../../hooks/reset-password/use-link-reset-step";
 
 const { mockCreateResetRequest, mockDeleteToken, mockToast } = vi.hoisted(() => ({
   mockCreateResetRequest: vi.fn(),

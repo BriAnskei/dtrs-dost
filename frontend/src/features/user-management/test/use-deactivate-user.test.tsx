@@ -24,7 +24,7 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { userService } from "../services/user.service";
-import { useDeactivateUser } from "./use-deactivate-user";
+import { useDeactivateUser } from "../hooks/use-deactivate-user";
 
 const { mockDeactivate, mockGetApiErrorMessage, mockToast } = vi.hoisted(() => ({
   mockDeactivate: vi.fn(),

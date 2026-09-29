@@ -15,6 +15,12 @@ layer(base);
   --header-height: 4rem;
 }
 
+@media (max-width: 1023px) {
+  :root {
+    --header-height: 2.75rem;
+  }
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @theme {

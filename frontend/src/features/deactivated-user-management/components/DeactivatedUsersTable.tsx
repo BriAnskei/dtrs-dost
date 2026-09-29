@@ -6,8 +6,10 @@ import KebabMenu, {
   TrashIcon,
 } from "../../../components/ui/kebab-menu/KebabMenu";
 import type { TableShellProp } from "../../../type/table-shell-prop";
+import { noPermission } from "../../auth/authorization/helpers/no-permission-message"; // NEW
 import { ALL_ROLES } from "../../user-management/constants";
 import { getRoleBadgeColor } from "../../user-management/helpers";
+import { useUserManagementPermissionsHelper } from "../../user-management/hooks/permission/use-user-management-permissions-helper";
 import type { SystemUser, UserRole } from "../../user-management/types/user.type";
 import { useDeactivatedUserTable } from "../hooks/use-deactivated-users-table";
 import PermanentDeleteUserModal from "./modal/PermanentDeleteUserModal";
@@ -17,6 +19,10 @@ export default function DeactivatedUserTable({
   maxTableHeight = "560px",
   maxMobileHeight = "520px",
 }: TableShellProp = {}) {
+  // NEW
+  const { canReactivate, canDelete, hasAnyDeactivatedRowAction } =
+    useUserManagementPermissionsHelper();
+
   const {
     isLoading,
     isError,
@@ -40,22 +46,37 @@ export default function DeactivatedUserTable({
     setReactivateTarget,
     deleteTarget,
     setDeleteTarget,
-    deleteUser,
   } = useDeactivatedUserTable();
 
+  // NEW: disabled + reason on both actions
   const userActions = (user: SystemUser) => [
     {
       label: "Reactivate",
       icon: <EnableIcon />,
       handler: () => setReactivateTarget(user),
+      disabled: !canReactivate,
+      disabledReason: noPermission("reactivate users"),
     },
     {
       label: "Delete",
       icon: <TrashIcon />,
       handler: () => setDeleteTarget(user),
       danger: true,
+      disabled: !canDelete,
+      disabledReason: noPermission("permanently delete users"),
     },
   ];
+
+  // NEW: shared by the desktop Action column and the mobile card.
+  // If neither action is allowed, show a dash instead of an all-disabled menu.
+  const renderActions = (user: SystemUser) =>
+    hasAnyDeactivatedRowAction ? (
+      <KebabMenu actions={userActions(user)} />
+    ) : (
+      <span className="text-gray-300 dark:text-gray-600" aria-hidden="true">
+        —
+      </span>
+    );
 
   const columns: TableShellColumn<SystemUser>[] = [
     {
@@ -114,7 +135,7 @@ export default function DeactivatedUserTable({
     {
       label: "Action",
       width: "w-6",
-      render: (user) => <KebabMenu actions={userActions(user)} />,
+      render: (user) => renderActions(user), // NEW
     },
   ];
 
@@ -139,7 +160,6 @@ export default function DeactivatedUserTable({
         maxMobileHeight={maxMobileHeight}
         renderToolbar={() => (
           <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
-            {/* Search - own top-level item, same as Division */}
             <div className="relative w-full sm:flex-1 sm:min-w-50 sm:max-w-md">
               <Input
                 type="text"
@@ -169,7 +189,6 @@ export default function DeactivatedUserTable({
               />
             </div>
 
-            {/* Everything else - role filter, sort, clear, add user - grouped together on the right */}
             <div className="flex gap-3 flex-wrap items-center">
               <select
                 value={filterRole}
@@ -239,7 +258,7 @@ export default function DeactivatedUserTable({
                   {user.position}
                 </p>
               </div>
-              <KebabMenu actions={userActions(user)} />
+              {renderActions(user)} {/* NEW */}
             </div>
 
             <div className="grid grid-cols-2 gap-x-4 gap-y-2">
@@ -279,18 +298,18 @@ export default function DeactivatedUserTable({
         )}
       />
 
-      {reactivateTarget && (
+      {/* NEW: defensive guards, same idea as the user management table */}
+      {reactivateTarget && canReactivate && (
         <ReactivateUserModal
           user={reactivateTarget}
           onClose={() => setReactivateTarget(null)}
         />
       )}
 
-      {deleteTarget && (
+      {deleteTarget && canDelete && (
         <PermanentDeleteUserModal
           user={deleteTarget}
           onClose={() => setDeleteTarget(null)}
-          onConfirm={deleteUser}
         />
       )}
     </>

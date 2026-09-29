@@ -7,8 +7,10 @@ import KebabMenu, {
   KeyIcon,
 } from "../../../components/ui/kebab-menu/KebabMenu";
 import type { TableShellProp } from "../../../type/table-shell-prop";
+import { noPermission } from "../../auth/authorization/helpers/no-permission-message";
 import { ALL_ROLES } from "../constants";
 import { getRoleBadgeColor } from "../helpers";
+import { useUserManagementPermissionsHelper } from "../hooks/permission/use-user-management-permissions-helper";
 import { useUserManagementTable } from "../hooks/use-user-management-table";
 import { EMPTY_FORM } from "../types/create-user.type";
 import type { SystemUser, UserRole } from "../types/user.type";
@@ -21,6 +23,9 @@ export default function UserManagementTable({
   maxTableHeight = "560px",
   maxMobileHeight = "520px",
 }: TableShellProp = {}) {
+  const { canAdd, canEdit, canResetPassword, canDeactivate, hasAnyRowAction } =
+    useUserManagementPermissionsHelper();
+
   const {
     isLoading,
     isError,
@@ -52,15 +57,38 @@ export default function UserManagementTable({
   } = useUserManagementTable();
 
   const userActions = (user: SystemUser) => [
-    { label: "Edit", icon: <EditIcon />, handler: () => setEditTarget(user) },
-    { label: "Reset Password", icon: <KeyIcon />, handler: () => setResetTarget(user) },
+    {
+      label: "Edit",
+      icon: <EditIcon />,
+      handler: () => setEditTarget(user),
+      disabled: !canEdit,
+      disabledReason: noPermission("edit users"),
+    },
+    {
+      label: "Reset Password",
+      icon: <KeyIcon />,
+      handler: () => setResetTarget(user),
+      disabled: !canResetPassword,
+      disabledReason: noPermission("reset passwords"),
+    },
     {
       label: "Deactivate",
       icon: <DisableIcon />,
       handler: () => setDeactivateTarget(user),
       danger: true,
+      disabled: !canDeactivate,
+      disabledReason: noPermission("deactivate users"),
     },
   ];
+
+  const renderActions = (user: SystemUser) =>
+    hasAnyRowAction ? (
+      <KebabMenu actions={userActions(user)} />
+    ) : (
+      <span className="text-gray-300 dark:text-gray-600" aria-hidden="true">
+        —
+      </span>
+    );
 
   const columns: TableShellColumn<SystemUser>[] = [
     {
@@ -128,7 +156,7 @@ export default function UserManagementTable({
     {
       label: "Action",
       width: "w-6",
-      render: (user) => <KebabMenu actions={userActions(user)} />,
+      render: (user) => renderActions(user),
     },
   ];
 
@@ -153,7 +181,6 @@ export default function UserManagementTable({
         getRowKey={(user) => user.id}
         renderToolbar={() => (
           <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
-            {/* Search - own top-level item, same as Division */}
             <div className="relative w-full sm:flex-1 sm:min-w-50 sm:max-w-md">
               <Input
                 type="text"
@@ -183,7 +210,6 @@ export default function UserManagementTable({
               />
             </div>
 
-            {/* Everything else - role filter, sort, clear, add user - grouped together on the right */}
             <div className="flex gap-3 flex-wrap items-center">
               <select
                 value={filterRole}
@@ -237,23 +263,31 @@ export default function UserManagementTable({
                 </button>
               )}
 
-              <button
-                type="button"
-                onClick={() => setAddModal(true)}
-                className="flex items-center gap-2 px-4 py-2 text-theme-sm font-medium text-white bg-primary hover:bg-primary/90 rounded-lg transition-colors whitespace-nowrap"
-              >
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                  aria-hidden="true"
+              {/* Wrapped in a span: tooltips on native disabled buttons are unreliable */}
+              <span title={!canAdd ? noPermission("add users") : undefined}>
+                <button
+                  type="button"
+                  disabled={!canAdd}
+                  onClick={() => setAddModal(true)}
+                  className="flex items-center gap-2 px-4 py-2 text-theme-sm font-medium text-white bg-primary hover:bg-primary/90 rounded-lg transition-colors whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-primary"
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-                </svg>
-                Add User
-              </button>
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                    aria-hidden="true"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M12 4v16m8-8H4"
+                    />
+                  </svg>
+                  Add User
+                </button>
+              </span>
             </div>
           </div>
         )}
@@ -271,7 +305,7 @@ export default function UserManagementTable({
                   {user.position}
                 </p>
               </div>
-              <KebabMenu actions={userActions(user)} />
+              {renderActions(user)}
             </div>
 
             <div className="grid grid-cols-2 gap-x-4 gap-y-2">
@@ -319,11 +353,13 @@ export default function UserManagementTable({
         )}
       />
 
-      {addModal && (
+      {/* Defensive guards: a modal can never open without its permission,
+          even if state is set by a bug or a stale UI. */}
+      {addModal && canAdd && (
         <AddUserModal initial={EMPTY_FORM} onClose={() => setAddModal(false)} />
       )}
 
-      {editTarget && (
+      {editTarget && canEdit && (
         <EditUserModal
           userId={editTarget.id}
           initial={toFormState(editTarget)}
@@ -331,11 +367,11 @@ export default function UserManagementTable({
         />
       )}
 
-      {resetTarget && (
+      {resetTarget && canResetPassword && (
         <ResetPasswordModal user={resetTarget} onClose={() => setResetTarget(null)} />
       )}
 
-      {deactivateTarget && (
+      {deactivateTarget && canDeactivate && (
         <DeactivateUserModal
           user={deactivateTarget}
           onClose={() => setDeactivateTarget(null)}

@@ -326,7 +326,10 @@ export class UserService {
     }
   }
 
-  async deactivate(id: string): Promise<void> {
+  async deactivate(id: string, currUserId: string): Promise<void> {
+    if (id === currUserId)
+      throw new BadRequestException("You cannot deactivate your own account");
+
     const res = await this.userRepository.deactivate(id);
 
     if (!res) throw new NotFoundException("User not found");

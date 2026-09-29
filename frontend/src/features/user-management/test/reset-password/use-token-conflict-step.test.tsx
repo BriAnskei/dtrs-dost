@@ -24,7 +24,7 @@ import { AxiosError } from "axios";
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { passwordResetService } from "../../services/password-reset.service";
-import { useTokenConflictStep } from "./use-token-conflict-step";
+import { useTokenConflictStep } from "../../hooks/reset-password/use-token-conflict-step";
 
 const { mockDeleteToken, mockToast } = vi.hoisted(() => ({
   mockDeleteToken: vi.fn(),
