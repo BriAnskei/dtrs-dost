@@ -1,16 +1,15 @@
+import type { CSSProperties } from "react";
 import Input from "../../../components/form/input/InputField";
 import { THIN_SCROLLBAR } from "../../../contant/ThinScrollBar";
+import type { TableShellProp } from "../../../type/table-shell-prop";
 import { USER_MANAGEMENT_PERMISSIONS } from "../contants";
 import { useUserManagementAccessTable } from "../hooks/user-user-management-access-table";
 import AdminAccessRow from "./AdminAccessRow";
 
-interface UserManagementAccessTableProps {
-  maxListHeight?: string;
-}
-
-export default function UserManagementAccessTable({
-  maxListHeight = "560px",
-}: UserManagementAccessTableProps = {}) {
+export default function AccessControlTable({
+  maxTableHeight = "560px",
+  maxMobileHeight = "520px",
+}: TableShellProp = {}) {
   const {
     search,
     setSearch,
@@ -28,6 +27,12 @@ export default function UserManagementAccessTable({
 
   const hasFilters = search.trim().length > 0;
 
+  const scrollStyle = {
+    "--list-h-mobile": maxMobileHeight,
+    "--list-h-desktop": maxTableHeight,
+    overflowAnchor: "none",
+  } as CSSProperties;
+
   return (
     <div className="space-y-5">
       {/* Info banner */}
@@ -38,6 +43,7 @@ export default function UserManagementAccessTable({
           viewBox="0 0 24 24"
           stroke="currentColor"
           strokeWidth={2}
+          aria-hidden="true"
         >
           <path
             strokeLinecap="round"
@@ -71,7 +77,7 @@ export default function UserManagementAccessTable({
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  d="M21 21l-4.35-4.35M17 11A6 6 0 1 15 11a6 6 0 0112 0z"
+                  d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z"
                 />
               </svg>
             }
@@ -98,8 +104,8 @@ export default function UserManagementAccessTable({
       {/* Admin list — scroll container is ALWAYS mounted so the observer's root stays valid */}
       <div
         ref={scrollRef}
-        className={`overflow-y-auto space-y-2 pr-1 ${THIN_SCROLLBAR}`}
-        style={{ maxHeight: maxListHeight, overflowAnchor: "none" }}
+        className={`overflow-y-auto space-y-2 pr-1 h-[var(--list-h-mobile)] md:h-[var(--list-h-desktop)] ${THIN_SCROLLBAR}`}
+        style={scrollStyle}
       >
         {isLoading ? (
           <div className="rounded-xl border border-gray-200 bg-white dark:border-white/[0.08] dark:bg-white/[0.03] px-5 py-10 text-center text-gray-400 text-theme-sm">

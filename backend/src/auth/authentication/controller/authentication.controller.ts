@@ -40,7 +40,7 @@ export class AuthenticationController {
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       path: "/",
-      maxAge: 15 * 60 * 1000, //15 minutes
+      maxAge: 3 * 1000, // 3 seconds
     });
     return {
       verified: true,

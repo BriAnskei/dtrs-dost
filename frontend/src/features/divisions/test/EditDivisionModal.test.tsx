@@ -2,11 +2,11 @@
  * Component (UI) tests for `EditDivisionModal` — the real modal, not a stub.
  *
  * WHY THIS FILE EXISTS:
- *   The table-level test (`DivisionManagementTable.test.tsx`) stubs the modal
+ *   The table-level test (`DivisionManagementTable.test.tsx`) stubs this modal
  *   to keep the kebab→modal wiring assertions sharp. This file verifies the
- *   modal's own rendering logic: pre-filled input, save/cancel interactions,
- *   and the action-state indicators ("Saving…" button, disabled close, auto-
- *   close on mutation settle) that the user asked to be covered.
+ *   modal's own rendering logic, per the user's request to test modal-specific UI
+ *   states: pre-filled input, save/cancel interactions, and action-state
+ *   indicators ("Saving…" button, disabled close, auto-close on mutation settle).
  *
  * STRATEGY:
  *   Render the real `<EditDivisionModal>` with controlled props; assert on the
@@ -30,8 +30,8 @@
 
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import type { Division } from "../../type/division.type";
-import EditDivisionModal from "./EditDivisionModal";
+import type { Division } from "../type/division.type";
+import EditDivisionModal from "../components/modal/EditDivisionModal";
 
 const CIVIL_WORKS: Division = {
   id: "d1",
@@ -112,10 +112,7 @@ describe("EditDivisionModal (UI)", () => {
     expect(saveBtn).toBeDisabled();
 
     // The X close button (in header) is disabled during saving.
-    // Note: the Modal backdrop button also has aria-label="Close modal", so we
-    // can't use getByLabelText. Instead, find the header X button by its SVG.
     const xButtons = screen.getAllByRole("button", { hidden: true });
-    // The X button contains an SVG with the "X" path (M6 18L18 6M6 6l12 12).
     const closeXBtn = xButtons.find((btn) => {
       const svg = btn.querySelector("svg");
       if (!svg) return false;

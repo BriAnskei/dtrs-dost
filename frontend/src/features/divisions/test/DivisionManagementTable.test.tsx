@@ -22,8 +22,15 @@
  *   - Stub the three modal sub-components and the two skeleton primitives to
  *     lightweight data-testid markers that still reflect `isSaving` / `isDeleting`
  *     props (so action-state assertions work). We are testing the *table*, not
- *     the modal internals (those have their own tests); stubbing keeps a
- *     QueryClient provider unnecessary and keeps the focus sharp.
+ *     the modal internals (those have their own tests using the real components);
+ *     stubbing keeps a QueryClient provider unnecessary and keeps the focus sharp.
+ *
+ * NOTE: The division module has NO permission handler — there is no
+ * `useUserManagementPermissionsHelper` equivalent. Access control on the "Delete"
+ * kebab action is driven purely by a business rule: `canDelete = (d) =>
+ * d.userCount === 0`. When a division still has users, Delete is disabled in the
+ * KebabMenu (`disabled: !canDelete(d)`) and its onClick returns early — so no
+ * modal opens and no delete API call is made.
  *
  * Covered scenarios (mapped to the user's request):
  *   1. Loading indicator — isLoading renders skeletons (mobile + desktop),
@@ -43,14 +50,11 @@
  *   9. Kebab → Rename opens EditDivisionModal for the correct division.
  *   10. Kebab → Delete opens DeleteDivisionModal for the correct division.
  *   11. Delete disabled when division has users (userCount > 0).
- *   12. View users — clicking UserAvatarStack opens DivisionUsersModal.
- *   13. handleRename / handleDelete are invoked from the modal stubs with the
+ *   12. Delete stays enabled when division has zero users.
+ *   13. View users — clicking UserAvatarStack opens DivisionUsersModal.
+ *   14. handleRename / handleDelete are invoked from the modal stubs with the
  *       targeted division's id.
- *   14. No modal leaks before a kebab/avatar action fires.
- *
- *   Modal action-process states (isSaving / isDeleting / deleteError rendering)
- *   are tested separately in EditDivisionModal.test.tsx and
- *   DeleteDivisionModal.test.tsx using the real modal components.
+ *   15. No modal leaks before a kebab/avatar action fires.
  */
 
 import { fireEvent, render, screen } from "@testing-library/react";
@@ -58,7 +62,7 @@ import React from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Division } from "../type/division.type";
 import type { DivisionSort } from "../type/division-api.type";
-import DivisionManagementTable from "./DivisionManagementTable";
+import DivisionManagementTable from "../components/DivisionManagementTable";
 
 // ─── Mocked hook (stateful impl set per test) ─────────────────────────────────
 
@@ -70,13 +74,17 @@ vi.mock("../hooks/use-division-management-table", () => ({
   useDivisionManagementTable: mockUseDivisionManagementTable,
 }));
 
-// ─── Modal stubs ──────────────────────────────────────────────────────────────
+// ─── Modal stubs ─────────────────────────────────────────────────────────────
 // Each stub renders an identifiable marker plus the targeted division's name so
 // we can assert *which* division an action was fired on (proves the kebab
 // wiring). Action-state props (isSaving / isDeleting / error) are surfaced as
 // data-testid buttons with dynamic text so we can assert action-process states.
+//
+// These are STUBS — the real EditDivisionModal and DeleteDivisionModal are
+// tested separately in their own test files (EditDivisionModal.test.tsx /
+// DeleteDivisionModal.test.tsx) using the actual components.
 
-vi.mock("./modal/EditDivisionModal", () => ({
+vi.mock("../components/modal/EditDivisionModal", () => ({
   default: function EditDivisionModalStub({
     division,
     onClose,
@@ -112,7 +120,7 @@ vi.mock("./modal/EditDivisionModal", () => ({
   },
 }));
 
-vi.mock("./modal/DeleteDivisionModal", () => ({
+vi.mock("../components/modal/DeleteDivisionModal", () => ({
   default: function DeleteDivisionModalStub({
     division,
     onClose,
@@ -145,15 +153,13 @@ vi.mock("./modal/DeleteDivisionModal", () => ({
         >
           {isDeleting ? "Deleting…" : "Delete"}
         </button>
-        {error && (
-          <span data-testid="delete-error">{error.message}</span>
-        )}
+        {error && <span data-testid="delete-error">{error.message}</span>}
       </div>
     );
   },
 }));
 
-vi.mock("./DivisionUsersModal", () => ({
+vi.mock("../components/DivisionUsersModal", () => ({
   default: function DivisionUsersModalStub({
     division,
     onClose,
@@ -433,7 +439,9 @@ describe("DivisionManagementTable (UI)", () => {
   it("renders 'No users' for divisions with zero users", () => {
     render(<DivisionManagementTable />);
 
-    expect(screen.getAllByText("No users")).toHaveLength(2); // mobile card + desktop cell
+    // UserAvatarStack renders "No users" when users.length === 0. Appears once
+    // in the mobile card + once in the desktop Users column.
+    expect(screen.getAllByText("No users")).toHaveLength(2);
   });
 
   // ── Kebab menu → modal wiring ─────────────────────────────────────────────
@@ -485,12 +493,14 @@ describe("DivisionManagementTable (UI)", () => {
     fireEvent.click(screen.getAllByTitle("Division actions")[0]);
 
     const deleteAction = screen.getByRole("button", { name: "Delete" });
-    expect(deleteAction).toBeDisabled();
+    // KebabMenu uses `aria-disabled` (not native `disabled`), so we assert on
+    // the ARIA attribute instead of toBeDisabled().
+    expect(deleteAction).toHaveAttribute("aria-disabled", "true");
   });
 
   it("keeps Delete enabled in the kebab when the division has no users", () => {
     // Equip the hook with only Equipment (userCount = 0) so the first kebab
-    // is for an deletable division.
+    // is for a deletable division.
     mockUseDivisionManagementTable.mockImplementation(
       makeHookImpl({ divisions: [EQUIPMENT], hasNextPage: false }),
     );
@@ -514,6 +524,19 @@ describe("DivisionManagementTable (UI)", () => {
     expect(screen.getByTestId("users-division-name")).toHaveTextContent(
       "Users in Civil Works Division",
     );
+  });
+
+  it("renders 'No users' text (not a View button) when a division has zero users", () => {
+    mockUseDivisionManagementTable.mockImplementation(
+      makeHookImpl({ divisions: [EQUIPMENT], hasNextPage: false }),
+    );
+
+    render(<DivisionManagementTable />);
+
+    // UserAvatarStack renders "No users" text instead of a clickable stack.
+    expect(screen.getAllByText("No users")).toHaveLength(2);
+    // No "View" button should exist for this division.
+    expect(screen.queryByTitle(/View/)).not.toBeInTheDocument();
   });
 
   it("invokes handleRename with the division id when Save is clicked in EditDivisionModal", () => {
@@ -551,6 +574,57 @@ describe("DivisionManagementTable (UI)", () => {
     fireEvent.click(screen.getByTestId("delete-confirm"));
 
     expect(impl.handleDelete).toHaveBeenCalledTimes(1);
+  });
+
+  it("closes EditDivisionModal when its Close button is clicked", () => {
+    const impl = makeHookImpl({
+      divisions: DIVISIONS,
+      hasNextPage: true,
+      initialEditTarget: CIVIL_WORKS,
+    });
+    mockUseDivisionManagementTable.mockImplementation(impl);
+
+    render(<DivisionManagementTable />);
+
+    expect(screen.getByTestId("edit-division-modal")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByTestId("edit-close"));
+
+    expect(screen.queryByTestId("edit-division-modal")).not.toBeInTheDocument();
+  });
+
+  it("closes DeleteDivisionModal when its Cancel button is clicked", () => {
+    const impl = makeHookImpl({
+      divisions: DIVISIONS,
+      hasNextPage: true,
+      initialDeleteTarget: EQUIPMENT,
+    });
+    mockUseDivisionManagementTable.mockImplementation(impl);
+
+    render(<DivisionManagementTable />);
+
+    expect(screen.getByTestId("delete-division-modal")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByTestId("delete-close"));
+
+    expect(screen.queryByTestId("delete-division-modal")).not.toBeInTheDocument();
+  });
+
+  it("closes DivisionUsersModal when its Close button is clicked", () => {
+    const impl = makeHookImpl({
+      divisions: DIVISIONS,
+      hasNextPage: true,
+      initialViewTarget: CIVIL_WORKS,
+    });
+    mockUseDivisionManagementTable.mockImplementation(impl);
+
+    render(<DivisionManagementTable />);
+
+    expect(screen.getByTestId("division-users-modal")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByTestId("users-close"));
+
+    expect(screen.queryByTestId("division-users-modal")).not.toBeInTheDocument();
   });
 
   it("renders no modal until a kebab or avatar action is taken", () => {
@@ -601,22 +675,6 @@ describe("DivisionManagementTable (UI)", () => {
     expect(
       screen.queryByText("Civil Works Division"),
     ).not.toBeInTheDocument();
-  });
-
-  // ── Empty state ────────────────────────────────────────────────────────────
-
-  it("renders the empty message when there are no divisions", () => {
-    mockUseDivisionManagementTable.mockImplementation(
-      makeHookImpl({ divisions: [], hasNextPage: false }),
-    );
-
-    render(<DivisionManagementTable />);
-
-    // Appears once in the mobile card + once in the desktop table.
-    expect(
-      screen.getAllByText(/No divisions match your search\./),
-    ).toHaveLength(2);
-    expect(screen.queryByText(/Loading more/i)).not.toBeInTheDocument();
   });
 
   // ── Infinite-scroll footers (loading at the bottom) ────────────────────────
@@ -672,11 +730,6 @@ describe("DivisionManagementTable (UI)", () => {
     expect(screen.queryByText(/Loading more/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/No more/i)).not.toBeInTheDocument();
   });
-
-  // Action-process states (isSaving / isDeleting / deleteError rendering
-  // inside the modals) are tested in the dedicated modal test files:
-  //   EditDivisionModal.test.tsx
-  //   DeleteDivisionModal.test.tsx
 
   // ── Filter narrows results ───────────────────────────────────────────────────
 

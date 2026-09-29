@@ -2,14 +2,17 @@
  * Component (UI) tests for `DeleteDivisionModal` — the real modal, not a stub.
  *
  * WHY THIS FILE EXISTS:
- *   The table-level test stubs this modal to keep kebab→modal assertions
- *   focused. This file verifies the modal's own rendering logic, per the user's
- *   request to separate action-process state tests into dedicated per-modal
- *   files using the real components.
+ *   The table-level test (`DivisionManagementTable.test.tsx`) stubs this modal
+ *   to keep kebab→modal wiring assertions sharp. This file verifies the modal's
+ *   own rendering logic, per the user's request to test modal-specific UI
+ *   states: confirmation button text, disabled states, callback invocation,
+ *   and error rendering.
  *
  * STRATEGY:
  *   Render the real `<DeleteDivisionModal>` with controlled props; assert on the
- *   DOM rendered via `createPortal` into `document.body`.
+ *   DOM rendered via `createPortal` into `document.body`. No hook or service
+ *   mocking needed — the modal is purely presentational (it calls `onConfirm` /
+ *   `onClose` callbacks).
  *
  * Covered scenarios:
  *   1. Title includes the division name ("Delete {name}?").
@@ -19,14 +22,14 @@
  *   5. isDeleting=false → Cancel is enabled.
  *   6. Confirm click → onConfirm called once.
  *   7. Cancel click → onClose called.
- *   8. When `error` is set → error message renders on the button area.
+ *   8. When `error` is set → error message renders.
  *   9. When `error` is NOT set → no error message in the DOM.
  */
 
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import type { Division } from "../../type/division.type";
-import DeleteDivisionModal from "./DeleteDivisionModal";
+import type { Division } from "../type/division.type";
+import DeleteDivisionModal from "../components/modal/DeleteDivisionModal";
 
 const EQUIPMENT: Division = {
   id: "d4",
@@ -114,8 +117,6 @@ describe("DeleteDivisionModal (UI)", () => {
 
   it("does NOT render an error message when `error` is absent", () => {
     renderModal();
-    // No error text should be present; asserting absence by checking that
-    // the specific error string from another test isn't found.
     expect(screen.queryByText(/Failed to delete/i)).not.toBeInTheDocument();
   });
 });
