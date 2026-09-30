@@ -298,7 +298,6 @@ export default function DeactivatedUserTable({
         )}
       />
 
-      {/* NEW: defensive guards, same idea as the user management table */}
       {reactivateTarget && canReactivate && (
         <ReactivateUserModal
           user={reactivateTarget}

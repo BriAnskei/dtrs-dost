@@ -104,6 +104,6 @@ export class UserController {
   @Roles(Role.SuperAdmin, Role.Admin)
   @RequirePermission(PERMISSION_DOMAIN, UserManagementPermission.Reactivate)
   async delete(@Param("id") id: string): Promise<void> {
-    this.service.delete(id);
+    await this.service.delete(id);
   }
 }

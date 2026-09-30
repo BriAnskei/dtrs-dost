@@ -20,14 +20,14 @@
 import { screen } from "@testing-library/react";
 import { Route } from "react-router";
 import { describe, expect, it, vi } from "vitest";
-import { LocationDisplay, renderRoutes } from "../tests/test-utils";
+import { LocationDisplay, renderRoutes } from "../../../tests/test-utils";
 import ProtectedRoute from "./protectedRoute";
 
 const { mockUseUser } = vi.hoisted(() => ({ mockUseUser: vi.fn() }));
 
-vi.mock("../context/currentUser/use-user", () => ({ useUser: mockUseUser }));
+vi.mock("../../../context/currentUser/use-user", () => ({ useUser: mockUseUser }));
 
-vi.mock("../components/Appshellskeleton", () => ({
+vi.mock("../../../components/Appshellskeleton", () => ({
   default: () => <span data-testid="skeleton">Loading…</span>,
 }));
 

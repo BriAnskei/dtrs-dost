@@ -21,9 +21,9 @@ import PublicRoute from "./PublicRoute";
 
 const { mockUseUser } = vi.hoisted(() => ({ mockUseUser: vi.fn() }));
 
-vi.mock("../context/currentUser/use-user", () => ({ useUser: mockUseUser }));
+vi.mock("../../../context/currentUser/use-user", () => ({ useUser: mockUseUser }));
 
-vi.mock("../components/Appshellskeleton", () => ({
+vi.mock("../../../components/Appshellskeleton", () => ({
   default: () => <span data-testid="skeleton">Loading…</span>,
 }));
 

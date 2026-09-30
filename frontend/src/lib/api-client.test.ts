@@ -49,7 +49,7 @@ const { mockRefresh, mockToastError } = vi.hoisted(() => ({
   mockToastError: vi.fn(),
 }));
 
-vi.mock("../features/authentication/service/authentication.service", () => ({
+vi.mock("../features/auth/authentication/service/authentication.service", () => ({
   authenticationService: {
     refresh: mockRefresh,
     login: vi.fn(),
@@ -349,5 +349,221 @@ describe("api-client response interceptor — network errors", () => {
 
     expect(mockToastError).not.toHaveBeenCalled();
     expect(mockRefresh).not.toHaveBeenCalled();
+  });
+
+  it("does NOT toast on a network failure for the login flow (caller owns it)", async () => {
+    const apiClient = await freshApiClient();
+    apiClient.defaults.adapter = networkAdapter;
+
+    await expect(apiClient.post("/authentication/login", {})).rejects.toBeTruthy();
+
+    expect(mockToastError).not.toHaveBeenCalled();
+    expect(mockRefresh).not.toHaveBeenCalled();
+  });
+});
+
+describe("api-client response interceptor — 403 Forbidden (authorization)", () => {
+  /*
+   * AUTH + AUTHZ DISTINCTION:
+   *
+   *   401 Unauthorized  → the access token is EXPIRED or INVALID.
+   *     The interceptor attempts a silent refresh; if that also fails
+   *     the session is gone and the "session expired" toast fires.
+   *
+   *   403 Forbidden      → the token is VALID but the user LACKS the
+   *     claim (permission) for this action.  This is an AUTHORIZATION
+   *     failure, NOT an authentication failure.  The interceptor must
+   *     NOT:
+   *       - attempt token refresh (the token is fine)
+   *       - show the session-expired toast (the session is still alive)
+   *       - clear the auth:authenticated flag
+   *       - dispatch the auth:session-expired event
+   *
+   *     It must simply reject with the 403 AxiosError so the caller
+   *     (a mutation hook, route guard, etc.) can handle the denial —
+   *     typically by showing an /unauthorized page.
+   */
+
+  beforeEach(() => {
+    vi.restoreAllMocks();
+    mockRefresh.mockReset();
+    mockToastError.mockReset();
+    localStorage.clear();
+  });
+
+  it("rejects with 403 without triggering token refresh", async () => {
+    markAuthenticatedLocal();
+
+    const apiClient = await freshApiClient();
+    const adapter = makeAdapter({
+      "POST:/documents/incoming": { status: 403, data: { message: "Forbidden" } },
+    });
+    apiClient.defaults.adapter = adapter;
+
+    await expect(
+      apiClient.post("/documents/incoming", { title: "test" }),
+    ).rejects.toMatchObject({ response: { status: 403 } });
+
+    // No refresh attempted — the token is valid, only the claim is missing.
+    expect(mockRefresh).not.toHaveBeenCalled();
+  });
+
+  it("does NOT show session-expired toast on 403", async () => {
+    markAuthenticatedLocal();
+
+    const apiClient = await freshApiClient();
+    const adapter = makeAdapter({
+      "GET:/admin/settings": { status: 403, data: { message: "Forbidden" } },
+    });
+    apiClient.defaults.adapter = adapter;
+
+    await expect(apiClient.get("/admin/settings")).rejects.toMatchObject({
+      response: { status: 403 },
+    });
+
+    // No session-expired toast — this is an authz denial, not session expiry.
+    expect(mockToastError).not.toHaveBeenCalled();
+  });
+
+  it("does NOT clear the auth flag on 403 (session is still valid)", async () => {
+    markAuthenticatedLocal();
+
+    const apiClient = await freshApiClient();
+    const adapter = makeAdapter({
+      "DELETE:/admin/users/42": { status: 403, data: { message: "Forbidden" } },
+    });
+    apiClient.defaults.adapter = adapter;
+
+    await expect(apiClient.delete("/admin/users/42")).rejects.toMatchObject({
+      response: { status: 403 },
+    });
+
+    // The persisted flag survives — the user can still navigate and retry
+    // with a different action; only the specific claim was denied.
+    expect(localStorage.getItem("auth:authenticated")).toBe("true");
+  });
+
+  it("does NOT dispatch session-expired event on 403", async () => {
+    const onExpired = vi.fn();
+    window.addEventListener("auth:session-expired", onExpired);
+
+    try {
+      markAuthenticatedLocal();
+
+      const apiClient = await freshApiClient();
+      const adapter = makeAdapter({
+        "GET:/admin/settings": { status: 403, data: { message: "Forbidden" } },
+      });
+      apiClient.defaults.adapter = adapter;
+
+      await expect(apiClient.get("/admin/settings")).rejects.toBeTruthy();
+
+      expect(onExpired).not.toHaveBeenCalled();
+    } finally {
+      window.removeEventListener("auth:session-expired", onExpired);
+    }
+  });
+});
+
+describe("api-client response interceptor — concurrent 401 + single refresh", () => {
+  /*
+   * MULTI-REQUEST REFRESH COALESCING:
+   *
+   * When two or more requests fail with 401 at the same time (e.g. the
+   * access token expired while the user had multiple tabs open), the
+   * interceptor must fire refresh() exactly ONCE and retry all pending
+   * requests.  The module-level `isRefreshing` latch guarantees this.
+   *
+   * If refresh succeeds → all requests are retried and succeed.
+   * If refresh fails and the user was authenticated → the session-expired
+   * toast fires once (stable id "session-expired" deduplicates), and the
+   * auth:session-expired event is dispatched so UserProvider clears the
+   * current user.
+   */
+
+  beforeEach(() => {
+    vi.restoreAllMocks();
+    mockRefresh.mockReset();
+    mockToastError.mockReset();
+    localStorage.clear();
+  });
+
+  it("fires refresh exactly once for concurrent 401s, then retries all", async () => {
+    markAuthenticatedLocal();
+
+    const apiClient = await freshApiClient();
+    const adapter = makeAdapter({
+      "GET:/user/me": [
+        { status: 401, data: { message: "Unauthorized" } },
+        { status: 200, data: { id: "u1", full_name: "Jane" } },
+      ],
+      "GET:/dashboard/stats": [
+        { status: 401, data: { message: "Unauthorized" } },
+        { status: 200, data: { views: 100 } },
+      ],
+    });
+    apiClient.defaults.adapter = adapter;
+
+    mockRefresh.mockResolvedValueOnce(undefined);
+
+    // Fire two requests concurrently — both get 401, both should trigger
+    // the refresh latch but refresh() is called only once.
+    const [resA, resB] = await Promise.all([
+      apiClient.get("/user/me"),
+      apiClient.get("/dashboard/stats"),
+    ]);
+
+    expect(resA.status).toBe(200);
+    expect(resB.status).toBe(200);
+    expect(mockRefresh).toHaveBeenCalledTimes(1);
+    // Each endpoint was hit twice (original 401 + retry 200).
+    expect(
+      adapter.calls.filter((c) => c.url === "/user/me"),
+    ).toHaveLength(2);
+    expect(
+      adapter.calls.filter((c) => c.url === "/dashboard/stats"),
+    ).toHaveLength(2);
+  });
+
+  it("dispatches session-expired once when concurrent refresh also fails", async () => {
+    const onExpired = vi.fn();
+    window.addEventListener("auth:session-expired", onExpired);
+
+    try {
+      markAuthenticatedLocal();
+
+      const apiClient = await freshApiClient();
+      const adapter = makeAdapter({
+        "GET:/user/me": { status: 401, data: { message: "Unauthorized" } },
+        "GET:/dashboard/stats": { status: 401, data: { message: "Unauthorized" } },
+      });
+      apiClient.defaults.adapter = adapter;
+
+      mockRefresh.mockRejectedValueOnce(
+        Object.assign(new Error("refresh failed"), { response: { status: 401 } }),
+      );
+
+      // Both requests fail with 401 → one refresh attempt → refresh fails.
+      await Promise.allSettled([
+        apiClient.get("/user/me"),
+        apiClient.get("/dashboard/stats"),
+      ]);
+
+      // Toast fires once (stable id "session-expired" deduplicates even
+      // though the catch block runs twice).
+      expect(mockToastError).toHaveBeenCalledTimes(1);
+      expect(mockToastError).toHaveBeenCalledWith(
+        "Your session has expired",
+        expect.objectContaining({ id: "session-expired" }),
+      );
+
+      // Event fires once.
+      expect(onExpired).toHaveBeenCalledTimes(1);
+
+      // Auth flag cleared.
+      expect(localStorage.getItem("auth:authenticated")).toBeNull();
+    } finally {
+      window.removeEventListener("auth:session-expired", onExpired);
+    }
   });
 });

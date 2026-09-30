@@ -1,5 +1,5 @@
 /**
- * Shared test harness for routing-guard tests.
+ * Shared test harness for routing-guard and provider tests.
  *
  * Provides:
  *  - `LocationDisplay`: a spy component that renders the current router
@@ -7,11 +7,15 @@
  *    NOT throw or block render, we read the *final* URL after navigation to
  *    assert where the user landed.
  *
- *  - `renderWithRouter`: wraps the given <Route> tree in a <MemoryRouter> +
- *    <Routes> whose catch-all `*` route renders LocationDisplay, so any
- *    <Navigate to="/somewhere"> whose target has no explicit route will still
- *    surface its destination pathname.  Tests may add explicit <Route>
- *    children to assert richer "page rendered" behaviour.
+ *  - `renderRoutes`: wraps the given <Route> tree in a
+ *    <QueryClientProvider> + <MemoryRouter> + <Routes> whose catch-all `*`
+ *    route renders LocationDisplay, so any <Navigate to="/somewhere"> whose
+ *    target has no explicit route will still surface its destination pathname.
+ *    Tests may add explicit <Route> children to assert richer "page rendered"
+ *    behaviour.
+ *
+ *  - `createTestQueryClient`: builds an isolated QueryClient with no
+ *    retries / garbage collection so tests are deterministic.
  *
  * We deliberately keep `useUser` mocks inside each test file (vi.mock is
  * file-scoped and hoisted), so this utility stays dependency-free.
@@ -20,6 +24,25 @@
 import { type ReactNode } from "react";
 import { MemoryRouter, Routes, Route, useLocation } from "react-router";
 import { render, type RenderResult } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+/**
+ * Builds a QueryClient configured for tests: no retries, no garbage
+ * collection.  Each call returns a fresh client so tests stay isolated.
+ */
+export function createTestQueryClient() {
+  return new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+        gcTime: Infinity,
+      },
+      mutations: {
+        retry: false,
+      },
+    },
+  });
+}
 
 export function LocationDisplay() {
   const { pathname } = useLocation();
@@ -29,7 +52,8 @@ export function LocationDisplay() {
 type RenderRouterOptions = { initialEntries?: string[] };
 
 /**
- * Render a <Routes> body inside an isolated <MemoryRouter>.
+ * Render a <Routes> body inside isolated <QueryClientProvider> + <MemoryRouter>
+ * wrappers.
  *
  * Pass the routes as children of <Routes> via `children`.  A catch-all `*`
  * route (LocationDisplay) is appended last so unmatched Navigate targets are
@@ -49,13 +73,16 @@ export function renderRoutes(
   const entries = Array.isArray(initialEntries)
     ? initialEntries
     : initialEntries.initialEntries ?? ["/"];
+  const queryClient = createTestQueryClient();
   return render(
-    <MemoryRouter initialEntries={entries}>
-      <Routes>
-        {children}
-        <Route path="*" element={<LocationDisplay />} />
-      </Routes>
-    </MemoryRouter>,
+    <QueryClientProvider client={queryClient}>
+      <MemoryRouter initialEntries={entries}>
+        <Routes>
+          {children}
+          <Route path="*" element={<LocationDisplay />} />
+        </Routes>
+      </MemoryRouter>
+    </QueryClientProvider>,
   );
 }
 
