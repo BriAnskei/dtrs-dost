@@ -1,5 +1,14 @@
 export type ExtractionSource = "text" | "ocr";
 
+/**
+ * Bounding box of a chunk, normalized to 0-1 of the page with a top-left origin.
+ *
+ * This matches what the highlight overlay (PdfPageWithHighlights) consumes:
+ * `left/top/width/height` are emitted as CSS percentages of the page box.
+ * Native text is converted from pdfjs PDF points (bottom-left origin) via
+ * `x/pageW`, `1 - (y + h) / pageH`, `w/pageW`, `h/pageH`; OCR bboxes come from
+ * Tesseract in canvas pixels (already top-left) and are divided by canvas size.
+ */
 export interface BoundingBox {
   x: number;
   y: number;

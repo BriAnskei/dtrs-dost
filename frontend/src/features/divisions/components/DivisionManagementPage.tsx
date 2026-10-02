@@ -7,10 +7,10 @@ export default function DivisionManagementPage() {
   return (
     <>
       <PageMeta
-        title="Division Management | Document Tracking System"
+        title="Division Records | Document Tracking System"
         description="Manage divisions and see which users belong to each."
       />
-      <PageBreadcrumb pageTitle="Division Management" />
+      <PageBreadcrumb pageTitle="Division Records" />
       <div className="space-y-6">
         <ComponentCard>
           <DivisionManagementTable />

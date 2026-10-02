@@ -23,9 +23,18 @@ export async function extractPdf(file: File): Promise<PdfExtractionResult> {
     for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber++) {
       const page = await pdf.getPage(pageNumber);
 
+      // Viewport at scale 1 gives page dimensions in PDF points (1/72"), used to
+      // normalize chunk bboxes to 0-1 of the page with a top-left origin.
+      const viewport = page.getViewport({ scale: 1 });
+
       const textContent = await page.getTextContent();
 
-      const nativeChunks = extractNativeText(textContent, pageNumber);
+      const nativeChunks = extractNativeText(
+        textContent,
+        pageNumber,
+        viewport.width,
+        viewport.height,
+      );
 
       const nativeTextLength = nativeChunks.reduce(
         (total, chunk) => total + chunk.text.length,

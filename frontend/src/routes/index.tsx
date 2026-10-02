@@ -10,6 +10,7 @@ import ProtectedRoute from "../features/auth/authorization/protectedRoute";
 import RoleRoute from "../features/auth/authorization/RoleRoutes";
 import DeactivatedUsersPage from "../features/deactivated-user-management/components/DeactivatedUsersPage";
 import DivisionManagementPage from "../features/divisions/components/DivisionManagementPage";
+import DirectUploadPage from "../features/documents/extraction/components/DirectUploadPage";
 import UserManagementPage from "../features/user-management/components/UserManagementPage";
 import UserManagementTable from "../features/user-management/components/UserManagementTable";
 import AppLayout from "../layout/AppLayout";
@@ -75,7 +76,7 @@ const ADMINISTRATION_ROUTES: RouteType[] = [
     path: "/upload-direct",
     element: (
       <RoleRoute allowedRoles={[1, 2]}>
-        <DocumentUploadPage />
+        <DirectUploadPage />
       </RoleRoute>
     ),
   },

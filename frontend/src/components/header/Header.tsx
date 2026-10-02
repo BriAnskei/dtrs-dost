@@ -9,6 +9,7 @@ interface HeaderProps {
   onClick?: () => void; // Optional function that takes no arguments and returns void
   onToggle: () => void;
 }
+
 const Header: React.FC<HeaderProps> = ({ onClick, onToggle }) => {
   const [isApplicationMenuOpen, setApplicationMenuOpen] = useState(false);
 
@@ -20,20 +21,24 @@ const Header: React.FC<HeaderProps> = ({ onClick, onToggle }) => {
     <header className="sticky top-0 flex w-full bg-white border-b-2 border-primary z-40 lg:border-b lg:border-primary/30 shadow-theme-sm">
       <div className="flex flex-col items-center justify-between grow lg:flex-row lg:px-6">
         <div className="flex items-center justify-between w-full gap-2 px-3 py-3 border-b border-primary/10 dark:border-gray-800 sm:gap-4 lg:justify-normal lg:border-b-0 lg:px-0 lg:py-4">
+          {/* Mobile sidebar toggle */}
           <button
             type="button"
             onClick={onToggle}
+            aria-label="Toggle sidebar"
             className="block w-10 h-10 text-text lg:hidden dark:text-white/60"
           >
             {/* Hamburger Icon */}
             <svg
-              className={`block`}
+              className="block"
               width="16"
               height="12"
               viewBox="0 0 16 12"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
+              aria-hidden="true"
             >
+              <title>Open sidebar</title>
               <path
                 fillRule="evenodd"
                 clipRule="evenodd"
@@ -41,6 +46,7 @@ const Header: React.FC<HeaderProps> = ({ onClick, onToggle }) => {
                 fill="currentColor"
               />
             </svg>
+            {/* Cross Icon */}
             <svg
               className="hidden"
               width="24"
@@ -48,7 +54,9 @@ const Header: React.FC<HeaderProps> = ({ onClick, onToggle }) => {
               viewBox="0 0 24 24"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
+              aria-hidden="true"
             >
+              <title>Close sidebar</title>
               <path
                 fillRule="evenodd"
                 clipRule="evenodd"
@@ -56,10 +64,13 @@ const Header: React.FC<HeaderProps> = ({ onClick, onToggle }) => {
                 fill="currentColor"
               />
             </svg>
-            {/* Cross Icon */}
           </button>
+
+          {/* Desktop sidebar toggle */}
           <button
+            type="button"
             onClick={onClick}
+            aria-label="Toggle sidebar"
             className="items-center justify-center hidden w-10 h-10 text-text border-primary/20 rounded-lg z-99999 dark:border-gray-800 lg:flex lg:border"
           >
             <svg
@@ -69,7 +80,9 @@ const Header: React.FC<HeaderProps> = ({ onClick, onToggle }) => {
               viewBox="0 0 16 12"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
+              aria-hidden="true"
             >
+              <title>Toggle sidebar</title>
               <path
                 fillRule="evenodd"
                 clipRule="evenodd"
@@ -88,8 +101,12 @@ const Header: React.FC<HeaderProps> = ({ onClick, onToggle }) => {
             />
           </Link>
 
+          {/* Application menu toggle (mobile) */}
           <button
+            type="button"
             onClick={toggleApplicationMenu}
+            aria-label="Toggle application menu"
+            aria-expanded={isApplicationMenuOpen}
             className="flex items-center justify-center w-10 h-10 text-text rounded-lg z-99999 hover:bg-primary/10 dark:text-white/60 dark:hover:bg-primary/10 lg:hidden"
           >
             <svg
@@ -98,7 +115,9 @@ const Header: React.FC<HeaderProps> = ({ onClick, onToggle }) => {
               viewBox="0 0 24 24"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
+              aria-hidden="true"
             >
+              <title>More options</title>
               <path
                 fillRule="evenodd"
                 clipRule="evenodd"
@@ -111,7 +130,11 @@ const Header: React.FC<HeaderProps> = ({ onClick, onToggle }) => {
           <div className="hidden lg:block">
             <form action="https://formbold.com/s/unique_form_id" method="POST">
               <div className="relative">
-                <button className="absolute -translate-y-1/2 left-4 top-1/2">
+                <button
+                  type="submit"
+                  aria-label="Search"
+                  className="absolute -translate-y-1/2 left-4 top-1/2"
+                >
                   <svg
                     className="fill-gray-500 dark:fill-gray-400"
                     width="20"
@@ -119,7 +142,9 @@ const Header: React.FC<HeaderProps> = ({ onClick, onToggle }) => {
                     viewBox="0 0 20 20"
                     fill="none"
                     xmlns="http://www.w3.org/2000/svg"
+                    aria-hidden="true"
                   >
+                    <title>Search</title>
                     <path
                       fillRule="evenodd"
                       clipRule="evenodd"
@@ -131,10 +156,15 @@ const Header: React.FC<HeaderProps> = ({ onClick, onToggle }) => {
                 <input
                   type="text"
                   placeholder="Search or type command..."
+                  aria-label="Search or type command"
                   className="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-200 bg-transparent py-2.5 pl-12 pr-14 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-primary/60 focus:outline-hidden focus:ring-3 focus:ring-primary/10 dark:border-gray-800 dark:bg-gray-900 dark:bg-white/[0.03] dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-primary xl:w-[430px]"
                 />
 
-                <button className="absolute right-2.5 top-1/2 inline-flex -translate-y-1/2 items-center gap-0.5 rounded-lg border border-primary/20 bg-primary/5 px-[7px] py-[4.5px] text-xs -tracking-[0.2px] text-primary dark:border-gray-800 dark:bg-white/[0.03] dark:text-white/60">
+                <button
+                  type="button"
+                  aria-label="Open command palette"
+                  className="absolute right-2.5 top-1/2 inline-flex -translate-y-1/2 items-center gap-0.5 rounded-lg border border-primary/20 bg-primary/5 px-[7px] py-[4.5px] text-xs -tracking-[0.2px] text-primary dark:border-gray-800 dark:bg-white/[0.03] dark:text-white/60"
+                >
                   <span> ⌘ </span>
                   <span> K </span>
                 </button>
