@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
-import { isFlagged } from "../helpers/mock-helpers";
-import type { FieldKey, ResultRow } from "../types/mock-types";
+import { isFlagged } from "../helpers/extraction-helpers";
+import type { FieldKey, ResultRow } from "../types/extraction-types";
 
 /** Selected field + keyboard / "next flagged" navigation for the review step. */
 export function useReviewSelection(rows: ResultRow[]) {

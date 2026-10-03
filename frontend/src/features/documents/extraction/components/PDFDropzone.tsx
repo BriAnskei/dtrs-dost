@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { MAX_FILE_MB } from "../constans";
-import { formatBytes } from "../helpers/mock-helpers";
+import { formatBytes } from "../helpers/extraction-helpers";
 
 interface Props {
   file: File | null;

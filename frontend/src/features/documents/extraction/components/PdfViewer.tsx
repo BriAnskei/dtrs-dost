@@ -1,7 +1,7 @@
 import type { PDFDocumentProxy } from "pdfjs-dist";
 import * as pdfjs from "pdfjs-dist";
 import { useEffect, useRef, useState } from "react";
-import type { BBox } from "../types/mock-types";
+import type { BBox } from "../types/extraction-types";
 import PdfPageWithHighlights from "./PdfPageWithHighlights";
 
 // Skip this block if your source extraction already configures the worker.
@@ -13,7 +13,8 @@ if (!pdfjs.GlobalWorkerOptions.workerSrc) {
 }
 
 export interface PdfHighlight {
-  id: string;
+  id: string; // unique per box, e.g. `${field}:${i}`
+  field: string; // what selectedId matches
   page: number; // 1-based
   bbox: BBox;
   label: string;
@@ -24,7 +25,7 @@ interface Props {
   file: File;
   highlights: PdfHighlight[];
   selectedId: string | null;
-  onHighlightClick: (id: string) => void;
+  onHighlightClick: (field: string) => void;
 }
 
 const ZOOMS = [0.75, 1, 1.25, 1.5, 2]; // multiples of fit-to-width
@@ -89,12 +90,18 @@ export default function PdfViewer({
   const numPages = sizes.length;
   const pageWidth = Math.max(0, containerW - PAD) * ZOOMS[zoomIdx];
 
-  const shown = showAll ? highlights : highlights.filter((h) => h.id === selectedId);
+  const shown = showAll ? highlights : highlights.filter((h) => h.field === selectedId);
 
-  // Field -> document: scroll the selected highlight into view
+  // Field -> document: scroll to the topmost highlight of the selected field
   useEffect(() => {
     if (!selectedId || numPages === 0 || pageWidth === 0) return;
-    const h = highlights.find((x) => x.id === selectedId);
+    const mine = highlights.filter((x) => x.field === selectedId);
+    const h =
+      mine.length > 0
+        ? mine.reduce((a, b) =>
+            b.page < a.page || (b.page === a.page && b.bbox.y < a.bbox.y) ? b : a,
+          )
+        : undefined;
     const box = scrollRef.current;
     const pageEl = h && pageEls.current[h.page];
     if (!h || !box || !pageEl) return;
@@ -113,6 +120,12 @@ export default function PdfViewer({
       if (el && el.offsetTop <= mid) cur = i;
     }
     setCurrentPage(cur);
+  };
+
+  // Highlight ids are per-box; the parent only cares about the field
+  const handleHighlightClick = (id: string) => {
+    const h = highlights.find((x) => x.id === id);
+    if (h) onHighlightClick(h.field);
   };
 
   return (
@@ -175,7 +188,7 @@ export default function PdfViewer({
                 size={size}
                 cssWidth={pageWidth}
                 highlights={shown.filter((h) => h.page === i + 1)}
-                onHighlightClick={onHighlightClick}
+                onHighlightClick={handleHighlightClick}
                 setRef={(el) => {
                   pageEls.current[i + 1] = el;
                 }}

@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import type { ExtractionPhase, LogEntry, LogLevel } from "../types/mock-types";
+import type { ExtractionPhase, LogEntry, LogLevel } from "../types/extraction-types";
 
 const LEVEL_STYLE: Record<LogLevel, string> = {
   info: "text-blue-light-600 dark:text-blue-light-300",

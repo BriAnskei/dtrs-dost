@@ -1,12 +1,16 @@
 import { useCallback, useRef, useState } from "react";
-import { extractPdf } from "../pdf";
-import type { PdfExtractionResult } from "../pdf";
-import { computeEffective, decide } from "../helpers/mock-helpers";
-import { extractFields } from "../service/extraction-service";
-import type { ExtractionRequest, ExtractionResponse } from "../service/extraction-service";
 import { FIELDS_BY_DIRECTION } from "../constans";
+import { computeEffective, decide } from "../helpers/extraction-helpers";
+import { resolveHighlights, toBBox } from "../helpers/highlight-helpers";
+import type { PdfExtractionResult } from "../pdf";
+import { extractPdf } from "../pdf";
+import type { ExtractionChunk } from "../pdf/types";
+import {
+  type ExtractionRequest,
+  type ExtractionResponse,
+  extractionService,
+} from "../service/extraction-service";
 import type {
-  BBox,
   ChunkLocation,
   DocumentDirection,
   ExtractionOutcome,
@@ -14,26 +18,8 @@ import type {
   LogEntry,
   LogLevel,
   ResultRow,
-} from "../types/mock-types";
+} from "../types/extraction-types";
 
-// Maps a pipeline BoundingBox {x,y,width,height} (already normalized 0-1,
-// top-left) onto the UI BBox {x,y,w,h} the highlight overlay consumes.
-function toBBox(b: { x: number; y: number; width: number; height: number }): BBox {
-  return { x: b.x, y: b.y, w: b.width, h: b.height };
-}
-
-/**
- * Real extraction driver (Pattern A — chunkId reference).
- *
- * Phase 1 runs entirely in the browser: pdf.js parses the PDF, native text is
- * grouped into line-level chunks (with normalized 0-1 top-left bboxes) and
- * scanned pages are OCR'd with Tesseract. This builds the chunkId -> location
- * map AND gathers the plain chunk texts.
- *
- * Phase 2 ships only {chunkId, text} to the backend LLM, which returns each
- * field value paired with the chunkId it came from. The client joins that
- * chunkId back to its location map to produce the highlightable result.
- */
 export function useExtraction(direction: DocumentDirection) {
   const [phase, setPhase] = useState<ExtractionPhase>("idle");
   const [logs, setLogs] = useState<LogEntry[]>([]);
@@ -50,6 +36,7 @@ export function useExtraction(direction: DocumentDirection) {
   const start = useCallback(
     async (file: File) => {
       reset();
+
       const log = (level: LogLevel, message: string) =>
         setLogs((l) => [
           ...l,
@@ -67,42 +54,57 @@ export function useExtraction(direction: DocumentDirection) {
       log("info", "Parsing PDF with pdf.js…");
 
       let result: PdfExtractionResult;
+
       try {
         result = await extractPdf(file);
+        console.log("example result: ", result);
       } catch (err) {
         log(
           "error",
-          `Source extraction failed: ${
-            err instanceof Error ? err.message : String(err)
-          }`,
+          `Source extraction failed: ${err instanceof Error ? err.message : String(err)}`,
         );
         setPhase("done");
         return;
       }
 
-      // chunkId -> { page, bbox, text } plus the source confidence (0-100) of
-      // each chunk, used to compute the effective confidence per field.
+      // chunkId -> { page, bbox, text }
       const chunkLocations: Record<string, ChunkLocation> = {};
+
+      // chunkId -> original ExtractionChunk
+      // Used later by resolveHighlights() to resolve field values against
+      // the original chunk text.
+      const chunksById = new Map<string, ExtractionChunk>();
+
+      // chunkId -> source confidence (0-100)
       const chunkSourceConfidence: Record<string, number> = {};
+
       const allSourceConfidences: number[] = [];
       let totalChunks = 0;
 
       for (const page of result.pages) {
         for (const chunk of page.content) {
-          // Chunks without geometry (e.g. OCR that yielded no line data) cannot
-          // be highlighted — they are still shipped to the LLM as text, but are
-          // not added to the location map.
+          // Keep every chunk available by ID, including chunks without
+          // geometry. These chunks can still be useful to the LLM.
+          chunksById.set(chunk.chunkId, chunk);
+
+          // Chunks without geometry cannot be highlighted.
+          // They are still kept in chunksById and can still be sent to
+          // the LLM as text.
           if (!chunk.bbox) {
             continue;
           }
+
           chunkLocations[chunk.chunkId] = {
             page: page.page,
             bbox: toBBox(chunk.bbox),
             text: chunk.text,
           };
+
           const sourceConfidence = Math.round(chunk.confidence * 100);
+
           chunkSourceConfidence[chunk.chunkId] = sourceConfidence;
           allSourceConfidences.push(sourceConfidence);
+
           totalChunks++;
         }
       }
@@ -135,51 +137,66 @@ export function useExtraction(direction: DocumentDirection) {
         "info",
         `Sending ${request.chunks.length} chunks to LLM (text only, no coordinates)…`,
       );
+
       log(
         "info",
         `LLM extracting ${FIELDS_BY_DIRECTION[direction].length} ${direction} fields…`,
       );
 
       let response: ExtractionResponse;
+
       try {
-        response = await extractFields(request);
+        response = await extractionService.extractFields(request);
       } catch (err) {
         log(
           "error",
-          `LLM request failed: ${
-            err instanceof Error ? err.message : String(err)
-          }`,
+          `LLM request failed: ${err instanceof Error ? err.message : String(err)}`,
         );
         setPhase("done");
         return;
       }
+
       log("success", "LLM response received");
 
-      /* ── Build rows: join each field's chunkId -> chunkLocations ── */
+      /* ── Build rows: join each field's chunkIds -> chunkLocations ── */
       const rows: ResultRow[] = FIELDS_BY_DIRECTION[direction].map((field) => {
         const hit = response.fields.find((f) => f.field === field);
+
         if (!hit || hit.value === null) {
           return {
             field,
             value: null,
             page: null,
-            chunkId: null,
+            chunkIds: [],
+            highlights: [],
             aiConfidence: null,
             sourceConfidence: null,
             effectiveConfidence: null,
           };
         }
 
-        const loc = hit.chunkId ? chunkLocations[hit.chunkId] : undefined;
-        const sourceConfidence =
-          hit.chunkId ? chunkSourceConfidence[hit.chunkId] ?? null : null;
+        const chunkIds = (hit.chunkIds ?? []).filter((id) => id in chunkLocations);
+
+        const highlights = resolveHighlights(
+          field,
+          hit.value,
+          chunkIds,
+          chunksById,
+          chunkLocations,
+        );
+
+        // For multi-chunk values, the weakest source line determines
+        // the source confidence for the entire extracted field.
+        const sources = chunkIds.map((id) => chunkSourceConfidence[id]);
+        const sourceConfidence = sources.length ? Math.min(...sources) : null;
         const aiConfidence = hit.aiConfidence;
 
         return {
           field,
           value: hit.value,
-          page: loc?.page ?? null,
-          chunkId: hit.chunkId,
+          page: highlights[0]?.page ?? null,
+          chunkIds,
+          highlights,
           aiConfidence,
           sourceConfidence,
           effectiveConfidence:
@@ -190,6 +207,7 @@ export function useExtraction(direction: DocumentDirection) {
       });
 
       const { decision, minEffective } = decide(rows);
+
       if (decision === "INVALID") {
         log("error", "Missing required field(s) → INVALID");
       } else if (decision === "REVIEW") {
@@ -208,6 +226,7 @@ export function useExtraction(direction: DocumentDirection) {
             ? "Planning and Design Division"
             : null,
       });
+
       setPhase("done");
     },
     [direction, reset],

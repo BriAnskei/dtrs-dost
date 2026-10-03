@@ -1,5 +1,5 @@
 import { ACCEPT_THRESHOLD } from "../constans";
-import type { Decision, ResultRow } from "../types/mock-types";
+import type { Decision, ResultRow } from "../types/extraction-types-types";
 
 /** Effective = AI x Source (both 0-100). */
 export const computeEffective = (ai: number, source: number) =>

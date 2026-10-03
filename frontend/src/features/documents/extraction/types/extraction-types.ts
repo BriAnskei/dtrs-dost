@@ -22,7 +22,8 @@ export interface ResultRow {
   field: FieldKey;
   value: string | null;
   page: number | null;
-  chunkId: string | null;
+  chunkIds: string[];
+  highlights: FieldHighlight[];
   aiConfidence: number | null;
   sourceConfidence: number | null;
   effectiveConfidence: number | null;
@@ -51,4 +52,9 @@ export interface ExtractionOutcome {
   minEffective: number | null;
   /** Incoming only, set after ACCEPT (RAG will fill this later) */
   assignedDivision: string | null;
+}
+
+export interface FieldHighlight {
+  page: number;
+  bbox: BBox;
 }

@@ -1,8 +1,12 @@
 import { useMemo, useState } from "react";
 import { FIELD_LABELS } from "../constans";
-import { isFlagged } from "../helpers/mock-helpers";
+import { isFlagged } from "../helpers/extraction-helpers";
 import { useReviewSelection } from "../hooks/use-review-selection";
-import type { ExtractionOutcome, FieldKey } from "../types/mock-types";
+import type {
+  ChunkLocation,
+  ExtractionOutcome,
+  FieldKey,
+} from "../types/extraction-types";
 import DecisionBanner from "./DecisionBanner";
 import PdfViewer, { type PdfHighlight } from "./PdfViewer";
 import ReviewFieldDetail from "./ReviewFieldDetail";
@@ -64,20 +68,20 @@ export default function ReviewSplitView({
 
   const highlights = useMemo<PdfHighlight[]>(
     () =>
-      outcome.rows.flatMap((r) => {
-        const loc = r.chunkId ? outcome.chunkLocations[r.chunkId] : undefined;
-        if (!loc) return [];
-        return [
-          {
-            id: r.field,
-            page: loc.page,
-            bbox: loc.bbox,
-            label: FIELD_LABELS[r.field],
-            state:
-              r.field === selected ? "selected" : isFlagged(r) ? "flagged" : "normal",
-          } as PdfHighlight,
-        ];
-      }),
+      outcome.rows.flatMap((r) =>
+        r.highlights.map((h, i) => ({
+          id: `${r.field}:${i}`, // unique React key
+          field: r.field,
+          page: h.page,
+          bbox: h.bbox,
+          label: FIELD_LABELS[r.field],
+          state: (r.field === selected
+            ? "selected"
+            : isFlagged(r)
+              ? "flagged"
+              : "normal") as PdfHighlight["state"],
+        })),
+      ),
     [outcome, selected],
   );
 
@@ -136,11 +140,9 @@ export default function ReviewSplitView({
           {selectedRow && (
             <ReviewFieldDetail
               row={selectedRow}
-              location={
-                selectedRow.chunkId
-                  ? outcome.chunkLocations[selectedRow.chunkId]
-                  : undefined
-              }
+              locations={selectedRow.chunkIds
+                .map((id) => outcome.chunkLocations[id])
+                .filter((l): l is ChunkLocation => Boolean(l))}
             />
           )}
         </div>

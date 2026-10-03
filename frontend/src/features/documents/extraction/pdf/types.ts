@@ -55,3 +55,15 @@ export interface PdfExtractionResult {
     emptyPages: number;
   };
 }
+
+export interface ExtractionToken {
+  text: string; // one word
+  bbox: BoundingBox;
+  confidence?: number;
+}
+
+export interface ExtractionChunk {
+  // ...existing fields
+  /** Word-level boxes. Client-side only. Never sent to the LLM. */
+  tokens?: ExtractionToken[];
+}

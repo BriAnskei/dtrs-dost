@@ -1,5 +1,5 @@
 import { DIRECTION_OPTIONS } from "../constans";
-import type { DocumentDirection } from "../types/mock-types";
+import type { DocumentDirection } from "../types/extraction-types";
 
 interface Props {
   value: DocumentDirection;

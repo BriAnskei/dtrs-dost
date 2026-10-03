@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { WIZARD_STEPS } from "../constans";
 import { useExtraction } from "../hooks/use-extraction";
-import type { DocumentDirection } from "../types/mock-types";
+import type { DocumentDirection } from "../types/extraction-types";
 import DocumentTypeSelector from "./DocumentTypeSelelector";
 import ExtractionConsole from "./ExtractionConsole";
 import PdfDropzone from "./PDFDropzone";

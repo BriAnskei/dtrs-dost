@@ -1,94 +1,83 @@
 import { apiClient } from "../../../../lib/api-client";
-import type { DocumentDirection, FieldKey } from "../types/mock-types";
+import type { DocumentDirection, FieldKey } from "../types/extraction-types";
 
-/**
- * Request payload sent to the backend LLM for field extraction (Pattern A —
- * chunkId reference). The client runs source extraction itself (pdf.js text +
- * optional OCR) and ships the extracted *text chunks* only — never raw PDF
- * bytes and never coordinates. The LLM returns, per field, the chunkId its
- * value was found in; the client joins that chunkId to its already-known
- * chunkId -> bbox map to render the highlight.
- */
 export interface ExtractionRequest {
   /** Document flow type; selects which fields the LLM should look for. */
   documentType: DocumentDirection;
-  /**
-   * Text chunks with their stable ids. `bbox` is intentionally omitted — the
-   * server must not need geometry (it can't see the page). The chunkId the
-   * LLM echoes back is the only positional token that crosses the wire.
-   */
+
   chunks: Array<{ chunkId: string; text: string }>;
 }
 
-/** One field extracted by the backend LLM, located via chunkId. */
 export interface FieldExtraction {
   field: FieldKey;
-  /** Extracted value, or null when the LLM found nothing. */
   value: string | null;
-  /**
-   * chunkId whose chunk text contained this value (so the client can highlight
-   * it). null when the value was synthesized / not found in any chunk.
-   */
-  chunkId: string | null;
-  /** LLM self-confidence 0-100, or null when the model gives none. */
+  chunkIds: string[];
   aiConfidence: number | null;
 }
 
 export interface ExtractionResponse {
   fields: FieldExtraction[];
 }
-
 /**
- * Server-side LLM extraction (Pattern A — chunkId reference).
+ * POST /extraction
  *
- * ── BACKEND BLUEPRINT ─────────────────────────────────────────────────
- * Endpoint:  POST /api/extraction   (mount under the existing apiClient base)
- * Controller: backend/src/controllers/ai-extractor.controller.ts
- * Auth:      bearer session cookie (apiClient is configured withCredentials)
+ * ── REQUEST ─────────────────────────────────────────────────────────────────
+ * Text only. Never send coordinates, tokens, OCR confidence or the source
+ * (text/ocr). The server never needs to know where text sits on the page.
  *
- * Request body  (ExtractionRequest):
  *   {
- *     "documentType": "incoming" | "outgoing",
+ *     "documentType": "incoming",
  *     "chunks": [
- *       { "chunkId": "p1-t1", "text": "Subject: Q4 Barangay Road Inspection" },
- *       { "chunkId": "p1-t2", "text": "From: Hon. Juan Dela Cruz, Municipal Mayor" },
- *       ...
+ *       { "chunkId": "p1-t1", "text": "Republic of the Philippines" },
+ *       { "chunkId": "p2-o3", "text": "Subject: Request for Project Inspection" }
  *     ]
  *   }
  *
- * The server MUST:
- *   1. Validate `chunks` is a non-empty array of {chunkId:string, text:string}.
- *   2. Build an LLM prompt that, given ONLY the chunk texts (no coordinates),
- *      extracts the fields for the document type AND, for every value it finds,
- *      returns the chunkId of the chunk whose `text` contains that value.
- *      Tell the model to echo the *exact* chunkId string verbatim.
- *   3. The field set per documentType (keep in sync with FIELDS_BY_DIRECTION):
- *        incoming : subject, from, to, dateReceived, summary
- *        outgoing : to, subject, dateReleased
- *   4. Return 200 with this JSON schema (validate before responding):
- *      {
- *        "fields": [
- *          {
- *            "field": "subject" | "from" | "to" | "dateReceived" |
- *                     "dateReleased" | "summary",
- *            "value": string | null,   // null when not found
- *            "chunkId": string | null, // verbatim chunkId the value came from
- *            "aiConfidence": number | null // 0-100
- *          }
- *        ]
- *      }
- *      Include an entry for EVERY field in the field set — emit null when absent
- *      so the client can mark the field INVALID for review routing.
- *   5. On error, respond 4xx with { "success": false, "error": "<reason>" }.
+ * chunkId  "p<page>-t<n>" is native text, "p<page>-o<n>" is OCR. Each chunk is
+ *          one LINE, listed in reading order (top to bottom).
  *
- * The server does NOT return bbox/coordinates: every chunkId -> bbox the client
- * already holds (built from its own source extraction). chunkId is the only
- * positional token the wire contract carries.
- * ───────────────────────────────────────────────────────────────────────
+ * ── RESPONSE ────────────────────────────────────────────────────────────────
+ *   {
+ *     "fields": [
+ *       {
+ *         "field": "subject",
+ *         "value": "Request for Project Inspection",
+ *         "chunkIds": ["p2-o3"],
+ *         "aiConfidence": 94
+ *       },
+ *       { "field": "to", "value": null, "chunkIds": [], "aiConfidence": null }
+ *     ]
+ *   }
+ *
+ * RULES (the client's highlighting depends on these)
+ *  1. Return exactly one entry per field requested for `documentType`
+ *     (incoming: subject, from, to, dateReceived, summary; outgoing: to,
+ *     subject, dateReleased). Missing/duplicate entries are treated as "not
+ *     found".
+ *  2. `value` must be copied VERBATIM from the chunk text: same words, same
+ *     spelling, same date format as printed. Do not rephrase, expand
+ *     abbreviations, drop punctuation words, or reformat dates (so "October 3,
+ *     2026" stays "October 3, 2026", not "2026-10-03"). The client finds the
+ *     value's words inside the cited chunk to draw a tight highlight; if
+ *     nothing matches it falls back to highlighting the whole line.
+ *     Exception: `summary` is LLM-written; it is shown on the whole source
+ *     line(s), so just cite the chunks it was based on.
+ *  3. `chunkIds` lists EVERY chunk the value came from, in reading order. A
+ *     subject that wraps over two lines returns both ids. Only ids that were in
+ *     the request are allowed; unknown ids are dropped by the client (the server
+ *     should strip them too). A non-null value needs at least one chunkId.
+ *  4. Not found: `value: null`, `chunkIds: []`, `aiConfidence: null`. Any
+ *     required field that is null makes the whole document INVALID.
+ *  5. `aiConfidence` is the model's own certainty that `value` is the correct
+ *     answer for the field, an integer from 0 to 100. It is NOT OCR quality. The
+ *     client multiplies it by the source confidence of the cited chunk(s)
+ *     (weakest one wins): effective = aiConfidence × sourceConfidence / 100.
+ *  6. Division routing (incoming only) is a separate step, not part of this
+ *     response.
  */
-export async function extractFields(
-  request: ExtractionRequest,
-): Promise<ExtractionResponse> {
-  const response = await apiClient.post<ExtractionResponse>("/api/extraction", request);
-  return response.data;
-}
+export const extractionService = {
+  async extractFields(request: ExtractionRequest): Promise<ExtractionResponse> {
+    const response = await apiClient.post<ExtractionResponse>("/extraction", request);
+    return response.data;
+  },
+};

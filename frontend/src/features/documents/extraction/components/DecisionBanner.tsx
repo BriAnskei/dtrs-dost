@@ -1,5 +1,5 @@
 import { ACCEPT_THRESHOLD } from "../constans";
-import type { Decision } from "../types/mock-types";
+import type { Decision } from "../types/extraction-types";
 
 const STYLE: Record<Decision, { box: string; title: string; text: string }> = {
   ACCEPT: {

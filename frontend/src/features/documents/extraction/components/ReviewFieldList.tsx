@@ -1,6 +1,6 @@
 import { FIELD_LABELS } from "../constans";
-import { confidenceTone, isFlagged } from "../helpers/mock-helpers";
-import type { FieldKey, ResultRow } from "../types/mock-types";
+import { confidenceTone, isFlagged } from "../helpers/extraction-helpers";
+import type { FieldKey, ResultRow } from "../types/extraction-types-types";
 
 interface Props {
   rows: ResultRow[];

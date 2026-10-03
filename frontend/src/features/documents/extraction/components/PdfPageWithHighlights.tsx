@@ -8,7 +8,8 @@ interface Props {
   size: { w: number; h: number }; // page size at scale 1 (PDF points)
   cssWidth: number;
   highlights: PdfHighlight[];
-  onHighlightClick: (id: string) => void;
+  /** Receives the FieldKey of the clicked highlight. */
+  onHighlightClick: (field: string) => void;
   setRef: (el: HTMLDivElement | null) => void;
 }
 
@@ -77,6 +78,10 @@ export default function PdfPageWithHighlights({
     };
   }, [near, pdf, pageNumber, cssWidth, size.w]);
 
+  // A field can have several boxes; only the first one carries the label tag.
+  const isFirstOfField = (h: PdfHighlight) =>
+    highlights.find((x) => x.field === h.field)?.id === h.id;
+
   return (
     <div
       ref={(el) => {
@@ -99,7 +104,7 @@ export default function PdfPageWithHighlights({
             type="button"
             title={h.label}
             aria-label={`Highlight: ${h.label}`}
-            onClick={() => onHighlightClick(h.id)}
+            onClick={() => onHighlightClick(h.field)}
             className={`absolute rounded-sm transition ${HL_STYLE[h.state]}`}
             style={{
               left: `${h.bbox.x * 100}%`,
@@ -108,7 +113,7 @@ export default function PdfPageWithHighlights({
               height: `${h.bbox.h * 100}%`,
             }}
           >
-            {h.state === "selected" && (
+            {h.state === "selected" && isFirstOfField(h) && (
               <span className="absolute -top-5 left-0 whitespace-nowrap rounded bg-accent px-1.5 py-0.5 text-theme-xs font-medium text-white">
                 {h.label}
               </span>

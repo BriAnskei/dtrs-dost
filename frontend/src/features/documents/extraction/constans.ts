@@ -1,4 +1,4 @@
-import type { DocumentDirection, FieldKey } from "./types/mock-types";
+import type { DocumentDirection, FieldKey } from "./types/extraction-types";
 
 export const ACCEPT_THRESHOLD = 90; // >= 90 ACCEPT, <= 89 REVIEW
 
@@ -53,3 +53,6 @@ export const WIZARD_STEPS = [
     hint: "Check the confidence and decision before continuing.",
   },
 ] as const;
+
+/** Values the LLM writes itself (not copied from the page): highlight the whole source line. */
+export const CHUNK_LEVEL_FIELDS = new Set<FieldKey>(["summary"]);
