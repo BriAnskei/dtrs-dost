@@ -8,16 +8,25 @@ interface Props {
   size: { w: number; h: number }; // page size at scale 1 (PDF points)
   cssWidth: number;
   highlights: PdfHighlight[];
+  /** Draw an outline around highlight boxes (off = marker-style fill only). */
+  showBorders: boolean;
   /** Receives the FieldKey of the clicked highlight. */
   onHighlightClick: (field: string) => void;
   setRef: (el: HTMLDivElement | null) => void;
 }
 
-const HL_STYLE = {
-  selected:
-    "border-2 border-accent bg-accent/30 shadow-[0_0_0_3px_rgba(245,158,11,0.25)] z-2",
-  flagged: "border border-dashed border-accent bg-accent/10",
-  normal: "border border-secondary/60 bg-secondary/10",
+// Marker-style fill: multiply blend keeps the text underneath fully readable.
+const HL_FILL = {
+  selected: "bg-accent/35 mix-blend-multiply z-2",
+  flagged: "bg-accent/20 mix-blend-multiply",
+  normal: "bg-secondary/15 mix-blend-multiply",
+} as const;
+
+// Optional borders are drawn as an outline *outside* the box so they never cover glyphs.
+const HL_BORDER = {
+  selected: "outline outline-2 outline-offset-2 outline-accent",
+  flagged: "outline outline-1 outline-dashed outline-offset-1 outline-accent",
+  normal: "outline outline-1 outline-offset-1 outline-secondary/60",
 } as const;
 
 export default function PdfPageWithHighlights({
@@ -26,6 +35,7 @@ export default function PdfPageWithHighlights({
   size,
   cssWidth,
   highlights,
+  showBorders,
   onHighlightClick,
   setRef,
 }: Props) {
@@ -34,9 +44,6 @@ export default function PdfPageWithHighlights({
   const [near, setNear] = useState(false);
   const cssHeight = (cssWidth * size.h) / size.w;
 
-  // Placeholder keeps the real height, so scroll offsets are right before render.
-  // Pages render lazily once they come into view.
-  // TODO: release canvases of far-away pages if very long PDFs become an issue.
   useEffect(() => {
     const el = wrapRef.current;
     if (!el) return;
@@ -104,8 +111,10 @@ export default function PdfPageWithHighlights({
             type="button"
             title={h.label}
             aria-label={`Highlight: ${h.label}`}
-            onClick={() => onHighlightClick(h.field)}
-            className={`absolute rounded-sm transition ${HL_STYLE[h.state]}`}
+            onClick={() => onHighlightClick(h.id)}
+            className={`absolute rounded-sm transition ${HL_FILL[h.state]} ${
+              showBorders ? HL_BORDER[h.state] : ""
+            }`}
             style={{
               left: `${h.bbox.x * 100}%`,
               top: `${h.bbox.y * 100}%`,

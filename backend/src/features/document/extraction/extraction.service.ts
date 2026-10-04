@@ -3,6 +3,7 @@ import { DocumentDirection } from "./contants/document-direction";
 import { FIELDS_BY_DIRECTION, FieldKey } from "./contants/extraction-field";
 import { ExtractionRequestDto } from "./dto/extraction-request-dto";
 import { ExtractionResponseDto } from "./dto/extraction-response-dto";
+import { valueInDocument } from "./extraction-text-match";
 import type { LlmExtractor } from "./providers/llm-extractor.interface";
 import { ExtractedField, LLM_EXTRACTOR } from "./providers/llm-extractor.interface";
 
@@ -25,12 +26,16 @@ export class ExtractionService {
      */
     const chunks = this.validateChunks(request.chunks);
 
+    this.logger.debug(
+      `Extraction request: documentType=${request.documentType}, chunks=${request.chunks.length}`,
+    );
+
     const extractedFields = await this.llmExtractor.extractFields(
       request.documentType,
       chunks,
     );
 
-    console.log("extracted: ", extractedFields);
+    this.logger.debug(`Extracted ${extractedFields.length} raw field(s) from LLM.`);
 
     const fields = this.validateAndNormalizeFields(
       request.documentType,
@@ -96,7 +101,9 @@ export class ExtractionService {
 
     for (const field of fields) {
       if (fieldsByName.has(field.field)) {
-        console.log("found duplitcate: ", field);
+        this.logger.error(
+          `Validation failed: duplicate field "${field.field}" returned by LLM.`,
+        );
 
         throw new BadRequestException({
           success: false,
@@ -158,6 +165,10 @@ export class ExtractionService {
       field.aiConfidence !== null &&
       (field.aiConfidence < 0 || field.aiConfidence > 100)
     ) {
+      this.logger.error(
+        `Validation failed: field "${field.field}" aiConfidence ${field.aiConfidence} outside [0, 100].`,
+      );
+
       throw new BadRequestException({
         success: false,
         error: `Invalid confidence for field ${field.field}`,
@@ -167,6 +178,10 @@ export class ExtractionService {
     /* No value means there should be no cited chunks. */
     if (field.value === null) {
       if (field.chunkIds.length > 0) {
+        this.logger.error(
+          `Validation failed: field "${field.field}" has chunkIds ${JSON.stringify(field.chunkIds)} but value is null.`,
+        );
+
         throw new BadRequestException({
           success: false,
           error: `Field ${field.field} has chunkIds but no value`,
@@ -179,6 +194,10 @@ export class ExtractionService {
     /* Every cited chunkId must have been sent by the client. */
     for (const chunkId of field.chunkIds) {
       if (!chunksById.has(chunkId)) {
+        this.logger.error(
+          `Validation failed: field "${field.field}" cited chunkId "${chunkId}" not present in the request chunks.`,
+        );
+
         throw new BadRequestException({
           success: false,
           error: `Invalid chunkId "${chunkId}" returned for field "${field.field}"`,
@@ -195,9 +214,7 @@ export class ExtractionService {
     if (field.field === "summary") {
       /* A non-null value should still cite at least one chunk for highlighting. */
       if (field.chunkIds.length === 0) {
-        this.logger.warn(
-          `Field "summary" has a value but cites no chunkIds.`,
-        );
+        this.logger.warn(`Field "summary" has a value but cites no chunkIds.`);
       }
 
       return;
@@ -208,12 +225,15 @@ export class ExtractionService {
      * Checking the whole document text — not just the cited chunks — tolerates
      * multi-line values that the LLM attributes to a subset of chunks.
      */
-    if (!this.containsValue(documentText, field.value)) {
+    if (!valueInDocument(field.value, documentText)) {
+      this.logger.error(
+        `Validation failed: field "${field.field}" value "${field.value}" not found in document text (possible LLM hallucination).`,
+      );
+
       throw new BadRequestException({
         success: false,
         error:
-          `Extracted value for "${field.field}" ` +
-          `was not found in any document chunk`,
+          `Extracted value for "${field.field}" ` + `was not found in any document chunk`,
       });
     }
 
@@ -222,9 +242,7 @@ export class ExtractionService {
      * is not a safety problem, only a UX one (no highlight), so warn.
      */
     if (field.chunkIds.length === 0) {
-      this.logger.warn(
-        `Field "${field.field}" value was found but cites no chunkIds.`,
-      );
+      this.logger.warn(`Field "${field.field}" value was found but cites no chunkIds.`);
 
       return;
     }
@@ -236,27 +254,13 @@ export class ExtractionService {
      * chunks collectively contain it. If the value is in the document but not in
      * the cited chunks, the citation is imprecise — warn, not throw.
      */
-    const citedText = field.chunkIds
-      .map((id) => chunksById.get(id) ?? "")
-      .join("\n");
+    const citedText = field.chunkIds.map((id) => chunksById.get(id) ?? "").join("\n");
 
-    if (!this.containsValue(citedText, field.value)) {
+    if (!valueInDocument(field.value, citedText)) {
       this.logger.warn(
         `Field "${field.field}" value was found in the document but not in ` +
           `the cited chunk(s); highlight may be imprecise.`,
       );
     }
-  }
-
-  private containsValue(chunkText: string, value: string): boolean {
-    const normalizedChunk = this.normalizeText(chunkText);
-
-    const normalizedValue = this.normalizeText(value);
-
-    return normalizedChunk.includes(normalizedValue);
-  }
-
-  private normalizeText(value: string): string {
-    return value.normalize("NFKC").replace(/\s+/g, " ").trim().toLowerCase();
   }
 }

@@ -48,6 +48,7 @@ export default function PdfViewer({
   const [containerW, setContainerW] = useState(0);
   const [zoomIdx, setZoomIdx] = useState(1);
   const [showAll, setShowAll] = useState(true);
+  const [showBorders, setShowBorders] = useState(false); // marker style by default
   const [currentPage, setCurrentPage] = useState(1);
 
   // Load the PDF from the in-memory File (no server round trip)
@@ -143,6 +144,14 @@ export default function PdfViewer({
             />
             All highlights
           </label>
+          <label className="mr-1 flex cursor-pointer items-center gap-1.5 text-theme-xs text-gray-600 dark:text-gray-300">
+            <input
+              type="checkbox"
+              checked={showBorders}
+              onChange={(e) => setShowBorders(e.target.checked)}
+            />
+            Borders
+          </label>
           <button
             type="button"
             className={btn}
@@ -188,6 +197,7 @@ export default function PdfViewer({
                 size={size}
                 cssWidth={pageWidth}
                 highlights={shown.filter((h) => h.page === i + 1)}
+                showBorders={showBorders}
                 onHighlightClick={handleHighlightClick}
                 setRef={(el) => {
                   pageEls.current[i + 1] = el;

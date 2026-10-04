@@ -1,5 +1,5 @@
-import { mergeBoxes } from "./bbox";
-import type { BoundingBox, ExtractionToken } from "./types";
+import { mergeBoxes } from "../pdf/bbox";
+import type { BoundingBox, ExtractionToken } from "../pdf/types";
 
 const words = (s: string) =>
   s

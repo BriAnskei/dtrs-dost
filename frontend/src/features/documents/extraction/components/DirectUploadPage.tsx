@@ -10,7 +10,7 @@ export default function DirectUploadPage() {
         title="Direct Upload | Document Tracking System"
         description="Upload a PDF for source extraction and AI metadata extraction."
       />
-      <PageBreadcrumb pageTitle="Direct Upload" />
+      <PageBreadcrumb pageTitle="New Document" />
       <div className="space-y-6">
         <ComponentCard>
           <DirectUploadPanel />

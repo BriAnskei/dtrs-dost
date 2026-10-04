@@ -1,9 +1,10 @@
 import { FIELD_LABELS } from "../constans";
 import { confidenceTone, isFlagged } from "../helpers/extraction-helpers";
-import type { FieldKey, ResultRow } from "../types/extraction-types-types";
+import type { FieldKey, ResultRow } from "../types/extraction-types";
 
 interface Props {
   rows: ResultRow[];
+  edits: Partial<Record<FieldKey, string>>;
   selected: FieldKey | null;
   onSelect: (f: FieldKey) => void;
   onMove: (delta: 1 | -1) => void;
@@ -13,6 +14,7 @@ interface Props {
 
 export default function ReviewFieldList({
   rows,
+  edits,
   selected,
   onSelect,
   onMove,
@@ -54,6 +56,8 @@ export default function ReviewFieldList({
         {rows.map((r) => {
           const active = r.field === selected;
           const flagged = isFlagged(r);
+          const edited = r.field in edits;
+          const shownValue = edited ? edits[r.field] : r.value;
           return (
             <button
               key={r.field}
@@ -73,6 +77,11 @@ export default function ReviewFieldList({
               <div className="flex items-center justify-between gap-2">
                 <span className="text-theme-xs font-medium uppercase tracking-wide text-gray-400 dark:text-gray-500">
                   {FIELD_LABELS[r.field]}
+                  {edited && (
+                    <span className="ml-2 rounded bg-secondary/10 px-1.5 py-0.5 text-[10px] font-semibold normal-case tracking-normal text-secondary">
+                      Edited
+                    </span>
+                  )}
                 </span>
                 <span
                   className={`text-theme-xs font-semibold whitespace-nowrap ${confidenceTone(r.effectiveConfidence)}`}
@@ -83,8 +92,14 @@ export default function ReviewFieldList({
                   {flagged && <span className="ml-1.5 font-normal">⚑ review</span>}
                 </span>
               </div>
-              <p className="mt-1 line-clamp-2 text-theme-sm text-gray-800 dark:text-white/90">
-                {r.value ?? <span className="text-danger">Not found</span>}
+              <p className="mt-1 whitespace-pre-line break-words text-theme-sm text-gray-800 dark:text-white/90">
+                {shownValue ? (
+                  shownValue
+                ) : edited ? (
+                  <span className="italic text-gray-400">Empty</span>
+                ) : (
+                  <span className="text-danger">Not found</span>
+                )}
               </p>
             </button>
           );

@@ -35,10 +35,4 @@ export const PDF_EXTRACTION_CONFIG = {
    * Tesseract returns confidence from 0-100.
    */
   minOcrConfidence: 0,
-
-  /**
-   * If native text occupies very little of the page
-   * and the page contains images, OCR is useful.
-   */
-  mixedPageNativeTextRatio: 0.05,
 } as const;

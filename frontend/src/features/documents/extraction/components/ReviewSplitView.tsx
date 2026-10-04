@@ -52,9 +52,15 @@ const tabBtn = (active: boolean) =>
 export default function ReviewSplitView({
   file,
   outcome,
+  edits,
+  onEdit,
 }: {
   file: File;
   outcome: ExtractionOutcome;
+  /** Reviewer edits keyed by field; a key exists only for edited fields. */
+  edits: Partial<Record<FieldKey, string>>;
+  /** string = new value, null = revert to the extracted value. */
+  onEdit: (field: FieldKey, value: string | null) => void;
 }) {
   const { selected, select, move, nextFlagged, flaggedCount } = useReviewSelection(
     outcome.rows,
@@ -131,6 +137,7 @@ export default function ReviewSplitView({
           />
           <ReviewFieldList
             rows={outcome.rows}
+            edits={edits}
             selected={selected}
             onSelect={handleSelect}
             onMove={move}
@@ -139,7 +146,10 @@ export default function ReviewSplitView({
           />
           {selectedRow && (
             <ReviewFieldDetail
+              key={selectedRow.field}
               row={selectedRow}
+              editedValue={edits[selectedRow.field]}
+              onEdit={(v) => onEdit(selectedRow.field, v)}
               locations={selectedRow.chunkIds
                 .map((id) => outcome.chunkLocations[id])
                 .filter((l): l is ChunkLocation => Boolean(l))}

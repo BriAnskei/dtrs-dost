@@ -1,6 +1,7 @@
 import type { PDFPageProxy } from "pdfjs-dist";
 import type { TextItem } from "pdfjs-dist/types/src/display/api";
 import { mergeBoxes } from "./bbox";
+import { createMeasureContext } from "./canvas";
 import { PDF_EXTRACTION_CONFIG } from "./config";
 import type { BoundingBox, ExtractionChunk, ExtractionToken } from "./types";
 
@@ -25,19 +26,44 @@ function isTextItem(item: unknown): item is TextItem {
  * pdf.js gives one item per text run (often a whole phrase). Split it into words,
  * sharing the run's width by character count. Slightly approximate for proportional
  * fonts; upgrade later with canvas measureText if boxes drift.
+ * -Aleready updated using the canvas measurement and slightly improve the configurraiton
+ * awaiting for testing
  */
-function splitIntoWords(item: TextItem): Word[] {
+function splitIntoWords(
+  item: TextItem,
+  style: { fontFamily: string },
+  ctx: CanvasRenderingContext2D,
+): Word[] {
   const raw = item.str;
-  if (!raw.trim()) return [];
+  const totalWidth = ctx.measureText(raw).width;
+
+  const invalid = !raw.trim() || totalWidth <= 0;
+
+  if (invalid) {
+    return [];
+  }
+
+  const fontSize = Math.hypot(item.transform[0], item.transform[1]);
+  ctx.font = `${fontSize}px ${style.fontFamily}`;
+
   const height =
     Math.abs(item.height) || Math.hypot(item.transform[2], item.transform[3]);
-  return [...raw.matchAll(/\S+/g)].map((m) => ({
-    text: m[0],
-    x: item.transform[4] + ((m.index ?? 0) / raw.length) * item.width,
-    baseline: item.transform[5],
-    width: (m[0].length / raw.length) * item.width,
-    height,
-  }));
+
+  return [...raw.matchAll(/\S+/g)].map((match) => {
+    const text = match[0];
+    const index = match.index ?? 0;
+
+    const startWidth = ctx.measureText(raw.slice(0, index)).width;
+    const endWidth = ctx.measureText(raw.slice(0, index + text.length)).width;
+
+    return {
+      text,
+      x: item.transform[4] + (startWidth / totalWidth) * item.width,
+      baseline: item.transform[5],
+      width: ((endWidth - startWidth) / totalWidth) * item.width,
+      height,
+    };
+  });
 }
 
 function groupIntoLines(words: Word[]): Word[][] {
@@ -72,13 +98,16 @@ export async function extractNativeText(
   pageNumber: number,
 ): Promise<ExtractionChunk[]> {
   const content = await page.getTextContent();
-  const viewport = page.getViewport({ scale: 1 });
-  const [originX, originY] = viewport.viewBox; // mediaBox may not start at 0,0
 
-  const words = content.items
-    .filter(isTextItem)
-    .flatMap((item) => splitIntoWords(item))
-    .map((w) => ({ ...w, x: w.x - originX, baseline: w.baseline - originY }));
+  const ctx = createMeasureContext();
+
+  const words = content.items.filter(isTextItem).flatMap((item) => {
+    const style = content.styles[item.fontName];
+
+    return splitIntoWords(item, style, ctx);
+  });
+
+  const viewport = page.getViewport({ scale: 1 });
 
   return groupIntoLines(words).map((line, i): ExtractionChunk => {
     const tokens: ExtractionToken[] = line.map((w) => ({

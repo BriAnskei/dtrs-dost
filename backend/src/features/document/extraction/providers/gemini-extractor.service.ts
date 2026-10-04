@@ -44,7 +44,19 @@ export class GeminiExtractorService implements LlmExtractor {
 
       const parsed = JSON.parse(response.text);
 
-      const validated = extractionResponseSchema.parse(parsed);
+      let validated: { fields: ExtractedField[] };
+      try {
+        validated = extractionResponseSchema.parse(parsed);
+      } catch (validationError) {
+        this.logger.error(
+          "Gemini response failed schema validation",
+          validationError instanceof Error
+            ? validationError.stack
+            : String(validationError),
+        );
+        this.logger.debug(`Invalid Gemini payload: ${JSON.stringify(parsed)}`);
+        throw validationError;
+      }
 
       return validated.fields;
     } catch (error) {

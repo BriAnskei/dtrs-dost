@@ -52,7 +52,7 @@ export interface ExtractionResponse {
  * RULES (the client's highlighting depends on these)
  *  1. Return exactly one entry per field requested for `documentType`
  *     (incoming: subject, from, to, dateReceived, summary; outgoing: to,
- *     subject, dateReleased). Missing/duplicate entries are treated as "not
+ *     subject, dateReleased, summary). Missing/duplicate entries are treated as "not
  *     found".
  *  2. `value` must be copied VERBATIM from the chunk text: same words, same
  *     spelling, same date format as printed. Do not rephrase, expand

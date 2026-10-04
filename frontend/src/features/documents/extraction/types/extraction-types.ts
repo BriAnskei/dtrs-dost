@@ -1,5 +1,6 @@
 export type DocumentDirection = "incoming" | "outgoing";
-export type ExtractionPhase = "idle" | "source" | "llm" | "done";
+export type ExtractionPhase = "idle" | "source" | "llm" | "done" | "failed";
+
 export type FieldKey =
   | "subject"
   | "from"
@@ -58,3 +59,14 @@ export interface FieldHighlight {
   page: number;
   bbox: BBox;
 }
+
+/** Returned by useExtraction().start() when something unexpected broke. */
+export interface ExtractionFailure {
+  ok: false;
+  title: string;
+  description?: string;
+  /** true = something else already told the user (e.g. the Axios interceptor toast) */
+  silent: boolean;
+}
+
+export type ExtractionResult = { ok: true } | ExtractionFailure;

@@ -1,12 +1,12 @@
 import { CHUNK_LEVEL_FIELDS } from "../constans";
 import type { ExtractionChunk } from "../pdf";
-import { findValueBox } from "../pdf/text-matching";
 import type {
   BBox,
   ChunkLocation,
   FieldHighlight,
   FieldKey,
 } from "../types/extraction-types";
+import { findValueBox } from "./text-matching-helpers";
 
 export const toBBox = (b: {
   x: number;

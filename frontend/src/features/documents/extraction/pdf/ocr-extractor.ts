@@ -1,6 +1,6 @@
 import type { PDFPageProxy } from "pdfjs-dist";
 import type { Worker } from "tesseract.js";
-
+import { mergeBoxes } from "./bbox";
 import { PDF_EXTRACTION_CONFIG } from "./config";
 import type { BoundingBox, ExtractionChunk, ExtractionToken } from "./types";
 
@@ -42,23 +42,6 @@ function normalizeBoundingBox(
     y: y0 / canvasHeight,
     width: (x1 - x0) / canvasWidth,
     height: (y1 - y0) / canvasHeight,
-  };
-}
-
-function mergeBoxes(boxes: BoundingBox[]): BoundingBox {
-  const left = Math.min(...boxes.map((box) => box.x));
-
-  const top = Math.min(...boxes.map((box) => box.y));
-
-  const right = Math.max(...boxes.map((box) => box.x + box.width));
-
-  const bottom = Math.max(...boxes.map((box) => box.y + box.height));
-
-  return {
-    x: left,
-    y: top,
-    width: right - left,
-    height: bottom - top,
   };
 }
 

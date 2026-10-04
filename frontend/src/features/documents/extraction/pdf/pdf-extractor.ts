@@ -9,7 +9,6 @@ import type { ExtractionChunk, PageExtractionResult, PdfExtractionResult } from 
 
 function getPageMode(
   hasNativeText: boolean,
-  hasImages: boolean,
   nativeTextLength: number,
   hasOcrChunks: boolean,
 ): PageExtractionResult["extractionMode"] {
@@ -66,7 +65,6 @@ async function processPage(
 
   const extractionMode = getPageMode(
     nativeChunks.length > 0,
-    analysis.hasImages,
     nativeTextLength,
     ocrChunks.length > 0,
   );

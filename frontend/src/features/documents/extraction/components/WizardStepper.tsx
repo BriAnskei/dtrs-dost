@@ -12,7 +12,7 @@ interface Props {
 
 const Check = () => (
   <svg
-    className="w-4 h-4"
+    className="w-3 h-3"
     fill="none"
     viewBox="0 0 24 24"
     stroke="currentColor"
@@ -24,7 +24,7 @@ const Check = () => (
 );
 const Alert = () => (
   <svg
-    className="w-4 h-4"
+    className="w-3 h-3"
     fill="none"
     viewBox="0 0 24 24"
     stroke="currentColor"
@@ -73,17 +73,17 @@ export default function WizardStepper({
                 onClick={() => onStepClick(i)}
                 aria-current={active ? "step" : undefined}
                 aria-label={`Step ${i + 1}: ${s.label}${done ? " (completed)" : ""}`}
-                className={`group flex items-center gap-2 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-secondary/40 ${
+                className={`group flex items-center gap-1.5 rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-secondary/40 ${
                   clickable ? "cursor-pointer" : "cursor-default"
                 }`}
               >
                 <span
-                  className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 text-theme-xs font-semibold transition ${circle}`}
+                  className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-[11px] font-semibold transition ${circle}`}
                 >
                   {st ? <Alert /> : done ? <Check /> : i + 1}
                 </span>
                 <span
-                  className={`hidden sm:block text-theme-sm whitespace-nowrap ${
+                  className={`hidden sm:block text-theme-xs whitespace-nowrap ${
                     active
                       ? "font-semibold text-gray-800 dark:text-white/90"
                       : "text-gray-500 dark:text-gray-400"
@@ -95,7 +95,7 @@ export default function WizardStepper({
               {i < steps.length - 1 && (
                 <span
                   aria-hidden="true"
-                  className={`mx-3 h-0.5 flex-1 rounded ${done ? "bg-primary" : "bg-gray-200 dark:bg-white/10"}`}
+                  className={`mx-2 h-px flex-1 ${done ? "bg-primary" : "bg-gray-200 dark:bg-white/10"}`}
                 />
               )}
             </li>
