@@ -20,13 +20,17 @@ export function getApiErrorMessage(
     return "Too many login attempts. Please try again later.";
   }
 
-  const message = error.response?.data?.message;
+  const data = error.response?.data;
 
-  if (Array.isArray(message)) {
-    return message.join(", ");
+  if (Array.isArray(data?.message)) {
+    return data.message.join(", ");
   }
 
-  return message ?? fallback;
+  return data?.message ?? data?.error ?? fallback;
+}
+
+export function getErrorStatus(error: unknown): number | undefined {
+  return axios.isAxiosError(error) ? error.response?.status : undefined;
 }
 
 /**

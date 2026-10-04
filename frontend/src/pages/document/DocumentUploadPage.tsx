@@ -4,7 +4,7 @@ import "react-pdf/dist/Page/TextLayer.css";
 import ComponentCard from "../../components/common/ComponentCard";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import PageMeta from "../../components/common/PageMeta";
-import { extractPdf } from "../../module/pdf-extraction";
+import { extractPdf } from "../../features/documents/extraction/pdf";
 import DocumentTypeToggle from "./components/DocumentTypeToggle";
 import DropZone from "./components/DropZone";
 import IncomingExtractionPanel from "./components/IncomingExtractionPanel";

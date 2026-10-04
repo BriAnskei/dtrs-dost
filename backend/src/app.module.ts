@@ -12,8 +12,9 @@ import { getDatabaseConfig } from "./config/database.config";
 import { IncomingDocQueue } from "./entities/incoming-doc-queue.entity";
 import { IncomingDocumentFile } from "./entities/incoming-document-file.entity";
 import { InvalidDocument } from "./entities/invalid-document.entity";
+import { ExtractionModule } from "./features/document/extraction/extraction.module";
 import { PermissionsModule } from "./features/permissions/permissions.module";
-import {UserModule } from "./features/user/user.module";
+import { UserModule } from "./features/user/user.module";
 
 @Module({
   imports: [
@@ -42,6 +43,9 @@ import {UserModule } from "./features/user/user.module";
     UserModule,
     PermissionsModule,
     AuthorizationModule,
+
+    // Documents
+    ExtractionModule,
   ],
   controllers: [AppController],
   providers: [AppService],
