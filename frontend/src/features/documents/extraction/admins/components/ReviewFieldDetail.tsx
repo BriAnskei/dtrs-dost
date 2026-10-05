@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
-import { CHUNK_LEVEL_FIELDS, FIELD_LABELS } from "../constans";
-import type { ChunkLocation, ResultRow } from "../types/extraction-types";
+import { CHUNK_LEVEL_FIELDS, FIELD_LABELS } from "../../constans";
+import type { ChunkLocation, ResultRow } from "../../types/extraction-types";
 
 const pct = (v: number | null) => (v === null ? "—" : `${v}%`);
 

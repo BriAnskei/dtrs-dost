@@ -1,15 +1,14 @@
 import { BadRequestException } from "@nestjs/common";
 import { Test } from "@nestjs/testing";
-
-import type { ExtractionRequestDto } from "./dto/extraction-request-dto";
 import type { DocumentDirection } from "./contants/document-direction";
+import type { ExtractionRequestDto } from "./dto/extraction-request-dto";
+import { ExtractionService } from "./extraction.service";
 import type {
   ExtractedField,
   ExtractionChunk,
   LlmExtractor,
 } from "./providers/llm-extractor.interface";
 import { LLM_EXTRACTOR } from "./providers/llm-extractor.interface";
-import { ExtractionService } from "./extraction.service";
 
 function chunk(chunkId: string, text: string): ExtractionChunk {
   return { chunkId, text };
@@ -47,10 +46,7 @@ async function buildService(
   };
 
   const moduleRef = await Test.createTestingModule({
-    providers: [
-      ExtractionService,
-      { provide: LLM_EXTRACTOR, useValue: mock },
-    ],
+    providers: [ExtractionService, { provide: LLM_EXTRACTOR, useValue: mock }],
   }).compile();
 
   return {
@@ -119,9 +115,7 @@ describe("ExtractionService", () => {
       ]),
     );
 
-    const request = makeRequest("incoming", [
-      chunk("p1-o1", "Subject: Foo From: Bar"),
-    ]);
+    const request = makeRequest("incoming", [chunk("p1-o1", "Subject: Foo From: Bar")]);
 
     const result = await service.extract(request);
 
@@ -156,9 +150,7 @@ describe("ExtractionService", () => {
       Promise.resolve([field("subject", "Foo", ["p2-o1"], 90)]),
     );
 
-    const request = makeRequest("incoming", [
-      chunk("p1-o1", "nothing useful here"),
-    ]);
+    const request = makeRequest("incoming", [chunk("p1-o1", "nothing useful here")]);
 
     await expectBadRequest(
       () => service.extract(request),
@@ -226,9 +218,7 @@ describe("ExtractionService", () => {
       Promise.resolve([field("subject", null, [], null)]),
     );
 
-    const request = makeRequest("incoming", [
-      chunk("p1-o1", "no subject here"),
-    ]);
+    const request = makeRequest("incoming", [chunk("p1-o1", "no subject here")]);
 
     const result = await service.extract(request);
 

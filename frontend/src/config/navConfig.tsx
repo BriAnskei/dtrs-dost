@@ -127,7 +127,7 @@ export const NAV_ITEMS: NavItem[] = [
 
       {
         name: "Submit Doc",
-        path: "/upload",
+        path: "/incoming-upload",
         roles: [3],
       },
       {

@@ -10,7 +10,7 @@ export class ExtractionController {
   constructor(private readonly extractionService: ExtractionService) {}
 
   @Post()
-  @Roles(Role.SuperAdmin, Role.Admin)
+  @Roles(Role.SuperAdmin, Role.Admin, Role.ReceiverOfficer)
   extract(@Body() request: ExtractionRequestDto): Promise<ExtractionResponseDto> {
     return this.extractionService.extract(request);
   }

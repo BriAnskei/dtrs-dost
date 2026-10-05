@@ -1,7 +1,7 @@
 import type { PDFDocumentProxy } from "pdfjs-dist";
 import * as pdfjs from "pdfjs-dist";
 import { useEffect, useRef, useState } from "react";
-import type { BBox } from "../types/extraction-types";
+import type { BBox } from "../../types/extraction-types";
 import PdfPageWithHighlights from "./PdfPageWithHighlights";
 
 // Skip this block if your source extraction already configures the worker.

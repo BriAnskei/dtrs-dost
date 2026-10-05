@@ -10,23 +10,19 @@ import ProtectedRoute from "../features/auth/authorization/protectedRoute";
 import RoleRoute from "../features/auth/authorization/RoleRoutes";
 import DeactivatedUsersPage from "../features/deactivated-user-management/components/DeactivatedUsersPage";
 import DivisionManagementPage from "../features/divisions/components/DivisionManagementPage";
-import DirectUploadPage from "../features/documents/extraction/components/DirectUploadPage";
+import DirectUploadPage from "../features/documents/extraction/admins/components/DirectUploadPage";
+import ReceiverUploadPage from "../features/documents/extraction/receiver/components/ReceiverUploadPage";
 import UserManagementPage from "../features/user-management/components/UserManagementPage";
-import UserManagementTable from "../features/user-management/components/UserManagementTable";
 import AppLayout from "../layout/AppLayout";
 import AdminDashboard from "../pages/Dashboard/AdminDashboard";
-import Home from "../pages/Dashboard/Home";
 import ReceiverDashboard from "../pages/Dashboard/ReceiverDashboard";
 import StaleDocumentsPage from "../pages/Dashboard/StaleDocumentsPage";
 import SuperAdminDashboard from "../pages/Dashboard/SuperAdminDashboard";
 import AssignedDocumentPage from "../pages/Division/AssignedDocumentPage";
-import DocumentUploadPage from "../pages/document/DocumentUploadPage";
 import IncomingDocPage from "../pages/document/IncomingDocPage";
-import IncomingDocumentUploadPage from "../pages/document/IncomingDocumentUploadPage";
 import InvalidDocumentPage from "../pages/document/InvalidDocumentPage";
 import InvalidDocumentsPage from "../pages/document/InvalidDocumentsPage";
 import OutgoingDocPage from "../pages/document/OutgoingDocPage";
-import UploadedIncomingDoc from "../pages/document/UploadedIncomingDocPage";
 import UploadedIncomingDocPage from "../pages/document/UploadedIncomingDocPage";
 import ValudationQueue from "../pages/document/UploadQueue";
 import SystemLogsPage from "../pages/Logs/SystemLogsPage";
@@ -208,7 +204,7 @@ const RECEIVING_OFFICER_ROUTES: RouteType[] = [
   },
   {
     path: "/incoming-upload",
-    element: <IncomingDocumentUploadPage />,
+    element: <ReceiverUploadPage />,
   },
   {
     path: "/uploads",

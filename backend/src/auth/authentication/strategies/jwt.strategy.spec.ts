@@ -42,16 +42,14 @@ jest.mock("passport-jwt", () => ({
 function buildMockUser(
   roleId: Role,
   isActive = true,
-  managementPermissions:
-    | {
-        add: boolean;
-        edit: boolean;
-        reset_password: boolean;
-        deactivate: boolean;
-        reactivate: boolean;
-        delete: boolean;
-      }
-    | null = null,
+  managementPermissions: {
+    add: boolean;
+    edit: boolean;
+    reset_password: boolean;
+    deactivate: boolean;
+    reactivate: boolean;
+    delete: boolean;
+  } | null = null,
 ) {
   return {
     id: "user-uuid-123",
@@ -212,7 +210,9 @@ describe("JwtStrategy", () => {
      */
     it("should throw UnauthorizedException when payload.sub is empty string", async () => {
       await expect(strategy.validate({ sub: "" })).rejects.toThrow(UnauthorizedException);
-      await expect(strategy.validate({ sub: "" })).rejects.toThrow("Invalid token payload");
+      await expect(strategy.validate({ sub: "" })).rejects.toThrow(
+        "Invalid token payload",
+      );
 
       expect(userService.findByIdForAuth).not.toHaveBeenCalled();
     });

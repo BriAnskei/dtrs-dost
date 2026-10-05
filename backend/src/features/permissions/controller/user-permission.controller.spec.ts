@@ -24,18 +24,15 @@
  *   `revokeUserManagementPermission`   → no role restriction
  */
 
-import { ExecutionContext, ForbiddenException, HttpCode } from "@nestjs/common";
+import { ExecutionContext, ForbiddenException } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
-import { Test, type TestingModule } from "@nestjs/testing";
-import { PaginatedResponse } from "../../../common/pagination/paginated-response";
-import { RolesGuard } from "../../../auth/authorization/guard/roles.guard";
-import { PermissionDomain } from "../../../auth/authorization/enum/permission-domain.enum";
-import { Role } from "../../../auth/authorization/enum/roles.enum";
+import { Test, TestingModule } from "@nestjs/testing";
 import { ROLES_KEY } from "../../../auth/authorization/decorator/roles.decorator";
-import { PERMISSION_KEY } from "../../../auth/authorization/decorator/permissions.decorator";
-import { UserSortOrder } from "../../user/enums/user-sort-order-enum";
-import { UserManagementPermission } from "../../../auth/authorization/enum/user-management-permissions.enum";
+import { Role } from "../../../auth/authorization/enum/roles.enum";
+import { RolesGuard } from "../../../auth/authorization/guard/roles.guard";
+import { PaginatedResponse } from "../../../common/pagination/paginated-response";
 import { FindDeactivatedUsersQueryDto } from "../../user/dto/queries/find-deactivated-user-query-dto";
+import { UserSortOrder } from "../../user/enums/user-sort-order-enum";
 import { SetUserManagementPermissionDto } from "../dto/client/set-user-management-permission-dto";
 import {
   ManagementPermissionsResponseDto,
@@ -76,10 +73,7 @@ const RECEIVER_USER = {
  * controller method (so the real Reflector can read @Roles /
  * @RequirePermission metadata that NestJS's SetMetadata attached to it).
  */
-function createContext(
-  handler: Function,
-  user: unknown,
-): ExecutionContext {
+function createContext(handler: Function, user: unknown): ExecutionContext {
   return {
     getHandler: () => handler,
     getClass: () => UserPermissionController,
@@ -149,9 +143,9 @@ describe("UserPermissionController", () => {
       expect(guard.canActivate(createContext(handler, superAdmin))).toBe(true);
 
       // ReceiverOfficer is forbidden.
-      expect(() =>
-        guard.canActivate(createContext(handler, RECEIVER_USER)),
-      ).toThrow(ForbiddenException);
+      expect(() => guard.canActivate(createContext(handler, RECEIVER_USER))).toThrow(
+        ForbiddenException,
+      );
     });
 
     it("setUserManagementPermission requires SuperAdmin role", () => {
@@ -162,9 +156,9 @@ describe("UserPermissionController", () => {
 
       const guard = new RolesGuard(reflector);
 
-      expect(() =>
-        guard.canActivate(createContext(handler, RECEIVER_USER)),
-      ).toThrow(ForbiddenException);
+      expect(() => guard.canActivate(createContext(handler, RECEIVER_USER))).toThrow(
+        ForbiddenException,
+      );
     });
 
     it("revokeUserManagementPermission has NO role restriction (open access)", () => {
@@ -181,7 +175,8 @@ describe("UserPermissionController", () => {
 
     it("PUT and DELETE endpoints are configured with HttpCode 204", () => {
       const putHandler = UserPermissionController.prototype.setUserManagementPermission;
-      const deleteHandler = UserPermissionController.prototype.revokeUserManagementPermission;
+      const deleteHandler =
+        UserPermissionController.prototype.revokeUserManagementPermission;
 
       expect(Reflect.getMetadata("__httpCode__", putHandler)).toBe(204);
       expect(Reflect.getMetadata("__httpCode__", deleteHandler)).toBe(204);
@@ -267,9 +262,9 @@ describe("UserPermissionController", () => {
         new Error("database unavailable"),
       );
 
-      await expect(
-        controller.findAllUserManagementPermission(query),
-      ).rejects.toThrow("database unavailable");
+      await expect(controller.findAllUserManagementPermission(query)).rejects.toThrow(
+        "database unavailable",
+      );
     });
   });
 
@@ -303,9 +298,9 @@ describe("UserPermissionController", () => {
       );
       service.setUserManagementPermission.mockRejectedValue(error);
 
-      await expect(
-        controller.setUserManagementPermission(userId, dto),
-      ).rejects.toThrow(error);
+      await expect(controller.setUserManagementPermission(userId, dto)).rejects.toThrow(
+        error,
+      );
 
       expect(service.setUserManagementPermission).toHaveBeenCalledWith(userId, dto);
     });
@@ -333,9 +328,9 @@ describe("UserPermissionController", () => {
         new Error("User permission does not exist"),
       );
 
-      await expect(
-        controller.revokeUserManagementPermission(userId),
-      ).rejects.toThrow("User permission does not exist");
+      await expect(controller.revokeUserManagementPermission(userId)).rejects.toThrow(
+        "User permission does not exist",
+      );
     });
   });
 });

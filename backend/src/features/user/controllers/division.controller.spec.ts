@@ -26,18 +26,18 @@
 
 import { ExecutionContext, ForbiddenException } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
-import { Test, type TestingModule } from "@nestjs/testing";
-import { PaginatedResponse } from "../../../common/pagination/paginated-response";
-import { RolesGuard } from "../../../auth/authorization/guard/roles.guard";
-import { PermissionsGuard } from "../../../auth/authorization/guard/permission.guard";
-import { PermissionDomain } from "../../../auth/authorization/enum/permission-domain.enum";
-import { UserManagementPermission } from "../../../auth/authorization/enum/user-management-permissions.enum";
-import { Role } from "../../../auth/authorization/enum/roles.enum";
-import { ROLES_KEY } from "../../../auth/authorization/decorator/roles.decorator";
+import { TestingModule, Test } from "@nestjs/testing";
 import { PERMISSION_KEY } from "../../../auth/authorization/decorator/permissions.decorator";
-import { DivisionSortOrder } from "../enums/division-sort-order-enum";
+import { ROLES_KEY } from "../../../auth/authorization/decorator/roles.decorator";
+import { PermissionDomain } from "../../../auth/authorization/enum/permission-domain.enum";
+import { Role } from "../../../auth/authorization/enum/roles.enum";
+import { UserManagementPermission } from "../../../auth/authorization/enum/user-management-permissions.enum";
+import { PermissionsGuard } from "../../../auth/authorization/guard/permission.guard";
+import { RolesGuard } from "../../../auth/authorization/guard/roles.guard";
+import { PaginatedResponse } from "../../../common/pagination/paginated-response";
 import { FindDivisionsQueryDto } from "../dto/queries/find-divisions-query-dto";
 import { UpdateDivisionDto } from "../dto/updates/update-division-dto";
+import { DivisionSortOrder } from "../enums/division-sort-order-enum";
 import { DivisionService } from "../service/division.service";
 import { DivisionController } from "./division.controller";
 
@@ -208,9 +208,7 @@ describe("DivisionController", () => {
 
         // Admin with no permissions → ForbiddenException from PermissionsGuard.
         expect(() =>
-          permissionsGuard.canActivate(
-            createContext(handler, ADMIN_USER_NO_PERMISSIONS),
-          ),
+          permissionsGuard.canActivate(createContext(handler, ADMIN_USER_NO_PERMISSIONS)),
         ).toThrow(ForbiddenException);
 
         // Admin with all permissions → allowed.
@@ -247,9 +245,7 @@ describe("DivisionController", () => {
       const searchTerm = "Engineering";
 
       /* DivisionEntity[] shape — the controller passes through unchanged. */
-      const expected = [
-        { id: "div-1", division_name: "Engineering", users: [] },
-      ];
+      const expected = [{ id: "div-1", division_name: "Engineering", users: [] }];
 
       service.searchByName.mockResolvedValue(expected as any);
 
@@ -281,7 +277,12 @@ describe("DivisionController", () => {
             id: "div-1",
             division_name: "Engineering",
             users: [
-              { id: "u1", full_name: "Jane Doe", email: "jane@example.com", is_active: true },
+              {
+                id: "u1",
+                full_name: "Jane Doe",
+                email: "jane@example.com",
+                is_active: true,
+              },
             ],
           },
         ],
@@ -341,9 +342,7 @@ describe("DivisionController", () => {
 
       service.updateName.mockRejectedValue(new Error("Division not found"));
 
-      await expect(controller.updateName(id, dto)).rejects.toThrow(
-        "Division not found",
-      );
+      await expect(controller.updateName(id, dto)).rejects.toThrow("Division not found");
 
       expect(service.updateName).toHaveBeenCalledWith(id, dto);
     });

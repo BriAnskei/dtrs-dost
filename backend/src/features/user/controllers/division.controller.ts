@@ -18,7 +18,6 @@ import { UserManagementPermission } from "../../../auth/authorization/enum/user-
 import { FindDivisionsQueryDto } from "../dto/queries/find-divisions-query-dto";
 import { UpdateDivisionDto } from "../dto/updates/update-division-dto";
 import { DivisionService } from "../service/division.service";
-
 @Controller("division")
 export class DivisionController {
   constructor(private readonly service: DivisionService) {}

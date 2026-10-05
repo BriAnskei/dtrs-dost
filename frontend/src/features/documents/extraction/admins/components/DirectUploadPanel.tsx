@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { WIZARD_STEPS } from "../constans";
-import { useExtraction } from "../hooks/use-extraction";
-import type { DocumentDirection, FieldKey } from "../types/extraction-types";
+import { WIZARD_STEPS } from "../../constans";
+import { useExtraction } from "../../hooks/use-extraction";
+import type { DocumentDirection, FieldKey } from "../../types/extraction-types";
 import DocumentTypeSelector from "./DocumentTypeSelelector";
 import ExtractionConsole from "./ExtractionConsole";
 import PdfDropzone from "./PDFDropzone";

@@ -32,21 +32,21 @@
 
 import { ExecutionContext, ForbiddenException } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
-import { Test, type TestingModule } from "@nestjs/testing";
-import { PaginatedResponse } from "../../../common/pagination/paginated-response";
-import { RolesGuard } from "../../../auth/authorization/guard/roles.guard";
-import { PermissionsGuard } from "../../../auth/authorization/guard/permission.guard";
-import { PermissionDomain } from "../../../auth/authorization/enum/permission-domain.enum";
-import { UserManagementPermission } from "../../../auth/authorization/enum/user-management-permissions.enum";
-import { Role } from "../../../auth/authorization/enum/roles.enum";
-import { ROLES_KEY } from "../../../auth/authorization/decorator/roles.decorator";
+import { TestingModule, Test } from "@nestjs/testing";
 import { PERMISSION_KEY } from "../../../auth/authorization/decorator/permissions.decorator";
-import { UserSortOrder } from "../enums/user-sort-order-enum";
+import { ROLES_KEY } from "../../../auth/authorization/decorator/roles.decorator";
+import { PermissionDomain } from "../../../auth/authorization/enum/permission-domain.enum";
+import { Role } from "../../../auth/authorization/enum/roles.enum";
+import { UserManagementPermission } from "../../../auth/authorization/enum/user-management-permissions.enum";
+import { PermissionsGuard } from "../../../auth/authorization/guard/permission.guard";
+import { RolesGuard } from "../../../auth/authorization/guard/roles.guard";
+import { PaginatedResponse } from "../../../common/pagination/paginated-response";
 import { CreateUserDto } from "../dto/create/create-user-dto";
+import { FindDeactivatedUsersQueryDto } from "../dto/queries/find-deactivated-user-query-dto";
+import { FindUsersQueryDto } from "../dto/queries/find-user-query-dto";
 import { UpdateUserDto } from "../dto/updates/update-user-dto";
 import { UpdateUserPasswordDto } from "../dto/updates/update-user-password.dto";
-import { FindUsersQueryDto } from "../dto/queries/find-user-query-dto";
-import { FindDeactivatedUsersQueryDto } from "../dto/queries/find-deactivated-user-query-dto";
+import { UserSortOrder } from "../enums/user-sort-order-enum";
 import { UserService } from "../service/user.service";
 import { UserController } from "./user.controller";
 
@@ -198,9 +198,9 @@ describe("UserController", () => {
       const permissionsGuard = new PermissionsGuard(reflector);
 
       // ReceiverOfficer rejected by RolesGuard.
-      expect(() =>
-        rolesGuard.canActivate(createContext(handler, RECEIVER_USER)),
-      ).toThrow(ForbiddenException);
+      expect(() => rolesGuard.canActivate(createContext(handler, RECEIVER_USER))).toThrow(
+        ForbiddenException,
+      );
 
       // Admin with no permissions rejected by PermissionsGuard.
       expect(() =>
@@ -208,17 +208,17 @@ describe("UserController", () => {
       ).toThrow(ForbiddenException);
 
       // Admin with all permissions passes both guards.
-      expect(rolesGuard.canActivate(createContext(handler, ADMIN_USER_FULL_PERMISSIONS))).toBe(
-        true,
-      );
+      expect(
+        rolesGuard.canActivate(createContext(handler, ADMIN_USER_FULL_PERMISSIONS)),
+      ).toBe(true);
       expect(
         permissionsGuard.canActivate(createContext(handler, ADMIN_USER_FULL_PERMISSIONS)),
       ).toBe(true);
 
       // SuperAdmin bypasses PermissionsGuard.
-      expect(
-        permissionsGuard.canActivate(createContext(handler, SUPER_ADMIN_USER)),
-      ).toBe(true);
+      expect(permissionsGuard.canActivate(createContext(handler, SUPER_ADMIN_USER))).toBe(
+        true,
+      );
     });
 
     /*
@@ -256,14 +256,12 @@ describe("UserController", () => {
       const rolesGuard = new RolesGuard(reflector);
       const permissionsGuard = new PermissionsGuard(reflector);
 
-      expect(() =>
-        rolesGuard.canActivate(createContext(handler, RECEIVER_USER)),
-      ).toThrow(ForbiddenException);
+      expect(() => rolesGuard.canActivate(createContext(handler, RECEIVER_USER))).toThrow(
+        ForbiddenException,
+      );
 
       expect(() =>
-        permissionsGuard.canActivate(
-          createContext(handler, ADMIN_USER_NO_PERMISSIONS),
-        ),
+        permissionsGuard.canActivate(createContext(handler, ADMIN_USER_NO_PERMISSIONS)),
       ).toThrow(ForbiddenException);
 
       expect(
@@ -285,9 +283,9 @@ describe("UserController", () => {
 
       // Any user passes both guards; guards short-circuit to true.
       expect(rolesGuard.canActivate(createContext(handler, RECEIVER_USER))).toBe(true);
-      expect(
-        permissionsGuard.canActivate(createContext(handler, RECEIVER_USER)),
-      ).toBe(true);
+      expect(permissionsGuard.canActivate(createContext(handler, RECEIVER_USER))).toBe(
+        true,
+      );
     });
 
     /*
@@ -332,9 +330,7 @@ describe("UserController", () => {
 
         // Admin with no permissions → ForbiddenException from PermissionsGuard.
         expect(() =>
-          permissionsGuard.canActivate(
-            createContext(handler, ADMIN_USER_NO_PERMISSIONS),
-          ),
+          permissionsGuard.canActivate(createContext(handler, ADMIN_USER_NO_PERMISSIONS)),
         ).toThrow(ForbiddenException);
       },
     );

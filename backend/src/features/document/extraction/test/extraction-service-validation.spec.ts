@@ -16,17 +16,17 @@
  *   7. ChunkId ordering preserved in the response.
  */
 
+import { BadRequestException } from "@nestjs/common";
 import { Test } from "@nestjs/testing";
+import type { DocumentDirection } from "../contants/document-direction";
+import type { ExtractionRequestDto } from "../dto/extraction-request-dto";
+import { ExtractionService } from "../extraction.service";
 import type {
   ExtractedField,
   ExtractionChunk,
   LlmExtractor,
 } from "../providers/llm-extractor.interface";
 import { LLM_EXTRACTOR } from "../providers/llm-extractor.interface";
-import { ExtractionService } from "../extraction.service";
-import type { ExtractionRequestDto } from "../dto/extraction-request-dto";
-import type { DocumentDirection } from "../contants/document-direction";
-import { BadRequestException } from "@nestjs/common";
 
 function chunk(chunkId: string, text: string): ExtractionChunk {
   return { chunkId, text };
@@ -64,10 +64,7 @@ async function buildService(
   };
 
   const moduleRef = await Test.createTestingModule({
-    providers: [
-      ExtractionService,
-      { provide: LLM_EXTRACTOR, useValue: mock },
-    ],
+    providers: [ExtractionService, { provide: LLM_EXTRACTOR, useValue: mock }],
   }).compile();
 
   return {
@@ -107,7 +104,7 @@ describe("ExtractionService — validateField edge cases", () => {
 
       await expectBadRequest(
         () => service.extract(request),
-        'Invalid confidence for field subject',
+        "Invalid confidence for field subject",
       );
     });
 
@@ -120,7 +117,7 @@ describe("ExtractionService — validateField edge cases", () => {
 
       await expectBadRequest(
         () => service.extract(request),
-        'Invalid confidence for field subject',
+        "Invalid confidence for field subject",
       );
     });
 
@@ -191,7 +188,7 @@ describe("ExtractionService — validateField edge cases", () => {
 
       await expectBadRequest(
         () => service.extract(request),
-        'Field subject has chunkIds but no value',
+        "Field subject has chunkIds but no value",
       );
     });
   });
@@ -361,9 +358,7 @@ describe("ExtractionService — field ordering & chunk preservation", () => {
 
   it("preserves the LLM's chunkId list order in the response (does not sort)", async () => {
     const { service } = await buildService(() =>
-      Promise.resolve([
-        field("subject", "Foo Bar Baz", ["p1-o3", "p1-o1", "p1-o2"], 95),
-      ]),
+      Promise.resolve([field("subject", "Foo Bar Baz", ["p1-o3", "p1-o1", "p1-o2"], 95)]),
     );
 
     const request = makeRequest("incoming", [
