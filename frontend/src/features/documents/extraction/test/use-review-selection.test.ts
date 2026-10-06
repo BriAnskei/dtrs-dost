@@ -24,7 +24,7 @@
 import { renderHook, act } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
-import { useReviewSelection } from "../hooks/use-review-selection";
+import { useReviewSelection } from "../admins/hooks/use-review-selection";
 import type { ResultRow } from "../types/extraction-types";
 
 /** Build a ResultRow with sensible defaults. */

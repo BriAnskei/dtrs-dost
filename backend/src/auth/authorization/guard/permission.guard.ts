@@ -34,9 +34,8 @@ export class PermissionsGuard implements CanActivate {
     }
 
     const { domain, permission } = requiredPermission;
-    
-    
-    const permissions = user.permissions[domain]
+
+    const permissions = user.permissions[domain];
 
     if (!permissions) {
       throw new ForbiddenException("You do not have permission to access this resource");

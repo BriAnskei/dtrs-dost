@@ -3,18 +3,18 @@ import {
   getApiErrorMessage,
   getErrorStatus,
   isNetworkError,
-} from "../../../../lib/api-error";
-import { FIELDS_BY_DIRECTION } from "../constans";
-import { computeEffective, decide } from "../helpers/extraction-helpers";
-import { resolveHighlights, toBBox } from "../helpers/highlight-helpers";
-import type { PdfExtractionResult } from "../pdf";
-import { extractPdf } from "../pdf";
-import type { ExtractionChunk } from "../pdf/types";
+} from "../../../../../lib/api-error";
+import { FIELDS_BY_DIRECTION } from "../../constans";
+import { computeEffective, decide } from "../../helpers/extraction-helpers";
+import { resolveHighlights, toBBox } from "../../helpers/highlight-helpers";
+import type { PdfExtractionResult } from "../../pdf";
+import { extractPdf } from "../../pdf";
+import type { ExtractionChunk } from "../../pdf/types";
 import {
   type ExtractionRequest,
   type ExtractionResponse,
   extractionService,
-} from "../service/extraction-service";
+} from "../../service/extraction-service";
 import type {
   ChunkLocation,
   DocumentDirection,
@@ -25,7 +25,7 @@ import type {
   LogEntry,
   LogLevel,
   ResultRow,
-} from "../types/extraction-types";
+} from "../../types/extraction-types";
 
 export function useExtraction(direction: DocumentDirection) {
   const [phase, setPhase] = useState<ExtractionPhase>("idle");

@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { FIELD_LABELS } from "../../constans";
 import { isFlagged } from "../../helpers/extraction-helpers";
-import { useReviewSelection } from "../../hooks/use-review-selection";
+import { useReviewSelection } from "../hooks/use-review-selection";
 import type {
   ChunkLocation,
   ExtractionOutcome,

@@ -1,29 +1,37 @@
+import { useMutation } from "@tanstack/react-query";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { useExtraction } from "../../hooks/use-extraction";
-import type { ExtractionOutcome } from "../../types/extraction-types";
+import {
+  getApiErrorMessage,
+  getErrorStatus,
+  isNetworkError,
+} from "../../../../../lib/api-error";
+import { extractPdf } from "../../pdf";
+import { MAX_RECEIVER_CHUNKS, toReceiverChunks } from "../helpers/reciver-upload-chunks";
 import { PROGRESS_STEPS } from "../receiver-upload-constants";
+import {
+  type ReceiverChunk,
+  receiverUploadService,
+} from "../service/reciever-upload-service";
 
 export type ReceiverUploadStatus =
   | "idle"
-  | "processing"
-  | "queueing"
+  | "processing" // browser: pdf.js + OCR
+  | "queueing" // request in flight (LLM extraction + save happen server-side)
   | "queue_failed"
   | "queued";
 
-/**
- * Receiver flow: pick file -> browser extraction -> auto-queue for admin validation.
- * No review step. REVIEW / INVALID decisions are queued as-is; the admin handles them.
- */
 export function useReceiverUpload() {
   const [file, setFile] = useState<File | null>(null);
   const [status, setStatus] = useState<ReceiverUploadStatus>("idle");
-  // Receivers only handle incoming documents.
-  const { phase, outcome, start, reset } = useExtraction("incoming");
+
+  const { mutateAsync, reset: resetMutation } = useMutation({
+    mutationFn: receiverUploadService.upload,
+  });
 
   const mountedRef = useRef(true);
-  // Guards against queueing the same outcome twice (StrictMode / re-renders).
-  const queuedRef = useRef(false);
+  // Kept so Retry re-sends without redoing OCR.
+  const chunksRef = useRef<ReceiverChunk[] | null>(null);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -34,7 +42,6 @@ export function useReceiverUpload() {
 
   const busy = status === "processing" || status === "queueing";
 
-  // Extraction runs in this browser: warn before the tab is closed mid-way.
   useEffect(() => {
     if (!busy) return;
     const onBeforeUnload = (e: BeforeUnloadEvent) => {
@@ -45,80 +52,95 @@ export function useReceiverUpload() {
     return () => window.removeEventListener("beforeunload", onBeforeUnload);
   }, [busy]);
 
-  const queue = useCallback(async (f: File, o: ExtractionOutcome) => {
-    setStatus("queueing");
-    try {
-      if (!mountedRef.current) return;
-      setStatus("queued");
-    } catch {
-      if (!mountedRef.current) return;
-      queuedRef.current = false;
-      setStatus("queue_failed");
-      toast.error("Could not send the document", {
-        description: "Your file is still here. Try again.",
-        id: "queue-failed",
-      });
-    }
-  }, []);
+  const send = useCallback(
+    async (f: File, chunks: ReceiverChunk[]) => {
+      setStatus("queueing");
+      try {
+        await mutateAsync({ file: f, chunks });
+        if (!mountedRef.current) return;
+        setStatus("queued");
+      } catch (err) {
+        if (!mountedRef.current) return;
+        setStatus("queue_failed");
+        // The Axios interceptor already toasts network errors and expired sessions.
+        if (!isNetworkError(err) && getErrorStatus(err) !== 401) {
+          toast.error("Could not send the document", {
+            description: getApiErrorMessage(err, "Your file is still here. Try again."),
+            id: "queue-failed",
+          });
+        }
+        console.log(getApiErrorMessage(err, "Failed"));
+      }
+    },
+    [mutateAsync],
+  );
 
-  // As soon as extraction finishes, queue the result.
-  useEffect(() => {
-    if (status !== "processing" || phase !== "done" || !outcome || !file) return;
-    if (queuedRef.current) return;
-    queuedRef.current = true;
-    void queue(file, outcome);
-  }, [status, phase, outcome, file, queue]);
+  const backToIdle = useCallback((title: string, description: string) => {
+    setStatus("idle");
+    toast.error(title, { description, id: "extraction-failed" });
+  }, []);
 
   const selectFile = useCallback(
     (f: File | null) => {
-      reset();
+      chunksRef.current = null;
+      resetMutation();
       setFile(f);
     },
-    [reset],
+    [resetMutation],
   );
 
   const submit = useCallback(async () => {
-    if (!file) return;
-    queuedRef.current = false;
+    if (!file || busy) return;
     setStatus("processing");
-    const result = await start(file);
 
-    if (result.ok || !mountedRef.current) return;
-
-    // Unexpected failure: back to the file card so the user can retry or swap the file.
-    reset();
-    setStatus("idle");
-    if (!result.silent) {
-      toast.error(result.title, {
-        description: result.description,
-        id: "extraction-failed",
-      });
+    let chunks: ReceiverChunk[];
+    try {
+      chunks = toReceiverChunks(await extractPdf(file));
+    } catch {
+      if (!mountedRef.current) return;
+      return backToIdle(
+        "Could not read this PDF",
+        "The file may be corrupted or protected. Try another file.",
+      );
     }
-  }, [file, start, reset]);
+    if (!mountedRef.current) return;
 
-  /** Re-sends the already extracted outcome; does not redo the extraction. */
+    if (chunks.length === 0) {
+      return backToIdle(
+        "No readable text found",
+        "The PDF appears to be blank or unreadable. Try another file.",
+      );
+    }
+    if (chunks.length > MAX_RECEIVER_CHUNKS) {
+      return backToIdle(
+        "Document is too long",
+        `This PDF produced more than ${MAX_RECEIVER_CHUNKS} text blocks. Try a shorter file.`,
+      );
+    }
+
+    chunksRef.current = chunks;
+    await send(file, chunks);
+  }, [file, busy, send, backToIdle]);
+
+  /** Re-sends the already-read chunks; does not redo OCR. */
   const retryQueue = useCallback(() => {
-    if (!file || !outcome || queuedRef.current) return;
-    queuedRef.current = true;
-    void queue(file, outcome);
-  }, [file, outcome, queue]);
+    if (!file || !chunksRef.current || busy) return;
+    void send(file, chunksRef.current);
+  }, [file, busy, send]);
 
   const startOver = useCallback(() => {
-    reset();
-    queuedRef.current = false;
+    chunksRef.current = null;
+    resetMutation();
     setFile(null);
     setStatus("idle");
-  }, [reset]);
+  }, [resetMutation]);
 
-  // Index of the step currently in progress (PROGRESS_STEPS.length = all done).
   const activeIdx =
     status === "queued"
       ? PROGRESS_STEPS.length
       : status === "queueing" || status === "queue_failed"
-        ? 2
-        : phase === "llm" || phase === "done"
-          ? 1
-          : 0;
+        ? 1
+        : 0;
 
   return { file, status, busy, activeIdx, selectFile, submit, retryQueue, startOver };
 }

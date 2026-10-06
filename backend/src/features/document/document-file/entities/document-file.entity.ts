@@ -19,9 +19,6 @@ export class DocumentFileEntity {
   @Column({ type: "varchar" })
   object_key!: string;
 
-  @Column({ type: "varchar" })
-  storage_type!: string;
-
   @Column({ type: "uuid", nullable: true })
   uploader_id!: string | null;
 

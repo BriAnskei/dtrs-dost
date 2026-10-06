@@ -91,9 +91,9 @@ describe("valueInDocument", () => {
     });
 
     it("returns true when value words span multiple line breaks", () => {
-      expect(
-        valueInDocument("Jane Smith", "Jane\n\nsome unrelated line\nSmith"),
-      ).toBe(true);
+      expect(valueInDocument("Jane Smith", "Jane\n\nsome unrelated line\nSmith")).toBe(
+        true,
+      );
     });
 
     it("returns false when value words appear out of order", () => {
@@ -125,9 +125,7 @@ describe("valueInDocument", () => {
     });
 
     it("returns true when all words match (100 % coverage)", () => {
-      expect(
-        valueInDocument("alpha bravo charlie", "alpha bravo charlie"),
-      ).toBe(true);
+      expect(valueInDocument("alpha bravo charlie", "alpha bravo charlie")).toBe(true);
     });
   });
 

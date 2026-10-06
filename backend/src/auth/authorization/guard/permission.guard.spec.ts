@@ -60,10 +60,7 @@ describe("PermissionsGuard", () => {
     };
 
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        PermissionsGuard,
-        { provide: Reflector, useValue: reflector },
-      ],
+      providers: [PermissionsGuard, { provide: Reflector, useValue: reflector }],
     }).compile();
 
     guard = module.get<PermissionsGuard>(PermissionsGuard);
@@ -86,10 +83,10 @@ describe("PermissionsGuard", () => {
 
       expect(guard.canActivate(context)).toBe(true);
 
-      expect(reflector.getAllAndOverride).toHaveBeenCalledWith(
-        PERMISSION_KEY,
-        [expect.any(Function), expect.any(Function)],
-      );
+      expect(reflector.getAllAndOverride).toHaveBeenCalledWith(PERMISSION_KEY, [
+        expect.any(Function),
+        expect.any(Function),
+      ]);
     });
   });
 

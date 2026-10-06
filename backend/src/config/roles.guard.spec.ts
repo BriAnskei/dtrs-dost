@@ -8,9 +8,11 @@ import { ROLES_KEY } from "../auth/authorization/decorator/roles.decorator";
  * Creates a mock ExecutionContext with a configurable `req.user`.
  * The `request` object is returned so tests can assert on it if needed.
  */
-function createMockContext(
-  user: unknown,
-): { context: ExecutionContext; handler: jest.Mock; cls: jest.Mock } {
+function createMockContext(user: unknown): {
+  context: ExecutionContext;
+  handler: jest.Mock;
+  cls: jest.Mock;
+} {
   const handler = jest.fn();
   const cls = jest.fn();
   const context = {
@@ -73,10 +75,7 @@ describe("RolesGuard", () => {
    * at least one of them, access is granted.
    */
   it("should allow access when user has one of multiple required roles", () => {
-    reflector.getAllAndOverride.mockReturnValue([
-      Role.Admin,
-      Role.SuperAdmin,
-    ]);
+    reflector.getAllAndOverride.mockReturnValue([Role.Admin, Role.SuperAdmin]);
 
     const { context } = createMockContext({
       id: "user-1",
@@ -155,9 +154,6 @@ describe("RolesGuard", () => {
 
     guard.canActivate(context);
 
-    expect(reflector.getAllAndOverride).toHaveBeenCalledWith(ROLES_KEY, [
-      handler,
-      cls,
-    ]);
+    expect(reflector.getAllAndOverride).toHaveBeenCalledWith(ROLES_KEY, [handler, cls]);
   });
 });

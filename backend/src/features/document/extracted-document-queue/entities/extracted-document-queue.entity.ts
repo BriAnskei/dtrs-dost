@@ -6,9 +6,11 @@ import {
   OneToOne,
   PrimaryGeneratedColumn,
 } from "typeorm";
-import { DocumentFileEntity } from "../../extraction/entities/document-files.entity";
+import { DocumentFileEntity } from "../../document-file/entities/document-file.entity";
+import { ExtractedField } from "../../extraction/providers/llm-extractor.interface";
 import type { Decision } from "../extration-queue.constant";
 import { DECISION_VALUES } from "../extration-queue.constant";
+import { ExtractedChunk } from "../types/extracted-types";
 
 @Entity("extracted_document_queues")
 export class ExtractedDocumentQueueEntity {
@@ -26,7 +28,10 @@ export class ExtractedDocumentQueueEntity {
   document_file!: DocumentFileEntity;
 
   @Column({ type: "jsonb" })
-  extracted_data!: Record<string, unknown>;
+  extracted_data!: ExtractedField[];
+
+  @Column({ type: "jsonb" })
+  extracted_chunks!: ExtractedChunk[];
 
   @Column({
     type: "enum",

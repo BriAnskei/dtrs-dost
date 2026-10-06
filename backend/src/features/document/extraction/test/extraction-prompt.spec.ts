@@ -104,10 +104,8 @@ describe("buildExtractionPrompt", () => {
     });
 
     it("includes chunk text verbatim — no escaping or truncation", () => {
-      const text = "Subject: <Request> & Co. — \"Quoted\" value";
-      const prompt = buildExtractionPrompt("incoming", [
-        makeChunk("p1-o1", text),
-      ]);
+      const text = 'Subject: <Request> & Co. — "Quoted" value';
+      const prompt = buildExtractionPrompt("incoming", [makeChunk("p1-o1", text)]);
 
       expect(prompt).toContain(text);
     });

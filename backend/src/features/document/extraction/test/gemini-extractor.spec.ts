@@ -38,7 +38,10 @@ import { Test } from "@nestjs/testing";
 import { buildExtractionPrompt } from "../prompts/extraction-prompt";
 import { GeminiExtractorService } from "../providers/gemini-extractor.service";
 import { extractionResponseSchema } from "../schemas/extraction-response.schema";
-import type { ExtractedField, ExtractionChunk } from "../providers/llm-extractor.interface";
+import type {
+  ExtractedField,
+  ExtractionChunk,
+} from "../providers/llm-extractor.interface";
 
 /*
  * The GoogleGenAI SDK is mocked at the module level. Each test swaps
@@ -69,7 +72,9 @@ function makeChunk(id: string, text: string): ExtractionChunk {
 }
 
 /** Build a service with a mocked ConfigService and a stubbed `sleep`. */
-async function buildService(apiKey: string = "test-key"): Promise<GeminiExtractorService> {
+async function buildService(
+  apiKey: string = "test-key",
+): Promise<GeminiExtractorService> {
   const configService = {
     get: jest.fn().mockReturnValue(apiKey),
   } as unknown as ConfigService;
@@ -172,8 +177,11 @@ describe("GeminiExtractorService", () => {
 
       // The response schema restricts field keys to the documentType's enum.
       expect(call.config.responseJsonSchema).toBeDefined();
-      const fieldEnum = call.config.responseJsonSchema.properties.fields.items.properties.field.enum;
-      expect(fieldEnum.sort()).toEqual(["subject", "from", "to", "dateReceived", "summary"].sort());
+      const fieldEnum =
+        call.config.responseJsonSchema.properties.fields.items.properties.field.enum;
+      expect(fieldEnum.sort()).toEqual(
+        ["subject", "from", "to", "dateReceived", "summary"].sort(),
+      );
     });
 
     it("sends outgoing enum for outgoing documents in the response schema", async () => {
@@ -193,7 +201,8 @@ describe("GeminiExtractorService", () => {
       await service.extractFields("outgoing", []);
 
       const call = mockGenerateContent.mock.calls[0][0];
-      const fieldEnum = call.config.responseJsonSchema.properties.fields.items.properties.field.enum;
+      const fieldEnum =
+        call.config.responseJsonSchema.properties.fields.items.properties.field.enum;
 
       // Outgoing enum: to, subject, dateReleased, summary (no "from", no "dateReceived").
       expect(fieldEnum.sort()).toEqual(
@@ -252,9 +261,7 @@ describe("GeminiExtractorService", () => {
 
       mockGenerateContent.mockResolvedValueOnce({
         text: JSON.stringify({
-          fields: [
-            { field: "subject", value: null, chunkIds: [], aiConfidence: null },
-          ],
+          fields: [{ field: "subject", value: null, chunkIds: [], aiConfidence: null }],
         }),
       });
 
@@ -632,9 +639,7 @@ describe("GeminiExtractorService", () => {
     it("rejects non-string chunkIds", () => {
       expect(() =>
         extractionResponseSchema.parse({
-          fields: [
-            { field: "subject", value: "x", chunkIds: [123], aiConfidence: 50 },
-          ],
+          fields: [{ field: "subject", value: "x", chunkIds: [123], aiConfidence: 50 }],
         }),
       ).toThrow();
     });
@@ -648,9 +653,7 @@ describe("GeminiExtractorService", () => {
     });
 
     it("accepts an empty fields array", () => {
-      expect(() =>
-        extractionResponseSchema.parse({ fields: [] }),
-      ).not.toThrow();
+      expect(() => extractionResponseSchema.parse({ fields: [] })).not.toThrow();
     });
   });
 });
