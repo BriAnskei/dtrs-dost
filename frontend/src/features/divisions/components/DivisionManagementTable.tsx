@@ -1,9 +1,7 @@
 import Input from "../../../components/form/input/InputField";
 import TableShell, { type TableShellColumn } from "../../../components/tables/TableShell";
-import KebabMenu, {
-  EditIcon,
-  TrashIcon,
-} from "../../../components/ui/kebab-menu/KebabMenu";
+import KebabMenu from "../../../components/ui/kebab-menu/KebabMenu";
+import { Pencil, Search, Trash } from "lucide-react";
 import type { TableShellProp } from "../../../type/table-shell-prop";
 import { useDivisionManagementTable } from "../hooks/use-division-management-table";
 import type { Division } from "../type/division.type";
@@ -55,12 +53,12 @@ export default function DivisionManagementTable({
       actions={[
         {
           label: "Rename",
-          icon: <EditIcon />,
+          icon: <Pencil className="h-4 w-4" />,
           handler: () => setEditTarget(d),
         },
         {
           label: "Delete",
-          icon: <TrashIcon />,
+          icon: <Trash className="h-4 w-4" />,
           handler: () => setDeleteTarget(d),
           danger: true,
           disabled: !canDelete(d),
@@ -126,22 +124,7 @@ export default function DivisionManagementTable({
               <Input
                 type="text"
                 size="sm"
-                leadingIcon={
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                    aria-hidden="true"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M21 21l-4.35-4.35M17 11A6 6 0 1 15 11a6 6 0 0112 0z"
-                    />
-                  </svg>
-                }
+                leadingIcon={<Search className="w-4 h-4" />}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search divisions…"

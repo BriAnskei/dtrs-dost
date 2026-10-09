@@ -158,7 +158,15 @@ describe("ExtractionService", () => {
     );
   });
 
-  it("throws 400 when an extracted value is absent from the cited chunk", async () => {
+  it("does NOT throw 400 when an extracted value is absent from the document (anti-hallucination)", async () => {
+    /*
+     * The LLM returned "Foo" but the document text is "completely unrelated
+     * text" — "Foo" cannot be found anywhere. Previously this threw a 400
+     * BadRequestException, discarding every correctly-extracted field.
+     *
+     * New behavior: the value is returned (so a reviewer can see it) but
+     * aiConfidence is nulled, which the decision logic interprets as INVALID.
+     */
     const { service } = await buildService(() =>
       Promise.resolve([field("subject", "Foo", ["p1-o1"], 90)]),
     );
@@ -167,10 +175,12 @@ describe("ExtractionService", () => {
       chunk("p1-o1", "completely unrelated text"),
     ]);
 
-    await expectBadRequest(
-      () => service.extract(request),
-      'Extracted value for "subject" was not found in any document chunk',
-    );
+    const result = await service.extract(request);
+
+    const byField = Object.fromEntries(result.fields.map((f) => [f.field, f]));
+    expect(byField.subject.value).toBe("Foo");
+    expect(byField.subject.chunkIds).toEqual(["p1-o1"]);
+    expect(byField.subject.aiConfidence).toBeNull();
   });
 
   it("does not throw when a value spans chunks beyond the cited one", async () => {

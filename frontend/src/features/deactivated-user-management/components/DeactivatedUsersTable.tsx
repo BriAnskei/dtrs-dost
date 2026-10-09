@@ -1,10 +1,8 @@
 import Input from "../../../components/form/input/InputField";
 import TableShell, { type TableShellColumn } from "../../../components/tables/TableShell";
 import Badge from "../../../components/ui/badge/Badge";
-import KebabMenu, {
-  EnableIcon,
-  TrashIcon,
-} from "../../../components/ui/kebab-menu/KebabMenu";
+import KebabMenu from "../../../components/ui/kebab-menu/KebabMenu";
+import { CheckCircle, Search, Trash } from "lucide-react";
 import type { TableShellProp } from "../../../type/table-shell-prop";
 import { noPermission } from "../../auth/authorization/helpers/no-permission-message"; // NEW
 import { ALL_ROLES } from "../../user-management/constants";
@@ -52,14 +50,14 @@ export default function DeactivatedUserTable({
   const userActions = (user: SystemUser) => [
     {
       label: "Reactivate",
-      icon: <EnableIcon />,
+      icon: <CheckCircle className="h-4 w-4" />,
       handler: () => setReactivateTarget(user),
       disabled: !canReactivate,
       disabledReason: noPermission("reactivate users"),
     },
     {
       label: "Delete",
-      icon: <TrashIcon />,
+      icon: <Trash className="h-4 w-4" />,
       handler: () => setDeleteTarget(user),
       danger: true,
       disabled: !canDelete,
@@ -164,22 +162,7 @@ export default function DeactivatedUserTable({
               <Input
                 type="text"
                 size="sm"
-                leadingIcon={
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                    aria-hidden="true"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M21 21l-4.35-4.35M17 11A6 6 0 1 15 11a6 6 0 0112 0z"
-                    />
-                  </svg>
-                }
+                leadingIcon={<Search className="w-4 h-4" />}
                 value={search}
                 name="user-search-no-autofill"
                 data-form-type="other"

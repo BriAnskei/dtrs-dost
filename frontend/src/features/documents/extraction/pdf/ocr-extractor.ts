@@ -54,9 +54,11 @@ export async function performOCR(
 
   const result = await worker.recognize(canvas, {}, { blocks: true });
 
-  const chunks: ExtractionChunk[] = [];
-
-  let chunkIndex = 1;
+  // Collect raw OCR lines first, then sort by spatial position (top-to-bottom,
+  // left-to-right) before assigning chunkIds. Tesseract can return blocks in
+  // different order across runs; sorting by bbox ensures stable chunkIds and
+  // stable prompt ordering regardless of internal iteration order.
+  const rawLines: ExtractionChunk[] = [];
 
   for (const block of result.data.blocks ?? []) {
     for (const paragraph of block.paragraphs ?? []) {
@@ -96,8 +98,8 @@ export async function performOCR(
 
         const bbox = mergeBoxes(tokens.map((token) => token.bbox));
 
-        chunks.push({
-          chunkId: `p${pageNumber}-o${chunkIndex}`,
+        rawLines.push({
+          chunkId: "", // assigned after sorting
           text: tokens.map((token) => token.text).join(" "),
           source: "ocr",
           confidence:
@@ -106,11 +108,21 @@ export async function performOCR(
           bbox,
           tokens,
         });
-
-        chunkIndex++;
       }
     }
   }
 
-  return chunks;
+  // Sort OCR lines by spatial position: top-to-bottom (y), then left-to-right (x).
+  // This matches how the LLM and reviewer read, and ensures chunkIds are stable
+  // across Tesseract runs that may iterate blocks in different order.
+  rawLines.sort(
+    (a, b) =>
+      (a.bbox?.y ?? 0) - (b.bbox?.y ?? 0) ||
+      (a.bbox?.x ?? 0) - (b.bbox?.x ?? 0),
+  );
+
+  return rawLines.map((chunk, i) => ({
+    ...chunk,
+    chunkId: `p${pageNumber}-o${i + 1}`,
+  }));
 }

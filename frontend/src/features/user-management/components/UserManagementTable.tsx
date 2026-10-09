@@ -1,11 +1,8 @@
 import Input from "../../../components/form/input/InputField";
 import TableShell, { type TableShellColumn } from "../../../components/tables/TableShell";
 import Badge from "../../../components/ui/badge/Badge";
-import KebabMenu, {
-  DisableIcon,
-  EditIcon,
-  KeyIcon,
-} from "../../../components/ui/kebab-menu/KebabMenu";
+import KebabMenu from "../../../components/ui/kebab-menu/KebabMenu";
+import { Key, Pencil, Search, XCircle } from "lucide-react";
 import type { TableShellProp } from "../../../type/table-shell-prop";
 import { noPermission } from "../../auth/authorization/helpers/no-permission-message";
 import { ALL_ROLES } from "../constants";
@@ -59,21 +56,21 @@ export default function UserManagementTable({
   const userActions = (user: SystemUser) => [
     {
       label: "Edit",
-      icon: <EditIcon />,
+      icon: <Pencil className="h-4 w-4" />,
       handler: () => setEditTarget(user),
       disabled: !canEdit,
       disabledReason: noPermission("edit users"),
     },
     {
       label: "Reset Password",
-      icon: <KeyIcon />,
+      icon: <Key className="h-4 w-4" />,
       handler: () => setResetTarget(user),
       disabled: !canResetPassword,
       disabledReason: noPermission("reset passwords"),
     },
     {
       label: "Deactivate",
-      icon: <DisableIcon />,
+      icon: <XCircle className="h-4 w-4" />,
       handler: () => setDeactivateTarget(user),
       danger: true,
       disabled: !canDeactivate,
@@ -185,22 +182,7 @@ export default function UserManagementTable({
               <Input
                 type="text"
                 size="sm"
-                leadingIcon={
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                    aria-hidden="true"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M21 21l-4.35-4.35M17 11A6 6 0 1 15 11a6 6 0 0112 0z"
-                    />
-                  </svg>
-                }
+                leadingIcon={<Search className="w-4 h-4" />}
                 value={search}
                 name="user-search-no-autofill"
                 data-form-type="other"

@@ -1,7 +1,8 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
-import KebabMenu, { TrashIcon, ViewIcon } from "../ui/kebab-menu/KebabMenu";
+import KebabMenu from "../ui/kebab-menu/KebabMenu";
+import { Eye, Search, Trash } from "lucide-react";
 import MissingFieldsModal from "../ui/modal/document/MissingFieldsModal";
 import { Table, TableBody, TableCell, TableHeader, TableRow } from "../ui/table";
 
@@ -154,19 +155,7 @@ export default function InvalidDocumentsTable() {
           {/* Search */}
           <div className="relative w-full sm:min-w-[200px] sm:flex-1">
             <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-gray-400">
-              <svg
-                className="h-4 w-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z"
-                />
-              </svg>
+              <Search className="h-4 w-4" />
             </span>
             <input
               type="text"
@@ -389,8 +378,8 @@ export default function InvalidDocumentsTable() {
                       <TableCell className="px-3 py-3">
                         <KebabMenu
                           actions={[
-                            { label: "View", icon: <ViewIcon />, handler: () => handleOpenFieldsModal(record) },
-                            { label: "Mark as Invalid", icon: <TrashIcon />, handler: () => handleMarkInvalidClick(record.id), danger: true },
+                            { label: "View", icon: <Eye className="h-4 w-4" />, handler: () => handleOpenFieldsModal(record) },
+                            { label: "Mark as Invalid", icon: <Trash className="h-4 w-4" />, handler: () => handleMarkInvalidClick(record.id), danger: true },
                           ]}
                         />
                       </TableCell>

@@ -1,3 +1,4 @@
+import { formatDate } from "@/utils/dateFormatter";
 import {
   NO_VALUE_PLACEHOLDER,
   type SystemUser,
@@ -19,17 +20,9 @@ export function mapUserResponseToSystemUser(user: UserWithRelationResponse): Sys
     email: user.email,
     contact: user.contact ?? NO_VALUE_PLACEHOLDER,
     divisionName: user.division_name,
-    createtAt: new Date(user.created_at).toLocaleDateString(undefined, {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    }),
+    createtAt: formatDate(user.created_at),
     ...(user.deactivated_at && {
-      deactivatedAt: new Date(user.deactivated_at).toLocaleDateString(undefined, {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      }),
+      deactivatedAt: formatDate(user.deactivated_at),
     }),
   };
 }

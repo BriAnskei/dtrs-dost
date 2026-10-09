@@ -20,7 +20,7 @@
 /** Lowercase, NFKC, alphanumeric words only. */
 function tokenize(value: string): string[] {
   return value
-    .toLocaleLowerCase()
+    .toLowerCase()
     .normalize("NFKC")
     .replace(/[^\p{L}\p{N}]+/gu, " ")
     .split(" ")

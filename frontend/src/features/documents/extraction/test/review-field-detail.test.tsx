@@ -57,7 +57,8 @@ describe("ReviewFieldDetail", () => {
         />,
       );
 
-      expect(screen.getByText(FIELD_LABELS.subject.toUpperCase())).toBeInTheDocument();
+      // The component renders the label with CSS uppercase, but the text content is the original case.
+      expect(screen.getByText(FIELD_LABELS.subject)).toBeInTheDocument();
     });
 
     it("renders the extracted value", () => {
@@ -100,7 +101,8 @@ describe("ReviewFieldDetail", () => {
 
       expect(screen.getByText(/AI 95%/)).toBeInTheDocument();
       expect(screen.getByText(/Source 100%/)).toBeInTheDocument();
-      expect(screen.getByText(/= 95%/)).toBeInTheDocument();
+      // The effective confidence (95%) is inside a <span class="font-semibold">.
+      expect(screen.getByText("95%")).toBeInTheDocument();
     });
 
     it("renders the chunk text snippet when locations are available", () => {
@@ -126,7 +128,8 @@ describe("ReviewFieldDetail", () => {
         />,
       );
 
-      expect(screen.getByText("No location available")).toBeInTheDocument();
+      // "No location available" is part of a larger text node, so use a regex for partial match.
+      expect(screen.getByText(/No location available/)).toBeInTheDocument();
     });
 
     it("shows 'Not found by the LLM' message when row.value is null", () => {
@@ -154,7 +157,10 @@ describe("ReviewFieldDetail", () => {
         />,
       );
 
-      expect(screen.getByText("AI — × Source — = —")).toBeInTheDocument();
+      // When all confidences are null, pct renders "—" for each. The span contains the effective confidence.
+      expect(screen.getByText(/AI —/)).toBeInTheDocument();
+      expect(screen.getByText(/Source —/)).toBeInTheDocument();
+      expect(screen.getByText("—")).toBeInTheDocument();
     });
 
     it("renders the Edit pencil button (not Save/Cancel)", () => {

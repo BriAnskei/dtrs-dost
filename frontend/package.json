@@ -27,6 +27,7 @@
     "clsx": "^2.1.1",
     "crypto-random-string": "^6.0.0",
     "flatpickr": "^4.6.13",
+    "lucide-react": "^1.52.0",
     "pdfjs-dist": "^5.4.296",
     "qrcode.react": "^4.2.0",
     "react": "^19.0.0",

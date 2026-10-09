@@ -100,8 +100,8 @@ export const NAV_ITEMS: NavItem[] = [
         roles: [1, 2],
       },
       {
-        name: "Pending",
-        path: "/upload-queue",
+        name: "Extracted Docs",
+        path: "/extracted-queues",
         roles: [1, 2],
       },
       {

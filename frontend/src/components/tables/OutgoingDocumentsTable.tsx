@@ -1,10 +1,7 @@
 import { useState } from "react";
 import { Table, TableBody, TableCell, TableHeader, TableRow } from "../ui/table";
-import KebabMenu, {
-  ArchiveIcon,
-  HistoryIcon,
-  ViewIcon,
-} from "../ui/kebab-menu/KebabMenu";
+import KebabMenu from "../ui/kebab-menu/KebabMenu";
+import { Archive, Eye, History, Search } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -86,13 +83,7 @@ const mockData: OutgoingDocument[] = [
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString("en-PH", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
-}
+import { formatDate } from "@/utils/dateFormatter";
 
 // ─── Mobile Card ─�─────────────────────────────────────────────────────────────
 
@@ -112,9 +103,9 @@ function MobileCard({
         </span>
         <KebabMenu
           actions={[
-            { label: "View", icon: <ViewIcon />, handler: () => console.log("[View] Record:", record) },
-            { label: "History", icon: <HistoryIcon />, handler: () => console.log("[History] Audit log for record:", record) },
-            { label: "Archive", icon: <ArchiveIcon />, handler: () => console.log("[Archive] Record:", record) },
+            { label: "View", icon: <Eye className="h-4 w-4" />, handler: () => console.log("[View] Record:", record) },
+            { label: "History", icon: <History className="h-4 w-4" />, handler: () => console.log("[History] Audit log for record:", record) },
+            { label: "Archive", icon: <Archive className="h-4 w-4" />, handler: () => console.log("[Archive] Record:", record) },
           ]}
         />
       </div>
@@ -218,19 +209,7 @@ export default function OutgoingDocumentsTable() {
         {/* Search */}
         <div className="relative w-full sm:flex-1 sm:min-w-[200px]">
           <span className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-gray-400">
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z"
-              />
-            </svg>
+            <Search className="w-4 h-4" />
           </span>
           <input
             type="text"
@@ -424,9 +403,9 @@ export default function OutgoingDocumentsTable() {
                       <TableCell className="px-3 py-3">
                         <KebabMenu
                           actions={[
-                            { label: "View", icon: <ViewIcon />, handler: () => console.log("[View] Record:", record) },
-                            { label: "History", icon: <HistoryIcon />, handler: () => console.log("[History] Audit log for record:", record) },
-                            { label: "Archive", icon: <ArchiveIcon />, handler: () => console.log("[Archive] Record:", record) },
+                            { label: "View", icon: <Eye className="h-4 w-4" />, handler: () => console.log("[View] Record:", record) },
+                            { label: "History", icon: <History className="h-4 w-4" />, handler: () => console.log("[History] Audit log for record:", record) },
+                            { label: "Archive", icon: <Archive className="h-4 w-4" />, handler: () => console.log("[Archive] Record:", record) },
                           ]}
                         />
                       </TableCell>

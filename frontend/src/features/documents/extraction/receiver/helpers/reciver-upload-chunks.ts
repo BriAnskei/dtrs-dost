@@ -1,5 +1,5 @@
 import type { PdfExtractionResult } from "../../pdf";
-import type { ReceiverChunk } from "../service/reciever-upload-service";
+import type { ReceiverChunk } from "../types/reciever-upload-api-types";
 
 // Mirrors the backend DTO limits.
 export const MAX_RECEIVER_CHUNKS = 500;

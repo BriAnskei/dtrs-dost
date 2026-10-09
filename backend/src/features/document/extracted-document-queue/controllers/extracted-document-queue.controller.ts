@@ -1,7 +1,9 @@
 import {
   Body,
   Controller,
+  Get,
   Post,
+  Query,
   Req,
   UploadedFile,
   UseInterceptors,
@@ -12,11 +14,17 @@ import type { AuthenticatedRequest } from "../../../../auth/authentication/types
 import { Roles } from "../../../../auth/authorization/decorator/roles.decorator";
 import { Role } from "../../../../auth/authorization/enum/roles.enum";
 import { CreateExtractedDocumentDto } from "../dto/create-extracted-document-dto";
-import { ExtractedDocumentQueueFacade } from "../facade/extracted-document-queue.facade";
+import { FindExtractedDocumentQueuesQueryDto } from "../dto/find-extracted-document-queues-query.dto";
+import { FindMyExtractedDocumentQueuesQueryDto } from "../dto/find-my-extracted-document-queues-query.dto";
+import { ExtractedDocumentQueueService } from "../service/extracted-document-queue.service";
+import { ExtractedDocumentQueueUseCase } from "../use-cases/extracted-document-queue.usecase";
 
 @Controller("extracted-document-queue")
 export class ExtractionQueueController {
-  constructor(private readonly facade: ExtractedDocumentQueueFacade) {}
+  constructor(
+    private readonly usecase: ExtractedDocumentQueueUseCase,
+    private readonly service: ExtractedDocumentQueueService,
+  ) {}
 
   @Post()
   @Roles(Role.ReceiverOfficer)
@@ -31,6 +39,21 @@ export class ExtractionQueueController {
     @Body() dto: CreateExtractedDocumentDto,
     @Req() req: AuthenticatedRequest,
   ) {
-    return this.facade.receiveDocument(file, dto, req.user.id);
+    return this.usecase.receiveDocument(file, dto, req.user.id);
+  }
+
+  @Get()
+  @Roles(Role.SuperAdmin, Role.Admin)
+  async findAll(@Query() query: FindExtractedDocumentQueuesQueryDto) {
+    return this.service.findAll(query);
+  }
+
+  @Get("my")
+  @Roles(Role.ReceiverOfficer)
+  async findMyQueues(
+    @Req() req: AuthenticatedRequest,
+    @Query() query: FindMyExtractedDocumentQueuesQueryDto,
+  ) {
+    return this.service.findAllByUploaderId(req.user.id, query);
   }
 }

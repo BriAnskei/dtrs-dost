@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { Search } from "lucide-react";
 import ComponentCard from "../../components/common/ComponentCard";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import PageMeta from "../../components/common/PageMeta";
@@ -904,19 +905,7 @@ export default function SystemLogsPage() {
               {/* Search */}
               <div className="relative flex-1 min-w-[200px]">
                 <span className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-gray-400">
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z"
-                    />
-                  </svg>
+                  <Search className="w-4 h-4" />
                 </span>
                 <input
                   type="text"

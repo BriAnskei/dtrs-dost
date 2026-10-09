@@ -9,9 +9,6 @@ import { AppService } from "./app.service";
 import { AuthenticationModule } from "./auth/authentication/authentication.module";
 import { AuthorizationModule } from "./auth/authorization/authorization.module";
 import { getDatabaseConfig } from "./config/database.config";
-import { IncomingDocQueue } from "./entities/incoming-doc-queue.entity";
-import { IncomingDocumentFile } from "./entities/incoming-document-file.entity";
-import { InvalidDocument } from "./entities/invalid-document.entity";
 import { ExtractedDocumentQueueModule } from "./features/document/extracted-document-queue/extracted-document-queue.module";
 import { ExtractionModule } from "./features/document/extraction/extraction.module";
 import { PermissionsModule } from "./features/permissions/permissions.module";
@@ -40,7 +37,6 @@ import { UserModule } from "./features/user/user.module";
       rootPath: join(__dirname, "..", "uploads"),
       serveRoot: "/uploads",
     }),
-    TypeOrmModule.forFeature([IncomingDocumentFile, InvalidDocument, IncomingDocQueue]),
     AuthenticationModule,
     UserModule,
     PermissionsModule,

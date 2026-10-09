@@ -12,6 +12,12 @@ import type { Decision } from "../extration-queue.constant";
 import { DECISION_VALUES } from "../extration-queue.constant";
 import { ExtractedChunk } from "../types/extracted-types";
 
+export enum ExtractedDocumentQueueStatus {
+  PENDING = "pending",
+  APPROVED = "approved",
+  INVALIDATED = "invalidated",
+}
+
 @Entity("extracted_document_queues")
 export class ExtractedDocumentQueueEntity {
   @PrimaryGeneratedColumn("uuid")
@@ -39,6 +45,14 @@ export class ExtractedDocumentQueueEntity {
     enumName: "extracted_document_queue_decision_enum",
   })
   decision!: Decision;
+
+  @Column({
+    type: "enum",
+    enum: ExtractedDocumentQueueStatus,
+    enumName: "extracted_document_queue_status_enum",
+    default: ExtractedDocumentQueueStatus.PENDING,
+  })
+  status!: ExtractedDocumentQueueStatus;
 
   @CreateDateColumn({
     type: "timestamptz",

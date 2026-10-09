@@ -1,6 +1,7 @@
 import PdfDropzone from "../../admins/components/PDFDropzone";
 import { useReceiverUpload } from "../hooks/use-reciever-upload";
 import UploadProcessingCard from "./UploadProcessingCard";
+import UploadResultCard from "./UploadResultCard";
 import UploadSuccessCard from "./UploadSuccessCard";
 
 const primaryBtn =
@@ -9,8 +10,17 @@ const secondaryBtn =
   "px-4 py-2 text-theme-sm rounded-lg border border-gray-200 bg-white text-gray-700 hover:border-secondary/40 transition dark:border-white/8 dark:bg-white/3 dark:text-gray-200 disabled:opacity-50 disabled:cursor-not-allowed";
 
 export default function ReceiverUploadPanel() {
-  const { file, status, busy, activeIdx, selectFile, submit, retryQueue, startOver } =
-    useReceiverUpload();
+  const {
+    file,
+    status,
+    busy,
+    activeIdx,
+    result,
+    selectFile,
+    submit,
+    retryQueue,
+    startOver,
+  } = useReceiverUpload();
 
   return (
     <div className="space-y-6">
@@ -35,7 +45,13 @@ export default function ReceiverUploadPanel() {
           />
         )}
 
-        {file && status === "queued" && <UploadSuccessCard fileName={file.name} />}
+        {file &&
+          status === "queued" &&
+          (result ? (
+            <UploadResultCard fileName={file.name} result={result} />
+          ) : (
+            <UploadSuccessCard fileName={file.name} />
+          ))}
       </div>
 
       {/* Button bar: secondary on the left, forward action on the right */}

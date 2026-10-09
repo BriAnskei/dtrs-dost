@@ -9,10 +9,11 @@ import {
 import { extractPdf } from "../../pdf";
 import { MAX_RECEIVER_CHUNKS, toReceiverChunks } from "../helpers/reciver-upload-chunks";
 import { PROGRESS_STEPS } from "../receiver-upload-constants";
-import {
-  type ReceiverChunk,
-  receiverUploadService,
-} from "../service/reciever-upload-service";
+import { receiverUploadService } from "../service/reciever-upload-service";
+import type {
+  ReceiverChunk,
+  ReceiverUploadResponse,
+} from "../types/reciever-upload-api-types";
 
 export type ReceiverUploadStatus =
   | "idle"
@@ -24,6 +25,8 @@ export type ReceiverUploadStatus =
 export function useReceiverUpload() {
   const [file, setFile] = useState<File | null>(null);
   const [status, setStatus] = useState<ReceiverUploadStatus>("idle");
+  // Server response (decision + per-field confidence) shown after a successful upload.
+  const [result, setResult] = useState<ReceiverUploadResponse | null>(null);
 
   const { mutateAsync, reset: resetMutation } = useMutation({
     mutationFn: receiverUploadService.upload,
@@ -46,7 +49,8 @@ export function useReceiverUpload() {
     if (!busy) return;
     const onBeforeUnload = (e: BeforeUnloadEvent) => {
       e.preventDefault();
-      e.returnValue = "";
+
+      e.preventDefault();
     };
     window.addEventListener("beforeunload", onBeforeUnload);
     return () => window.removeEventListener("beforeunload", onBeforeUnload);
@@ -56,8 +60,10 @@ export function useReceiverUpload() {
     async (f: File, chunks: ReceiverChunk[]) => {
       setStatus("queueing");
       try {
-        await mutateAsync({ file: f, chunks });
+        const data = await mutateAsync({ file: f, chunks });
         if (!mountedRef.current) return;
+
+        setResult(data);
         setStatus("queued");
       } catch (err) {
         if (!mountedRef.current) return;
@@ -84,6 +90,7 @@ export function useReceiverUpload() {
     (f: File | null) => {
       chunksRef.current = null;
       resetMutation();
+      setResult(null);
       setFile(f);
     },
     [resetMutation],
@@ -131,6 +138,7 @@ export function useReceiverUpload() {
   const startOver = useCallback(() => {
     chunksRef.current = null;
     resetMutation();
+    setResult(null);
     setFile(null);
     setStatus("idle");
   }, [resetMutation]);
@@ -142,5 +150,15 @@ export function useReceiverUpload() {
         ? 1
         : 0;
 
-  return { file, status, busy, activeIdx, selectFile, submit, retryQueue, startOver };
+  return {
+    file,
+    status,
+    busy,
+    activeIdx,
+    result,
+    selectFile,
+    submit,
+    retryQueue,
+    startOver,
+  };
 }

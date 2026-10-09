@@ -3,10 +3,8 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
 import QRCodeModal from "../../../components/receiver/QRCodeModal";
-import KebabMenu, {
-  ArchiveIcon,
-  ShareIcon,
-} from "../../../components/ui/kebab-menu/KebabMenu";
+import KebabMenu from "../../../components/ui/kebab-menu/KebabMenu";
+import { Archive, Search, Share2 } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -95,7 +93,7 @@ function ArchiveConfirmModal({
       <div className="w-full max-w-sm rounded-xl border border-gray-200 bg-white dark:border-white/[0.08] dark:bg-gray-900">
         <div className="px-6 py-5">
           <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-full bg-gray-100 dark:bg-white/[0.06]">
-            <ArchiveIcon className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+            <Archive className="h-5 w-5 text-gray-500 dark:text-gray-400" />
           </div>
 
           <h2 className="text-theme-sm font-semibold text-gray-900 dark:text-white/90">
@@ -120,7 +118,7 @@ function ArchiveConfirmModal({
             onClick={onConfirm}
             className="text-theme-sm inline-flex items-center gap-1.5 rounded-lg bg-gray-700 px-3 py-2 font-medium text-white transition-colors hover:bg-gray-800 dark:bg-white/[0.10] dark:hover:bg-white/[0.15]"
           >
-            <ArchiveIcon className="h-4 w-4" />
+            <Archive className="h-4 w-4" />
             Archive
           </button>
         </div>
@@ -264,19 +262,7 @@ export default function UploadedIncomingDocTable() {
               {/* Search */}
               <div className="relative w-full sm:min-w-[200px] sm:flex-1">
                 <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-gray-400">
-                  <svg
-                    className="h-4 w-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z"
-                    />
-                  </svg>
+                  <Search className="h-4 w-4" />
                 </span>
                 <input
                   type="text"
@@ -378,8 +364,8 @@ export default function UploadedIncomingDocTable() {
                     <div className="flex justify-end border-t border-gray-100 pt-1 dark:border-white/[0.05]">
                       <KebabMenu
                         actions={[
-                          { label: "Share", icon: <ShareIcon />, handler: () => handleShare(record), disabled: record.status === "archived" },
-                          { label: "Archive", icon: <ArchiveIcon />, handler: () => setPendingArchive(record), disabled: record.status === "archived" },
+                          { label: "Share", icon: <Share2 className="h-4 w-4" />, handler: () => handleShare(record), disabled: record.status === "archived" },
+                          { label: "Archive", icon: <Archive className="h-4 w-4" />, handler: () => setPendingArchive(record), disabled: record.status === "archived" },
                         ]}
                       />
                     </div>
@@ -477,8 +463,8 @@ export default function UploadedIncomingDocTable() {
                           <TableCell className="px-3 py-3">
                             <KebabMenu
                               actions={[
-                                { label: "Share", icon: <ShareIcon />, handler: () => handleShare(record), disabled: record.status === "archived" },
-                                { label: "Archive", icon: <ArchiveIcon />, handler: () => setPendingArchive(record), disabled: record.status === "archived" },
+                                { label: "Share", icon: <Share2 className="h-4 w-4" />, handler: () => handleShare(record), disabled: record.status === "archived" },
+                                { label: "Archive", icon: <Archive className="h-4 w-4" />, handler: () => setPendingArchive(record), disabled: record.status === "archived" },
                               ]}
                             />
                           </TableCell>

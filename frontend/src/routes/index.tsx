@@ -10,6 +10,7 @@ import ProtectedRoute from "../features/auth/authorization/protectedRoute";
 import RoleRoute from "../features/auth/authorization/RoleRoutes";
 import DeactivatedUsersPage from "../features/deactivated-user-management/components/DeactivatedUsersPage";
 import DivisionManagementPage from "../features/divisions/components/DivisionManagementPage";
+import ExtractedQueuePage from "../features/documents/extracted-queue/components/ExtractedQueuePage";
 import DirectUploadPage from "../features/documents/extraction/admins/components/DirectUploadPage";
 import ReceiverUploadPage from "../features/documents/extraction/receiver/components/ReceiverUploadPage";
 import UserManagementPage from "../features/user-management/components/UserManagementPage";
@@ -78,10 +79,10 @@ const ADMINISTRATION_ROUTES: RouteType[] = [
   },
 
   {
-    path: "/upload-queue",
+    path: "/extracted-queues",
     element: (
       <RoleRoute allowedRoles={[1, 2]}>
-        <ValudationQueue />
+        <ExtractedQueuePage />
       </RoleRoute>
     ),
   },

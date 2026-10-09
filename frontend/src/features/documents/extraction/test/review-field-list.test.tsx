@@ -330,7 +330,7 @@ describe("ReviewFieldList", () => {
     });
 
     it("shows 'Not found' (danger) when value is null and not edited", () => {
-      render(
+      const { container } = render(
         <ReviewFieldList
           rows={[row("subject", { value: null, effectiveConfidence: null })]}
           edits={{}}
@@ -342,7 +342,11 @@ describe("ReviewFieldList", () => {
         />,
       );
 
-      expect(screen.getByText("Not found")).toBeInTheDocument();
+      // Both confidence span ("Not found ⚑ review") and value span ("Not found")
+      // render the text "Not found". The value span has class text-danger.
+      const dangerSpan = container.querySelector(".text-danger");
+      expect(dangerSpan).not.toBeNull();
+      expect(dangerSpan).toHaveTextContent("Not found");
     });
 
     it("shows italic 'Empty' when edited value is empty string", () => {

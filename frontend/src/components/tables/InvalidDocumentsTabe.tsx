@@ -1,7 +1,8 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { useUser } from "../../context/currentUser/use-user";
-import KebabMenu, { TrashIcon, ViewIcon } from "../ui/kebab-menu/KebabMenu";
+import KebabMenu from "../ui/kebab-menu/KebabMenu";
+import { Eye, Search, Trash } from "lucide-react";
 import { Table, TableBody, TableCell, TableHeader, TableRow } from "../ui/table";
 
 // ─── Types ─────────────────────────────────────────────────────
@@ -208,19 +209,7 @@ export default function InvalidDocumentsTable() {
         <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
           <div className="relative w-full sm:min-w-[200px] sm:flex-1">
             <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-gray-400">
-              <svg
-                className="h-4 w-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z"
-                />
-              </svg>
+              <Search className="h-4 w-4" />
             </span>
             <input
               type="text"
@@ -303,8 +292,8 @@ export default function InvalidDocumentsTable() {
                     </p>
                     <KebabMenu
                       actions={[
-                        { label: "View", icon: <ViewIcon />, handler: () => console.log("[View] Record:", record) },
-                        { label: "Delete", icon: <TrashIcon />, handler: () => openDeleteModal(record), danger: true },
+                        { label: "View", icon: <Eye className="h-4 w-4" />, handler: () => console.log("[View] Record:", record) },
+                        { label: "Delete", icon: <Trash className="h-4 w-4" />, handler: () => openDeleteModal(record), danger: true },
                       ]}
                     />
                   </div>

@@ -3,7 +3,7 @@ import type { BoundingBox, ExtractionToken } from "../pdf/types";
 
 const words = (s: string) =>
   s
-    .toLocaleLowerCase()
+    .toLowerCase()
     .normalize("NFKC")
     .replace(/[^\p{L}\p{N}]+/gu, " ")
     .split(" ")

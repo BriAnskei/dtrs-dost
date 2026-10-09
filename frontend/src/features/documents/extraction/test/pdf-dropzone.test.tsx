@@ -53,7 +53,8 @@ describe("PdfDropzone", () => {
     it("renders the formatted file size", () => {
       render(<PdfDropzone file={file} onSelect={() => {}} />);
 
-      expect(screen.getByText(`PDF · ${formatFileSize(1024)}`)).toBeInTheDocument();
+      // The text is split: "PDF ·" is one text node, the formatted size is another.
+      expect(screen.getByText(`PDF · ${formatFileSize(file.size)}`)).toBeInTheDocument();
     });
 
     it("renders a Remove button", () => {
@@ -72,7 +73,7 @@ describe("PdfDropzone", () => {
     });
 
     it("renders the drop zone area with upload icon and instructions", () => {
-      render(<PdfDropzone file={file} onSelect={() => {}} />);
+      render(<PdfDropzone file={null} onSelect={() => {}} />);
 
       expect(screen.getByText("Click to upload")).toBeInTheDocument();
       expect(screen.getByText(/or drag and drop/)).toBeInTheDocument();
@@ -209,7 +210,8 @@ describe("PdfDropzone", () => {
 
       const input = container.querySelector('input[type="file"]')!;
       expect(input).not.toBeNull();
-      expect(input).not.toBeVisible();
+      // The input has class="hidden" (Tailwind display:none), not a true style attribute.
+      expect(input).toHaveClass("hidden");
     });
 
     it("accepts a valid PDF selected via the file input", () => {

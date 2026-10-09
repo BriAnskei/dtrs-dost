@@ -1,9 +1,7 @@
 /**
  * Unit tests for the **validation edge cases** in `ExtractionService`
- * (extraction.service.ts), complementing the main flow tests in
- * `extraction.service.spec.ts`.
- *
- * This suite focuses on `validateField` and `validateAndNormalizeFields`:
+ * (extraction.service.ts), covering `validateField` and
+ * `validateAndNormalizeFields`:
  *
  *   1. aiConfidence bounds — values outside [0, 100] throw 400.
  *   2. null value + non-empty chunkIds — contradictory, throws 400.
@@ -11,9 +9,14 @@
  *      SKIPPED for "summary" because the LLM writes it (not copied from chunks).
  *   4. value present in document but NOT in cited chunks — warns, does NOT
  *      throw (citation imprecision is a UX issue, not a safety issue).
- *   5. value present but no chunkIds cited — warns, does NOT throw.
- *   6. Outgoing document type validation (4 fields, not 5).
- *   7. ChunkId ordering preserved in the response.
+ *      aiConfidence is preserved because the value was verified.
+ *   5. value NOT present in document text at all — does NOT throw; returns the
+ *      field with aiConfidence set to null (INVALID path), so a human reviewer
+ *      can see the hallucinated value without the whole extraction being
+ *      discarded.
+ *   6. value present but no chunkIds cited — warns, does NOT throw.
+ *   7. Outgoing document type validation (4 fields, not 5).
+ *   8. ChunkId ordering preserved in the response.
  */
 
 import { BadRequestException } from "@nestjs/common";
@@ -235,7 +238,8 @@ describe("ExtractionService — validateField edge cases", () => {
        * The value exists somewhere in the document text (union of all chunks),
        * but the cited chunk does not contain it. This is an imprecise citation
        * — a UX problem (wrong highlight), not a safety problem. The server
-       * logs a warning and continues.
+       * logs a warning and continues. aiConfidence is preserved because the
+       * value WAS verified against the document text.
        */
       const { service } = await buildService(() =>
         Promise.resolve([field("subject", "Foo", ["p1-o2"], 90)]),
@@ -250,6 +254,62 @@ describe("ExtractionService — validateField edge cases", () => {
       const byField = Object.fromEntries(result.fields.map((f) => [f.field, f]));
       expect(byField.subject.value).toBe("Foo");
       expect(byField.subject.chunkIds).toEqual(["p1-o2"]);
+      expect(byField.subject.aiConfidence).toBe(90);
+    });
+  });
+
+  describe("value NOT in document text (anti-hallucination)", () => {
+    it("does NOT throw; returns field with null aiConfidence (INVALID path)", async () => {
+      /*
+       * The LLM returned a value ("Bar") that does not appear anywhere in the
+       * document text. Previously this threw a 400 BadRequestException,
+       * discarding every field — including ones that were extracted correctly.
+       *
+       * New behavior: the value is returned (so a human reviewer can see what
+       * the LLM hallucinated), but aiConfidence is set to null. The decision
+       * logic treats null aiConfidence as INVALID, routing the document for
+       * manual review instead of accepting an unverified extraction.
+       */
+      const { service } = await buildService(() =>
+        Promise.resolve([field("subject", "Bar", ["p1-o1"], 90)]),
+      );
+
+      const request = makeRequest("incoming", [
+        chunk("p1-o1", "Subject: Foo"), // "Bar" is NOT in this chunk
+      ]);
+
+      const result = await service.extract(request);
+      const byField = Object.fromEntries(result.fields.map((f) => [f.field, f]));
+
+      expect(byField.subject.value).toBe("Bar");
+      expect(byField.subject.chunkIds).toEqual(["p1-o1"]);
+      expect(byField.subject.aiConfidence).toBeNull();
+    });
+
+    it("preserves correctly extracted fields when a sibling field is untrusted", async () => {
+      /*
+       * If field A passes anti-hallucination but field B does not, A should
+       * keep its aiConfidence while B gets null. The whole extraction must
+       * not be discarded for a single hallucinated value.
+       */
+      const { service } = await buildService(() =>
+        Promise.resolve([
+          field("subject", "Foo", ["p1-o1"], 90), // in document — trusted
+          field("from", "Bar", ["p1-o1"], 95), // NOT in document — untrusted
+        ]),
+      );
+
+      const request = makeRequest("incoming", [
+        chunk("p1-o1", "Subject: Foo"), // "Foo" here, "Bar" not
+      ]);
+
+      const result = await service.extract(request);
+      const byField = Object.fromEntries(result.fields.map((f) => [f.field, f]));
+
+      expect(byField.subject.value).toBe("Foo");
+      expect(byField.subject.aiConfidence).toBe(90);
+      expect(byField.from.value).toBe("Bar");
+      expect(byField.from.aiConfidence).toBeNull();
     });
   });
 

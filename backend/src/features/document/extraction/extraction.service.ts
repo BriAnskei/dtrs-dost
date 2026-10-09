@@ -43,6 +43,15 @@ export class ExtractionService {
       extractedFields,
     );
 
+    const untrustedCount = fields.filter((f) => f.aiConfidence === null && f.value !== null).length;
+    if (untrustedCount > 0) {
+      this.logger.warn(
+        `${untrustedCount} field(s) had values that could not be verified ` +
+          `against the document text (anti-hallucination). aiConfidence set to null; ` +
+          `the decision will be INVALID so a human can review.`,
+      );
+    }
+
     return {
       fields,
     };
@@ -144,22 +153,41 @@ export class ExtractionService {
         };
       }
 
-      this.validateField(field, chunksById, documentText);
+      /*
+       * `validateField` returns `false` when the LLM's value could not be
+       * verified against the document text (anti-hallucination). In that case
+       * we keep the value and chunkIds (so a human reviewer can see what the
+       * LLM returned) but null out `aiConfidence`. The decision logic in
+       * `ExtractedDocumentQueueUseCase.resolveDecision` treats a null
+       * `aiConfidence` as INVALID, routing the document for review instead of
+       * accepting an unverified extraction.
+       */
+      const trusted = this.validateField(field, chunksById, documentText);
 
       return {
         field: fieldName,
         value: field.value,
         chunkIds: field.chunkIds,
-        aiConfidence: field.aiConfidence,
+        aiConfidence: trusted ? field.aiConfidence : null,
       };
     });
   }
 
+  /**
+   * Validate a single extracted field.
+   *
+   * Returns `true` when the field is trusted (its value was confirmed against
+   * the document text), `false` when the value could not be verified
+   * (anti-hallucination failure). Hard validation errors — invalid confidence
+   * bounds, null value with chunkIds, unknown chunkId, duplicate field — still
+   * throw `BadRequestException`, since those are structural problems with the
+   * request, not untrustworthy LLM output.
+   */
   private validateField(
     field: ExtractedField,
     chunksById: Map<string, string>,
     documentText: string,
-  ): void {
+  ): boolean {
     /* Confidence must be 0-100. */
     if (
       field.aiConfidence !== null &&
@@ -188,7 +216,7 @@ export class ExtractionService {
         });
       }
 
-      return;
+      return true;
     }
 
     /* Every cited chunkId must have been sent by the client. */
@@ -217,24 +245,29 @@ export class ExtractionService {
         this.logger.warn(`Field "summary" has a value but cites no chunkIds.`);
       }
 
-      return;
+      return true;
     }
 
     /*
      * Verify the value is present in the document at all (anti-hallucination).
      * Checking the whole document text — not just the cited chunks — tolerates
      * multi-line values that the LLM attributes to a subset of chunks.
+     *
+     * If the LLM returned a value that cannot be found in the document at all,
+     * we cannot trust it. Rather than throwing a 400 (which discards every
+     * other field that was extracted correctly), we return `false` so the
+     * caller can null out `aiConfidence` for this field. The decision logic
+     * treats a null `aiConfidence` as INVALID, routing the document to human
+     * review. The untrusted value is still returned to the client so the
+     * reviewer can see what the LLM hallucinated and compare it against the
+     * actual document text.
      */
     if (!valueInDocument(field.value, documentText)) {
-      this.logger.error(
-        `Validation failed: field "${field.field}" value "${field.value}" not found in document text (possible LLM hallucination).`,
+      this.logger.warn(
+        `Field "${field.field}" value "${field.value}" not found in document text (possible LLM hallucination). aiConfidence will be set to null; decision INVALID.`,
       );
 
-      throw new BadRequestException({
-        success: false,
-        error:
-          `Extracted value for "${field.field}" ` + `was not found in any document chunk`,
-      });
+      return false;
     }
 
     /*
@@ -244,7 +277,7 @@ export class ExtractionService {
     if (field.chunkIds.length === 0) {
       this.logger.warn(`Field "${field.field}" value was found but cites no chunkIds.`);
 
-      return;
+      return true;
     }
 
     /*
@@ -262,5 +295,7 @@ export class ExtractionService {
           `the cited chunk(s); highlight may be imprecise.`,
       );
     }
+
+    return true;
   }
 }

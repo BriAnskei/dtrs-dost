@@ -49,10 +49,7 @@ export default function TableSkeleton({
                   {columns.map((col, colIndex) => (
                     <TableCell key={colIndex} className="px-4 py-3">
                       {col.pill ? (
-                        <Skeleton
-                          className={`h-5 ${col.width ?? "w-16"}`}
-                          rounded="rounded-full"
-                        />
+                        <Skeleton className={`h-5 ${col.width ?? "w-16"}`} />
                       ) : (
                         <div className="space-y-1.5">
                           <Skeleton className={`h-3.5 ${col.width ?? "w-24"}`} />

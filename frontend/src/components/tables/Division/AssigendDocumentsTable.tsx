@@ -1,8 +1,6 @@
 import { useState } from "react";
-import KebabMenu, {
-  UpdateStatusIcon,
-  ViewIcon,
-} from "../../ui/kebab-menu/KebabMenu";
+import KebabMenu from "../../ui/kebab-menu/KebabMenu";
+import { Eye, RotateCw, Search } from "lucide-react";
 import RoutedDivisionsModal from "../../ui/modal/document/RoutedDivisionsModal";
 import StatusUpdateModal, {
   type StatusType,
@@ -110,8 +108,8 @@ function MobileCard({
         </span>
         <KebabMenu
           actions={[
-            { label: "View", icon: <ViewIcon />, handler: () => onView(record) },
-            { label: "Update Status", icon: <UpdateStatusIcon />, handler: () => onUpdateStatus(record) },
+            { label: "View", icon: <Eye className="h-4 w-4" />, handler: () => onView(record) },
+            { label: "Update Status", icon: <RotateCw className="h-4 w-4" />, handler: () => onUpdateStatus(record) },
           ]}
         />
       </div>
@@ -292,19 +290,7 @@ export default function DivisionIncomingDocumentsTable({
         <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
           <div className="relative w-full sm:min-w-[200px] sm:flex-1">
             <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-gray-400">
-              <svg
-                className="h-4 w-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z"
-                />
-              </svg>
+              <Search className="h-4 w-4" />
             </span>
             <input
               type="text"
@@ -520,8 +506,8 @@ export default function DivisionIncomingDocumentsTable({
                         <TableCell className="px-3 py-3">
                           <KebabMenu
                             actions={[
-                              { label: "View", icon: <ViewIcon />, handler: () => handleView(record) },
-                              { label: "Update Status", icon: <UpdateStatusIcon />, handler: () => openUpdateModal(record) },
+                              { label: "View", icon: <Eye className="h-4 w-4" />, handler: () => handleView(record) },
+                              { label: "Update Status", icon: <RotateCw className="h-4 w-4" />, handler: () => openUpdateModal(record) },
                             ]}
                           />
                         </TableCell>

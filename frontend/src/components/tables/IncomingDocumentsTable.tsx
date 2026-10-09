@@ -7,13 +7,8 @@ import StatusUpdateModal, {
   type StatusType,
   type StatusUpdatePayload,
 } from "../ui/modal/document/StatusUpdateModal";
-import KebabMenu, {
-  ArchiveIcon,
-  HistoryIcon,
-  ShareIcon,
-  UpdateStatusIcon,
-  ViewIcon,
-} from "../ui/kebab-menu/KebabMenu";
+import KebabMenu from "../ui/kebab-menu/KebabMenu";
+import { Archive, Eye, History, RotateCw, Search, Share2 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHeader, TableRow } from "../ui/table";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -144,11 +139,11 @@ function MobileCard({
         </span>
         <KebabMenu
           actions={[
-            { label: "View", icon: <ViewIcon />, handler: () => console.log("[View] Record:", record) },
-            { label: "Update Status", icon: <UpdateStatusIcon />, handler: () => onUpdateStatus(record) },
-            { label: "History", icon: <HistoryIcon />, handler: () => onHistory(record) },
-            { label: "Share", icon: <ShareIcon />, handler: () => onShare(record) },
-            { label: "Archive", icon: <ArchiveIcon />, handler: () => console.log("[Archive] Record:", record) },
+            { label: "View", icon: <Eye className="h-4 w-4" />, handler: () => console.log("[View] Record:", record) },
+            { label: "Update Status", icon: <RotateCw className="h-4 w-4" />, handler: () => onUpdateStatus(record) },
+            { label: "History", icon: <History className="h-4 w-4" />, handler: () => onHistory(record) },
+            { label: "Share", icon: <Share2 className="h-4 w-4" />, handler: () => onShare(record) },
+            { label: "Archive", icon: <Archive className="h-4 w-4" />, handler: () => console.log("[Archive] Record:", record) },
           ]}
         />
       </div>
@@ -484,19 +479,7 @@ export default function IncomingDocumentsTable() {
           {/* Search */}
           <div className="relative w-full sm:min-w-[200px] sm:flex-1">
             <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-gray-400">
-              <svg
-                className="h-4 w-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 1112 0z"
-                />
-              </svg>
+              <Search className="h-4 w-4" />
             </span>
             <input
               type="text"
@@ -726,11 +709,11 @@ export default function IncomingDocumentsTable() {
                         <TableCell className="px-3 py-3">
                           <KebabMenu
                             actions={[
-                              { label: "View", icon: <ViewIcon />, handler: () => console.log("[View] Record:", record) },
-                              { label: "Update Status", icon: <UpdateStatusIcon />, handler: () => openUpdateModal(record) },
-                              { label: "History", icon: <HistoryIcon />, handler: () => openAuditModal(record) },
-                              { label: "Share", icon: <ShareIcon />, handler: () => handleShare(record) },
-                              { label: "Archive", icon: <ArchiveIcon />, handler: () => console.log("[Archive] Record:", record) },
+                              { label: "View", icon: <Eye className="h-4 w-4" />, handler: () => console.log("[View] Record:", record) },
+                              { label: "Update Status", icon: <RotateCw className="h-4 w-4" />, handler: () => openUpdateModal(record) },
+                              { label: "History", icon: <History className="h-4 w-4" />, handler: () => openAuditModal(record) },
+                              { label: "Share", icon: <Share2 className="h-4 w-4" />, handler: () => handleShare(record) },
+                              { label: "Archive", icon: <Archive className="h-4 w-4" />, handler: () => console.log("[Archive] Record:", record) },
                             ]}
                           />
                         </TableCell>
