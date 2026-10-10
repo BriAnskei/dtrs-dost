@@ -3,8 +3,10 @@ import { toast } from "sonner";
 import { WIZARD_STEPS } from "../../constans";
 import type { DocumentDirection, FieldKey } from "../../types/extraction-types";
 import { useExtraction } from "../hooks/use-extraction";
+import { useOutgoingSave } from "../hooks/use-outgoing-save";
 import DocumentTypeSelector from "./DocumentTypeSelelector";
 import ExtractionConsole from "./ExtractionConsole";
+import SaveOutgoingModal from "./modal/SaveOutgoingModal";
 import PdfDropzone from "./PDFDropzone";
 import ReviewSplitView from "./ReviewSplitView";
 import WizardStepper from "./WizardStepper";
@@ -57,6 +59,14 @@ export default function DirectUploadPanel() {
     setStep(0);
   };
 
+  const outgoingSave = useOutgoingSave({
+    enabled: direction === "outgoing",
+    file,
+    outcome,
+    edits,
+    onSaved: startOver,
+  });
+
   const runExtraction = async () => {
     if (!file) return;
 
@@ -90,12 +100,19 @@ export default function DirectUploadPanel() {
 
   const handleSave = () => {
     if (!outcome) return;
+
+    if (direction === "outgoing") {
+      outgoingSave.open();
+      return;
+    }
+
+    // Incoming: wired later.
     const payload = outcome.rows.map((r) => ({
       field: r.field,
       value: r.field in edits ? (edits[r.field] ?? "").trim() : r.value,
       edited: r.field in edits,
     }));
-    // TODO: send `payload` (+ file, direction, outcome.assignedDivision) to your save endpoint.
+    // TODO: send `payload` (+ file, direction, outcome.assignedDivision) to the incoming save endpoint.
     void payload;
   };
 
@@ -111,6 +128,8 @@ export default function DirectUploadPanel() {
                 : undefined,
         }
       : {};
+
+  const saveBlocked = outgoingSave.issues.length > 0;
 
   return (
     <div className="space-y-6">
@@ -196,11 +215,25 @@ export default function DirectUploadPanel() {
           </button>
         )}
         {step === 3 && outcome && (
-          <button type="button" className={primaryBtn} onClick={handleSave}>
-            Save
-          </button>
+          <div className="flex items-center gap-3">
+            {saveBlocked && (
+              <p className="max-w-xs text-right text-theme-xs text-danger">
+                {outgoingSave.issues.join(" · ")}
+              </p>
+            )}
+            <button
+              type="button"
+              className={primaryBtn}
+              disabled={saveBlocked}
+              onClick={handleSave}
+            >
+              Save File
+            </button>
+          </div>
         )}
       </div>
+
+      {outgoingSave.modalProps && <SaveOutgoingModal {...outgoingSave.modalProps} />}
     </div>
   );
 }

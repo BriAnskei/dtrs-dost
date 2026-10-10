@@ -1,6 +1,7 @@
 import { join } from "node:path";
 import { Module } from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
+import { CqrsModule } from "@nestjs/cqrs";
 import { ServeStaticModule } from "@nestjs/serve-static";
 import { ThrottlerModule } from "@nestjs/throttler";
 import { TypeOrmModule } from "@nestjs/typeorm";
@@ -11,11 +12,13 @@ import { AuthorizationModule } from "./auth/authorization/authorization.module";
 import { getDatabaseConfig } from "./config/database.config";
 import { ExtractedDocumentQueueModule } from "./features/document/extracted-document-queue/extracted-document-queue.module";
 import { ExtractionModule } from "./features/document/extraction/extraction.module";
+import { OutgoingDocumentModule } from "./features/document/outgoing/ougoing.module";
 import { PermissionsModule } from "./features/permissions/permissions.module";
 import { UserModule } from "./features/user/user.module";
 
 @Module({
   imports: [
+    CqrsModule.forRoot(),
     ThrottlerModule.forRoot({
       throttlers: [
         {
@@ -45,6 +48,7 @@ import { UserModule } from "./features/user/user.module";
     // Documents
     ExtractionModule,
     ExtractedDocumentQueueModule,
+    OutgoingDocumentModule,
   ],
   controllers: [AppController],
   providers: [AppService],

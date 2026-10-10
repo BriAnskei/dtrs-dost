@@ -6,7 +6,7 @@ export type FieldKey =
   | "from"
   | "to"
   | "dateReceived"
-  | "dateReleased"
+  | "datePrepared"
   | "summary";
 export type Decision = "ACCEPT" | "REVIEW" | "INVALID";
 export type LogLevel = "info" | "success" | "warn" | "error";

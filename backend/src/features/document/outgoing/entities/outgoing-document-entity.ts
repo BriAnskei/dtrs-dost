@@ -14,11 +14,20 @@ import { DocumentFileEntity } from "../../document-file/entities/document-file.e
 @Index("idx_outgoing_documents_to", ["to"])
 @Index("idx_outgoing_documents_subject", ["subject"])
 export class OutgoingDocumentEntity {
-  @PrimaryGeneratedColumn("increment", { type: "bigint" })
+  @PrimaryGeneratedColumn("uuid")
   id!: string;
 
   @Column({ type: "uuid", unique: true })
   document_file_id!: string;
+
+  @Column({
+    name: "code_number",
+    type: "bigint",
+    unique: true,
+    insert: false,
+    update: false,
+  })
+  code_number!: string;
 
   @OneToOne(() => DocumentFileEntity, {
     onDelete: "CASCADE",
@@ -27,11 +36,14 @@ export class OutgoingDocumentEntity {
   @JoinColumn({ name: "document_file_id" })
   document_file!: DocumentFileEntity;
 
-  @Column({ type: "varchar", length: 500 })
+  @Column({ type: "varchar", length: 500, nullable: false })
   subject!: string;
 
-  @Column({ name: "to", type: "varchar", length: 255 })
+  @Column({ name: "to", type: "varchar", length: 255, nullable: false })
   to!: string;
+
+  @Column({ type: "text", nullable: false })
+  summary!: string;
 
   @Column({ type: "date", nullable: true })
   date_prepared!: string | null;

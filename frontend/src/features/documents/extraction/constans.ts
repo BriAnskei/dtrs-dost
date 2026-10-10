@@ -7,13 +7,13 @@ export const FIELD_LABELS: Record<FieldKey, string> = {
   from: "From",
   to: "To",
   dateReceived: "Date Received",
-  dateReleased: "Date Released",
+  datePrepared: "Date Prepared",
   summary: "Summary",
 };
 
 export const FIELDS_BY_DIRECTION: Record<DocumentDirection, FieldKey[]> = {
   incoming: ["subject", "from", "to", "dateReceived", "summary"],
-  outgoing: ["to", "subject", "dateReleased", "summary"],
+  outgoing: ["to", "subject", "datePrepared", "summary"],
 };
 
 export const DIRECTION_OPTIONS: {
@@ -24,7 +24,7 @@ export const DIRECTION_OPTIONS: {
   {
     value: "incoming",
     label: "Incoming Document",
-    description: "Extracts subject, from, to, date received, summary + division routing.",
+    description: "Extracts subject, from, to, date received, summary",
   },
   {
     value: "outgoing",

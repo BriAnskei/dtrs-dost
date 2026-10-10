@@ -7,6 +7,7 @@ import {
 import { FIELDS_BY_DIRECTION } from "../../constans";
 import { computeEffective, decide } from "../../helpers/extraction-helpers";
 import { resolveHighlights, toBBox } from "../../helpers/highlight-helpers";
+import { useExitConfirmation } from "../../hooks/use-exit-confirmation";
 import type { PdfExtractionResult } from "../../pdf";
 import { extractPdf } from "../../pdf";
 import type { ExtractionChunk } from "../../pdf/types";
@@ -32,6 +33,8 @@ export function useExtraction(direction: DocumentDirection) {
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [outcome, setOutcome] = useState<ExtractionOutcome | null>(null);
   const logId = useRef(0);
+
+  useExitConfirmation(phase === "source" || phase === "llm");
 
   const reset = useCallback(() => {
     setPhase("idle");

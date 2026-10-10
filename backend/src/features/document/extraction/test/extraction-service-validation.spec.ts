@@ -330,14 +330,14 @@ describe("ExtractionService — validateField edge cases", () => {
 });
 
 describe("ExtractionService — outgoing document type", () => {
-  it("returns 4 fields for outgoing documents (to, subject, dateReleased, summary)", async () => {
+  it("returns 4 fields for outgoing documents (to, subject, datePrepared, summary)", async () => {
     // Chunk text must contain all field values so anti-hallucination passes.
     const docText = "To: Recipient Corp Subject: Foo Date: 10/03/2026 Summary text";
     const { service, mock } = await buildService((_dt, _chunks) =>
       Promise.resolve([
         field("to", "Recipient Corp", ["p1-o1"], 90),
         field("subject", "Foo", ["p1-o1"], 88),
-        field("dateReleased", "10/03/2026", ["p1-o1"], 95),
+        field("datePrepared", "10/03/2026", ["p1-o1"], 95),
         field("summary", "Summary text", ["p1-o1"], 85),
       ]),
     );
@@ -350,14 +350,14 @@ describe("ExtractionService — outgoing document type", () => {
     expect(result.fields.map((f) => f.field)).toEqual([
       "to",
       "subject",
-      "dateReleased",
+      "datePrepared",
       "summary",
     ]);
   });
 
   it("silently drops stray incoming-only fields when processing outgoing documents", async () => {
     /*
-     * "from" is not in the outgoing field set (to, subject, dateReleased,
+     * "from" is not in the outgoing field set (to, subject, datePrepared,
      * summary). The service builds a fieldsByName map of ALL LLM-returned
      * fields, but only iterates over expectedFields when producing the
      * response. So a stray "from" is silently dropped — not thrown, not
@@ -369,7 +369,7 @@ describe("ExtractionService — outgoing document type", () => {
         field("from", "Someone", ["p1-o1"], 90), // stray — should be dropped
         field("to", "Recipient Corp", ["p1-o1"], 90),
         field("subject", "Foo", ["p1-o1"], 88),
-        field("dateReleased", "10/03/2026", ["p1-o1"], 95),
+        field("datePrepared", "10/03/2026", ["p1-o1"], 95),
         field("summary", "Summary", ["p1-o1"], 85),
       ]),
     );

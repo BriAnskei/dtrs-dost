@@ -61,6 +61,10 @@ const {
   mockGetErrorStatus: vi.fn(),
 }));
 
+vi.mock("../../hooks/use-exit-confirmation", () => ({
+  useExitConfirmation: vi.fn(),
+}));
+
 vi.mock("../../pdf", () => ({
   extractPdf: mockExtractPdf,
 }));

@@ -18,6 +18,7 @@ export class DocumentFileEntity {
     type: "varchar",
     length: 32,
     nullable: true,
+    unique: true,
   })
   code!: string | null;
 

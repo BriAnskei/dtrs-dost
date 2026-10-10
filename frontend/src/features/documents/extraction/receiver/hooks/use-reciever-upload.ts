@@ -6,6 +6,7 @@ import {
   getErrorStatus,
   isNetworkError,
 } from "../../../../../lib/api-error";
+import { useExitConfirmation } from "../../hooks/use-exit-confirmation";
 import { extractPdf } from "../../pdf";
 import { MAX_RECEIVER_CHUNKS, toReceiverChunks } from "../helpers/reciver-upload-chunks";
 import { PROGRESS_STEPS } from "../receiver-upload-constants";
@@ -47,14 +48,7 @@ export function useReceiverUpload() {
 
   const busy = status === "processing" || status === "queueing";
 
-  useEffect(() => {
-    if (!busy) return;
-    const onBeforeUnload = (e: BeforeUnloadEvent) => {
-      e.preventDefault();
-    };
-    window.addEventListener("beforeunload", onBeforeUnload);
-    return () => window.removeEventListener("beforeunload", onBeforeUnload);
-  }, [busy]);
+  useExitConfirmation(busy);
 
   const openResult = useCallback(() => setShowResult(true), []);
   const closeResult = useCallback(() => setShowResult(false), []);

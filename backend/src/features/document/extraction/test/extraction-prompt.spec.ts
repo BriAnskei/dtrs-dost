@@ -48,7 +48,7 @@ describe("buildExtractionPrompt", () => {
 
       expect(prompt).toContain("- to");
       expect(prompt).toContain("- subject");
-      expect(prompt).toContain("- dateReleased");
+      expect(prompt).toContain("- datePrepared");
       expect(prompt).toContain("- summary");
     });
 
@@ -66,7 +66,7 @@ describe("buildExtractionPrompt", () => {
         makeChunk("p1-o1", "Subject: Foo"),
       ]);
 
-      expect(prompt).not.toContain("- dateReleased");
+      expect(prompt).not.toContain("- datePrepared");
     });
 
     it("mentions the document type in the preamble", () => {

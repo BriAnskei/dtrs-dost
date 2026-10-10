@@ -18,4 +18,12 @@ export class DocumentFileRepository {
 
     return repo.save(this.repository.create(data));
   }
+
+  async updateCode(id: string, code: string, manager?: EntityManager): Promise<boolean> {
+    const repo = manager ? manager.getRepository(DocumentFileEntity) : this.repository;
+
+    const result = await repo.update({ id }, { code });
+
+    return (result.affected ?? 0) > 0;
+  }
 }

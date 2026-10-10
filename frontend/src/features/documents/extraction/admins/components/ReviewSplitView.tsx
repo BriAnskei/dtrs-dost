@@ -1,12 +1,12 @@
 import { useMemo, useState } from "react";
 import { FIELD_LABELS } from "../../constans";
 import { isFlagged } from "../../helpers/extraction-helpers";
-import { useReviewSelection } from "../hooks/use-review-selection";
 import type {
   ChunkLocation,
   ExtractionOutcome,
   FieldKey,
 } from "../../types/extraction-types";
+import { useReviewSelection } from "../hooks/use-review-selection";
 import DecisionBanner from "./DecisionBanner";
 import PdfViewer, { type PdfHighlight } from "./PdfViewer";
 import ReviewFieldDetail from "./ReviewFieldDetail";

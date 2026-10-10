@@ -24,6 +24,7 @@ export default function ExtractionConsole({
 }) {
   const bodyRef = useRef<HTMLDivElement>(null);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: Only logs changes should trigger auto-scrolling; bodyRef is a stable ref, and its current DOM element is read when the effect runs.
   useEffect(() => {
     const el = bodyRef.current;
     if (el) el.scrollTop = el.scrollHeight;

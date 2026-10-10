@@ -175,7 +175,7 @@ describe("GeminiExtractorService", () => {
           fields: [
             { field: "to", value: "A", chunkIds: [], aiConfidence: 90 },
             { field: "subject", value: "B", chunkIds: [], aiConfidence: 91 },
-            { field: "dateReleased", value: "C", chunkIds: [], aiConfidence: 92 },
+            { field: "datePrepared", value: "C", chunkIds: [], aiConfidence: 92 },
             { field: "summary", value: "D", chunkIds: [], aiConfidence: 93 },
           ],
         }),
@@ -187,9 +187,9 @@ describe("GeminiExtractorService", () => {
       const fieldEnum =
         call.config.responseJsonSchema.properties.fields.items.properties.field.enum;
 
-      // Outgoing enum: to, subject, dateReleased, summary (no "from", no "dateReceived").
+      // Outgoing enum: to, subject, datePrepared, summary (no "from", no "dateReceived").
       expect(fieldEnum.sort()).toEqual(
-        ["to", "subject", "dateReleased", "summary"].sort(),
+        ["to", "subject", "datePrepared", "summary"].sort(),
       );
     });
   });
@@ -560,7 +560,7 @@ describe("GeminiExtractorService", () => {
     /*
      * The zod schema is the source of truth for what the LLM may return.
      * It accepts ALL six field keys (subject, from, to, dateReceived,
-     * dateReleased, summary) regardless of documentType — the documentType-
+     * datePrepared, summary) regardless of documentType — the documentType-
      * specific constraint is only enforced on the Gemini side via the
      * response JSON schema (tested above). These tests validate the shared
      * zod schema independently.
@@ -586,7 +586,7 @@ describe("GeminiExtractorService", () => {
           { field: "from", value: "x", chunkIds: [], aiConfidence: 50 },
           { field: "subject", value: "x", chunkIds: [], aiConfidence: 50 },
           { field: "dateReceived", value: "x", chunkIds: [], aiConfidence: 50 },
-          { field: "dateReleased", value: "x", chunkIds: [], aiConfidence: 50 },
+          { field: "datePrepared", value: "x", chunkIds: [], aiConfidence: 50 },
         ],
       });
 
