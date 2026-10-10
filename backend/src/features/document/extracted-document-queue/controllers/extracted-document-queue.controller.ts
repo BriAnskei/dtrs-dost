@@ -13,6 +13,7 @@ import { memoryStorage } from "multer";
 import type { AuthenticatedRequest } from "../../../../auth/authentication/types/authenticated-request";
 import { Roles } from "../../../../auth/authorization/decorator/roles.decorator";
 import { Role } from "../../../../auth/authorization/enum/roles.enum";
+import { ParsePdfFilePipe } from "../../pipes/parse-pdf-file-pipe";
 import { CreateExtractedDocumentDto } from "../dto/create-extracted-document-dto";
 import { FindExtractedDocumentQueuesQueryDto } from "../dto/find-extracted-document-queues-query.dto";
 import { FindMyExtractedDocumentQueuesQueryDto } from "../dto/find-my-extracted-document-queues-query.dto";
@@ -35,7 +36,7 @@ export class ExtractionQueueController {
     }),
   )
   create(
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFile(ParsePdfFilePipe) file: Express.Multer.File,
     @Body() dto: CreateExtractedDocumentDto,
     @Req() req: AuthenticatedRequest,
   ) {

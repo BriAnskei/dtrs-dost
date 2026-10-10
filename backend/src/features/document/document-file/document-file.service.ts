@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
+import { EntityManager } from "typeorm";
 import { DocumentFileRepository } from "./document-file.repository";
 import { DocumentFileEntity } from "./entities/document-file.entity";
-import { EntityManager } from "typeorm";
 
 @Injectable()
 export class DocumentFileService {

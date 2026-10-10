@@ -13,6 +13,14 @@ export class DocumentFileEntity {
   @PrimaryGeneratedColumn("uuid")
   id!: string;
 
+  @Column({
+    name: "code",
+    type: "varchar",
+    length: 32,
+    nullable: true,
+  })
+  code!: string | null;
+
   @Column({ type: "varchar" })
   file_name!: string;
 

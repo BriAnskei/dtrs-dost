@@ -53,7 +53,7 @@ import { ExtractionService } from "../../extraction/extraction.service";
 import { DocumentFileService } from "../../document-file/document-file.service";
 import { ExtractedDocumentQueueService } from "../service/extracted-document-queue.service";
 import { S3Service } from "../../../../storage/s3/s3.service";
-import type { Decision } from "../extraction-queue.constant";
+import type { Decision } from "../extration-queue.constant";
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -212,7 +212,7 @@ describe("ExtractedDocumentQueueUseCase", () => {
       // 2. S3 upload happened BEFORE the transaction, with the file buffer.
       expect(mockS3Service.upload).toHaveBeenCalledTimes(1);
       expect(mockS3Service.upload).toHaveBeenCalledWith(
-        expect.stringMatching(/^documents\//),
+        expect.stringMatching(/^incoming\/\d{4}\/\d{2}\//),
         file.buffer,
         file.mimetype,
       );
@@ -250,7 +250,7 @@ describe("ExtractedDocumentQueueUseCase", () => {
 
       const keys = mockS3Service.upload!.mock.calls.map((c) => c[0]);
       expect(keys[0]).not.toBe(keys[1]);
-      expect(keys.every((k) => typeof k === "string" && k.startsWith("documents/"))).toBe(true);
+      expect(keys.every((k) => typeof k === "string" && k.startsWith("incoming/"))).toBe(true);
     });
 
     it("forwards the uploaded file's originalname to the document file", async () => {

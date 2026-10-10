@@ -11,8 +11,8 @@
  *   status="idle"            → <PdfDropzone> (file picker / drag-drop)
  *   busy || queue_failed     → <UploadProcessingCard> (spinner progress list)
  *                               with the file name + activeIdx + failed flag
- *   status="queued" && result → <UploadResultCard> (decision + per-field bars)
- *   status="queued" && !result → <UploadSuccessCard> ("Sent for validation")
+ *   status="queued" && showResult && result → <UploadResultCard> (decision + per-field bars)
+ *   status="queued" && !(showResult && result) → <UploadSuccessCard> ("Sent for validation")
  *
  * Button bar visibility per status:
  *   "idle"    → Submit button (disabled if no file)
@@ -32,7 +32,7 @@
  *   3. idle → Submit click calls submit().
  *   4. busy (processing) → UploadProcessingCard shown, Processing button shown.
  *   5. queue_failed → UploadProcessingCard (failed) shown, Start Over + Retry buttons.
- *   6. queued + result → UploadResultCard shown, Upload Another button.
+ *   6. queued + showResult + result → UploadResultCard shown, Upload Another button.
  *   7. queued + no result → UploadSuccessCard shown, Upload Another button.
  *   8. Start Over button calls startOver().
  *   9. Retry button calls retryQueue().
@@ -52,6 +52,8 @@ const mockSubmit = vi.fn();
 const mockSelectFile = vi.fn();
 const mockRetryQueue = vi.fn();
 const mockStartOver = vi.fn();
+const mockOpenResult = vi.fn();
+const mockCloseResult = vi.fn();
 
 const { mockUseReceiverUpload } = vi.hoisted(() => ({
   mockUseReceiverUpload: vi.fn(),
@@ -135,6 +137,7 @@ function makeMockReturn(overrides: Partial<{
   busy: boolean;
   activeIdx: number;
   result: ReceiverUploadResponse | null;
+  showResult: boolean;
 }> = {}) {
   const status: ReceiverUploadStatus = overrides.status ?? "idle";
   const file = overrides.file ?? null;
@@ -147,6 +150,7 @@ function makeMockReturn(overrides: Partial<{
         : 0
   );
   const result = overrides.result ?? null;
+  const showResult = overrides.showResult ?? false;
 
   return {
     file,
@@ -154,6 +158,9 @@ function makeMockReturn(overrides: Partial<{
     busy,
     activeIdx,
     result,
+    showResult,
+    openResult: mockOpenResult,
+    closeResult: mockCloseResult,
     selectFile: mockSelectFile,
     submit: mockSubmit,
     retryQueue: mockRetryQueue,
@@ -180,6 +187,8 @@ describe("ReceiverUploadPanel", () => {
     mockSelectFile.mockClear();
     mockRetryQueue.mockClear();
     mockStartOver.mockClear();
+    mockOpenResult.mockClear();
+    mockCloseResult.mockClear();
   });
 
   /* ── Status: idle ──────────────────────────────────────────────────────────── */
@@ -370,6 +379,7 @@ describe("ReceiverUploadPanel", () => {
           busy: false,
           activeIdx: 3,
           result: VALID_RESPONSE,
+          showResult: true,
         }),
       );
 

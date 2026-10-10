@@ -1,4 +1,4 @@
-import { formatDate } from "@/utils/dateFormatter";
+import { formatDate } from "../../../utils/dateFormatter";
 import {
   NO_VALUE_PLACEHOLDER,
   type SystemUser,

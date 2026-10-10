@@ -1,6 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { EntityManager } from "typeorm";
 import { PaginatedResponse } from "../../../../common/pagination/paginated-response";
+import { resolveExtraction } from "../domain/resolve-extraction";
 import { ExtractedDocumentQueueResponseDto } from "../dto/extracted-document-response-dto";
 import { FindExtractedDocumentQueuesQueryDto } from "../dto/find-extracted-document-queues-query.dto";
 import { FindMyExtractedDocumentQueuesQueryDto } from "../dto/find-my-extracted-document-queues-query.dto";
@@ -38,6 +39,8 @@ export class ExtractedDocumentQueueService {
     dto.status = queue.status;
     dto.created_at = queue.created_at;
 
+    dto.fields = resolveExtraction(queue.extracted_data, queue.extracted_chunks).fields;
+
     return dto;
   }
 
@@ -67,7 +70,7 @@ export class ExtractedDocumentQueueService {
 
     return {
       ...result,
-      data: result.data.map((queue) => this.toMyDto(queue)),
+      data: result.data.map(this.toMyDto),
     };
   }
 }

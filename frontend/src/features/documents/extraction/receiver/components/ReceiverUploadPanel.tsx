@@ -16,21 +16,27 @@ export default function ReceiverUploadPanel() {
     busy,
     activeIdx,
     result,
+    showResult,
+    openResult,
+    closeResult,
     selectFile,
     submit,
     retryQueue,
     startOver,
   } = useReceiverUpload();
 
+  const viewingResult = status === "queued" && showResult && !!result;
+
   return (
     <div className="space-y-6">
       <div>
         <h3 className="text-theme-xl font-semibold text-gray-800 dark:text-white/90">
-          Upload incoming document
+          {viewingResult ? "Extraction results" : "Upload incoming document"}
         </h3>
         <p className="text-theme-sm text-gray-500 dark:text-gray-400">
-          Upload the PDF. An admin will validate it before it is added to Incoming
-          Documents.
+          {viewingResult
+            ? "Review what was extracted from your document. An admin will verify it before it is added to Incoming Documents."
+            : "Upload the PDF. An admin will validate it before it is added to Incoming Documents."}
         </p>
       </div>
 
@@ -45,13 +51,17 @@ export default function ReceiverUploadPanel() {
           />
         )}
 
-        {file &&
-          status === "queued" &&
-          (result ? (
-            <UploadResultCard fileName={file.name} result={result} />
-          ) : (
-            <UploadSuccessCard fileName={file.name} />
-          ))}
+        {/* The success view is replaced by the results view when the user opens it. */}
+        {file && status === "queued" && !viewingResult && (
+          <UploadSuccessCard
+            fileName={file.name}
+            onViewResults={result ? openResult : undefined}
+          />
+        )}
+
+        {file && viewingResult && result && (
+          <UploadResultCard fileName={file.name} result={result} />
+        )}
       </div>
 
       {/* Button bar: secondary on the left, forward action on the right */}
@@ -60,6 +70,11 @@ export default function ReceiverUploadPanel() {
           {status === "queue_failed" && (
             <button type="button" className={secondaryBtn} onClick={startOver}>
               Start Over
+            </button>
+          )}
+          {viewingResult && (
+            <button type="button" className={secondaryBtn} onClick={closeResult}>
+              Back
             </button>
           )}
         </div>

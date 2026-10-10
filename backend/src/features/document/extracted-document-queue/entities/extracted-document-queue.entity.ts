@@ -13,9 +13,9 @@ import { DECISION_VALUES } from "../extration-queue.constant";
 import { ExtractedChunk } from "../types/extracted-types";
 
 export enum ExtractedDocumentQueueStatus {
-  PENDING = "pending",
-  APPROVED = "approved",
-  INVALIDATED = "invalidated",
+  PENDING = "PENDING",
+  APPROVED = "APPROVED",
+  INVALIDATED = "INVALIDATED",
 }
 
 @Entity("extracted_document_queues")

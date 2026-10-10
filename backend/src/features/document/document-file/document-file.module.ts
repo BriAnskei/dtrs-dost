@@ -1,8 +1,8 @@
 import { Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
-import { DocumentFileEntity } from "./entities/document-file.entity";
 import { DocumentFileRepository } from "./document-file.repository";
 import { DocumentFileService } from "./document-file.service";
+import { DocumentFileEntity } from "./entities/document-file.entity";
 
 @Module({
   imports: [TypeOrmModule.forFeature([DocumentFileEntity])],

@@ -27,6 +27,8 @@ export function useReceiverUpload() {
   const [status, setStatus] = useState<ReceiverUploadStatus>("idle");
   // Server response (decision + per-field confidence) shown after a successful upload.
   const [result, setResult] = useState<ReceiverUploadResponse | null>(null);
+  // Whether the extraction results are expanded under the success card.
+  const [showResult, setShowResult] = useState(false);
 
   const { mutateAsync, reset: resetMutation } = useMutation({
     mutationFn: receiverUploadService.upload,
@@ -49,15 +51,17 @@ export function useReceiverUpload() {
     if (!busy) return;
     const onBeforeUnload = (e: BeforeUnloadEvent) => {
       e.preventDefault();
-
-      e.preventDefault();
     };
     window.addEventListener("beforeunload", onBeforeUnload);
     return () => window.removeEventListener("beforeunload", onBeforeUnload);
   }, [busy]);
 
+  const openResult = useCallback(() => setShowResult(true), []);
+  const closeResult = useCallback(() => setShowResult(false), []);
+
   const send = useCallback(
     async (f: File, chunks: ReceiverChunk[]) => {
+      setShowResult(false);
       setStatus("queueing");
       try {
         const data = await mutateAsync({ file: f, chunks });
@@ -75,7 +79,6 @@ export function useReceiverUpload() {
             id: "queue-failed",
           });
         }
-        console.log(getApiErrorMessage(err, "Failed"));
       }
     },
     [mutateAsync],
@@ -91,6 +94,7 @@ export function useReceiverUpload() {
       chunksRef.current = null;
       resetMutation();
       setResult(null);
+      setShowResult(false);
       setFile(f);
     },
     [resetMutation],
@@ -139,6 +143,7 @@ export function useReceiverUpload() {
     chunksRef.current = null;
     resetMutation();
     setResult(null);
+    setShowResult(false);
     setFile(null);
     setStatus("idle");
   }, [resetMutation]);
@@ -156,6 +161,9 @@ export function useReceiverUpload() {
     busy,
     activeIdx,
     result,
+    showResult,
+    openResult,
+    closeResult,
     selectFile,
     submit,
     retryQueue,

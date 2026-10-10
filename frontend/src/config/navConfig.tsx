@@ -2,19 +2,15 @@ import type { Roles, User } from "../context/currentUser/curr-user.type";
 import { UserManagementPermissionEnum } from "../features/auth/authorization/enum/user-management-permission";
 import { hasUserManagementPermission } from "../features/auth/authorization/helpers/has-user-management-permission";
 import {
-  AccessControlIcon,
   AdministrationIcon,
   AssignedDocumentsIcon,
   BoxCubeIcon,
   Document,
   GridIcon,
   Notification,
-  PieChartIcon,
-  PlugInIcon,
   SettingIcon,
   SystemLogsIcon,
   Upload,
-  UserManagementIcon,
 } from "../icons";
 
 export interface NavItem {
@@ -34,52 +30,54 @@ export interface NavSubItem {
 }
 
 // Super Admin
-// Navigation Item	Sub-items
-// Dashboard	–
-// Documents	in, out, validation (queue) DONE
-// User Management	– DONE
-// Access Control	–DONE
-// Notification	-DONE
-// System Logs	–DONE
-// Setting	–DONE
-
-// Admin
-// Navigation Item	Sub-items
-// Dashboard	–
-// Upload Queue	–
-// Documents	in, out
-// Notification	–
-
-// Receiver
-// Navigation Item	Sub-items
-// Dashboard	–
-// Document	upload, uploads
-// Notification	–
-
 const SUPER_ADMIN_ROUTES: NavItem[] = [
   {
     name: "System Logs",
     path: "/activities",
-    icon: <SystemLogsIcon />, // consistent size/color
+    icon: <SystemLogsIcon />,
     roles: [1],
   },
   {
     name: "Setting",
     path: "/Seting",
-    icon: <SettingIcon />, // consistent size/color
+    icon: <SettingIcon />,
     roles: [1],
   },
 ];
 
+// Receiver Officer
+const RECEIVER_ROUTES: NavItem[] = [
+  {
+    name: "Submit Doc",
+    path: "/incoming-upload",
+    icon: <Upload />,
+    roles: [3],
+  },
+  {
+    name: "Uploaded Doc",
+    path: "/my-uploads",
+    icon: <Document />,
+    roles: [3],
+  },
+  {
+    name: "Invalid Docs",
+    path: "/invalid-documents",
+    icon: <BoxCubeIcon />,
+    roles: [3],
+  },
+];
+
+// Division
 const DIVISION_ROUTES: NavItem[] = [
   {
     name: "Assigned Documents",
-    path: "division/assigned-documents",
+    path: "/division/assigned-documents",
     icon: <AssignedDocumentsIcon />,
     roles: [4],
   },
 ];
 
+// Main Navigation
 export const NAV_ITEMS: NavItem[] = [
   {
     name: "Dashboard",
@@ -88,12 +86,12 @@ export const NAV_ITEMS: NavItem[] = [
     roles: [1, 2, 3],
   },
 
+  // Super Admin and Admin
   {
     name: "Documents",
     icon: <></>,
-    roles: [1, 2, 3],
+    roles: [1, 2],
     subItems: [
-      // Super Admin, Admin
       {
         name: "New Doc",
         path: "/upload-direct",
@@ -124,27 +122,16 @@ export const NAV_ITEMS: NavItem[] = [
         path: "/admin/stale-documents",
         roles: [2],
       },
-
-      {
-        name: "Submit Doc",
-        path: "/incoming-upload",
-        roles: [3],
-      },
-      {
-        name: "My Submissions",
-        path: "/uploads",
-        roles: [3],
-      },
-      {
-        name: "Invalid Docs",
-        path: "/invalid-documents",
-        roles: [3],
-      },
     ],
   },
 
+  // Receiver Officer: separate top-level navigation
+  ...RECEIVER_ROUTES,
+
+  // Division
   ...DIVISION_ROUTES,
 
+  // Notifications
   {
     name: "Notification",
     icon: <Notification />,
@@ -153,6 +140,7 @@ export const NAV_ITEMS: NavItem[] = [
   },
 ];
 
+// Other Navigation
 export const OTHERS_NAV_ITEMS: NavItem[] = [
   {
     name: "Administration",
@@ -187,5 +175,6 @@ export const OTHERS_NAV_ITEMS: NavItem[] = [
       },
     ],
   },
+
   ...SUPER_ADMIN_ROUTES,
 ];

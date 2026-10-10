@@ -18,7 +18,7 @@ export class GeminiExtractorService implements LlmExtractor {
   private readonly initialRetryDelayMs = 1_000;
 
   constructor(private readonly configService: ConfigService) {
-    const apiKey = ":-)";
+    const apiKey = process.env.GEMINI_API_KEY;
 
     if (!apiKey) {
       throw new Error("GEMINI_API_KEY is not configured");

@@ -1,7 +1,8 @@
-import { useState } from "react";
-import { Table, TableBody, TableCell, TableHeader, TableRow } from "../ui/table";
-import KebabMenu from "../ui/kebab-menu/KebabMenu";
+import { formatDate } from "@fullcalendar/core/index.js";
 import { Archive, Eye, History, Search } from "lucide-react";
+import { useState } from "react";
+import KebabMenu from "../ui/kebab-menu/KebabMenu";
+import { Table, TableBody, TableCell, TableHeader, TableRow } from "../ui/table";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -83,8 +84,6 @@ const mockData: OutgoingDocument[] = [
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-import { formatDate } from "@/utils/dateFormatter";
-
 // ─── Mobile Card ─�─────────────────────────────────────────────────────────────
 
 function MobileCard({
@@ -103,9 +102,21 @@ function MobileCard({
         </span>
         <KebabMenu
           actions={[
-            { label: "View", icon: <Eye className="h-4 w-4" />, handler: () => console.log("[View] Record:", record) },
-            { label: "History", icon: <History className="h-4 w-4" />, handler: () => console.log("[History] Audit log for record:", record) },
-            { label: "Archive", icon: <Archive className="h-4 w-4" />, handler: () => console.log("[Archive] Record:", record) },
+            {
+              label: "View",
+              icon: <Eye className="h-4 w-4" />,
+              handler: () => console.log("[View] Record:", record),
+            },
+            {
+              label: "History",
+              icon: <History className="h-4 w-4" />,
+              handler: () => console.log("[History] Audit log for record:", record),
+            },
+            {
+              label: "Archive",
+              icon: <Archive className="h-4 w-4" />,
+              handler: () => console.log("[Archive] Record:", record),
+            },
           ]}
         />
       </div>
@@ -403,9 +414,22 @@ export default function OutgoingDocumentsTable() {
                       <TableCell className="px-3 py-3">
                         <KebabMenu
                           actions={[
-                            { label: "View", icon: <Eye className="h-4 w-4" />, handler: () => console.log("[View] Record:", record) },
-                            { label: "History", icon: <History className="h-4 w-4" />, handler: () => console.log("[History] Audit log for record:", record) },
-                            { label: "Archive", icon: <Archive className="h-4 w-4" />, handler: () => console.log("[Archive] Record:", record) },
+                            {
+                              label: "View",
+                              icon: <Eye className="h-4 w-4" />,
+                              handler: () => console.log("[View] Record:", record),
+                            },
+                            {
+                              label: "History",
+                              icon: <History className="h-4 w-4" />,
+                              handler: () =>
+                                console.log("[History] Audit log for record:", record),
+                            },
+                            {
+                              label: "Archive",
+                              icon: <Archive className="h-4 w-4" />,
+                              handler: () => console.log("[Archive] Record:", record),
+                            },
                           ]}
                         />
                       </TableCell>
