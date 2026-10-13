@@ -8,6 +8,7 @@ import {
   Max,
   Min,
 } from "class-validator";
+import { IsValidCursor } from "../../../../common/validators/is-valid-curoser.decorator";
 import {
   DECISION_VALUES,
   type Decision,
@@ -25,6 +26,7 @@ export class FindExtractedDocumentQueuesQueryDto {
 
   @IsOptional()
   @IsString()
+  @IsValidCursor()
   cursor?: string;
 
   @IsOptional()

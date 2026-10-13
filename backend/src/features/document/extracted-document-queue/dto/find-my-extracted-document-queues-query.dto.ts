@@ -1,5 +1,6 @@
 import { Type } from "class-transformer";
 import { IsEnum, IsInt, IsOptional, IsString, Max, Min } from "class-validator";
+import { IsValidCursor } from "../../../../common/validators/is-valid-curoser.decorator";
 import { ExtractedDocumentQueueStatus } from "../entities/extracted-document-queue.entity";
 import type { Decision } from "../extration-queue.constant";
 import { DECISION_VALUES } from "../extration-queue.constant";
@@ -35,5 +36,6 @@ export class FindMyExtractedDocumentQueuesQueryDto {
 
   @IsOptional()
   @IsString()
+  @IsValidCursor()
   cursor?: string;
 }

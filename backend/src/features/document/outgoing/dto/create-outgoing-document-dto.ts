@@ -10,15 +10,15 @@ export class CreateOutgoingDocumentDto {
   to!: string;
 
   @IsString()
-  summary?: string;
+  summary!: string;
 
   @IsDateString()
-  date_prepared?: string | null;
+  date_prepared!: string;
 
   @IsDateString()
-  date_received?: string | null;
+  date_received!: string;
 
   @IsString()
   @MaxLength(255)
-  received_by?: string | null;
+  received_by!: string;
 }

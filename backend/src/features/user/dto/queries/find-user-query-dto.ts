@@ -1,5 +1,6 @@
 import { Type } from "class-transformer";
 import { IsEnum, IsInt, IsOptional, IsString, Max, Min } from "class-validator";
+import { IsValidCursor } from "../../../../common/validators/is-valid-curoser.decorator";
 import { UserSortOrder } from "../../enums/user-sort-order-enum";
 
 export class FindUsersQueryDto {
@@ -26,5 +27,6 @@ export class FindUsersQueryDto {
 
   @IsOptional()
   @IsString()
+  @IsValidCursor()
   cursor?: string;
 }

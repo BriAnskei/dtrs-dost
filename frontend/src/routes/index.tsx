@@ -14,6 +14,7 @@ import ExtractedQueuePage from "../features/documents/extracted-queue/components
 import MyUploadedDocumentsPage from "../features/documents/extracted-queue-receiver/components/MyUploadedDocumentsPage";
 import DirectUploadPage from "../features/documents/extraction/admins/components/DirectUploadPage";
 import ReceiverUploadPage from "../features/documents/extraction/receiver/components/ReceiverUploadPage";
+import OutgoingDocumentsPage from "../features/documents/outgoing/components/OutgoingDocumentPage";
 import UserManagementPage from "../features/user-management/components/UserManagementPage";
 import AppLayout from "../layout/AppLayout";
 import AdminDashboard from "../pages/Dashboard/AdminDashboard";
@@ -64,7 +65,7 @@ const ADMINISTRATION_ROUTES: RouteType[] = [
     path: "/outgoing",
     element: (
       <RoleRoute allowedRoles={[1, 2]}>
-        <OutgoingDocPage />
+        <OutgoingDocumentsPage />
       </RoleRoute>
     ),
   },

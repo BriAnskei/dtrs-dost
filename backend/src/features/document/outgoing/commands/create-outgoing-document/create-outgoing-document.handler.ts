@@ -4,6 +4,7 @@ import { DataSource } from "typeorm";
 import { OutgoingDocumentCreatedEvent } from "../../../../../common/events/outgoing-document-create.event";
 import { buildDocumentKey } from "../../../../../storage/s3/buildDocumentKey";
 import { S3Service } from "../../../../../storage/s3/s3.service";
+import { capitalizeWords } from "../../../../../util/capitalizer";
 import { DocumentFileService } from "../../../document-file/document-file.service";
 import { generateDocumentCode } from "../../../utils/document-code.util";
 import { OutgoingDocumentRepository } from "../../repository/outgoing-documents-repository";
@@ -46,17 +47,17 @@ export class CreateOutgoingDocumentHandler
         const savedDocument = await this.repository.create(
           {
             document_file_id: documentFile.id,
-            subject: dto.subject,
-            to: dto.to,
+            subject: capitalizeWords(dto.subject),
+            to: capitalizeWords(dto.to),
             date_prepared: dto.date_prepared,
             date_received: dto.date_received,
-            received_by: dto.received_by,
+            received_by: capitalizeWords(dto.received_by),
             summary: dto.summary,
           },
           manager,
         );
 
-        const code = generateDocumentCode("outgoing", savedDocument.code_number);
+        const code = generateDocumentCode("outgoing", savedDocument.tracking_sequence);
         await this.documentFileService.updateCode(documentFile.id, code, manager);
 
         return {

@@ -17,17 +17,8 @@ export class OutgoingDocumentEntity {
   @PrimaryGeneratedColumn("uuid")
   id!: string;
 
-  @Column({ type: "uuid", unique: true })
+  @Column({ type: "uuid", unique: true, nullable: false })
   document_file_id!: string;
-
-  @Column({
-    name: "code_number",
-    type: "bigint",
-    unique: true,
-    insert: false,
-    update: false,
-  })
-  code_number!: string;
 
   @OneToOne(() => DocumentFileEntity, {
     onDelete: "CASCADE",
@@ -35,6 +26,13 @@ export class OutgoingDocumentEntity {
   })
   @JoinColumn({ name: "document_file_id" })
   document_file!: DocumentFileEntity;
+
+  @Column({
+    type: "bigint",
+    default: () => "nextval('document_tracking_code_seq'::regclass)",
+    nullable: false,
+  })
+  tracking_sequence!: string;
 
   @Column({ type: "varchar", length: 500, nullable: false })
   subject!: string;
@@ -45,12 +43,12 @@ export class OutgoingDocumentEntity {
   @Column({ type: "text", nullable: false })
   summary!: string;
 
-  @Column({ type: "date", nullable: true })
-  date_prepared!: string | null;
+  @Column({ type: "date", nullable: false })
+  date_prepared!: string;
 
-  @Column({ type: "date", nullable: true })
-  date_received!: string | null;
+  @Column({ type: "date", nullable: false })
+  date_received!: string;
 
-  @Column({ type: "varchar", length: 255, nullable: true })
-  received_by!: string | null;
+  @Column({ type: "varchar", length: 255, nullable: false })
+  received_by!: string;
 }

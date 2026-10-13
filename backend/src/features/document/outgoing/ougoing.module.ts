@@ -7,6 +7,7 @@ import { DocumentFileModule } from "../document-file/document-file.module";
 import { CreateOutgoingDocumentHandler } from "./commands/create-outgoing-document/create-outgoing-document.handler";
 import { OutgoingDocumentController } from "./controller/outgoing-document-controller";
 import { OutgoingDocumentEntity } from "./entities/outgoing-document-entity";
+import { FindOutgoingDocumentsHandler } from "./queries/handlers/find-outgoing-documents.handler";
 import { OutgoingDocumentRepository } from "./repository/outgoing-documents-repository";
 
 @Module({
@@ -19,6 +20,10 @@ import { OutgoingDocumentRepository } from "./repository/outgoing-documents-repo
   providers: [
     OutgoingDocumentRepository,
     CreateOutgoingDocumentHandler,
+
+    CreateOutgoingDocumentHandler,
+    FindOutgoingDocumentsHandler,
+
     OutgoingDocumentAuditHandler,
     OutgoingDocumentNotificationHandler,
   ],

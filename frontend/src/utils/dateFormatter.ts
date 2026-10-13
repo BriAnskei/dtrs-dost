@@ -24,10 +24,15 @@ const DATETIME_OPTIONS: Intl.DateTimeFormatOptions = {
 
 /** Format an ISO date string as a localized date (no time). */
 export function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString(undefined, DATE_OPTIONS);
+  const [year, month, day] = iso.split("-").map(Number);
+
+  return new Date(Date.UTC(year, month - 1, day)).toLocaleDateString(undefined, {
+    ...DATE_OPTIONS,
+    timeZone: "UTC",
+  });
 }
 
 /** Format an ISO date string as a localized date with time. */
 export function formatDateTime(iso: string): string {
-  return new Date(iso).toLocaleString("en-PH", DATETIME_OPTIONS);
+  return new Date(iso).toLocaleString(undefined, DATETIME_OPTIONS);
 }
