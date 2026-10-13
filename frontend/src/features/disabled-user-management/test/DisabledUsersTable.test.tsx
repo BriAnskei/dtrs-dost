@@ -1,11 +1,11 @@
 /**
- * Component (UI) tests for `DeactivatedUsersTable`.
+ * Component (UI) tests for `DisabledUsersTable`.
  *
  * WHY THIS FILE EXISTS
- *   The hook tests (`use-deactivated-users-table`, `use-reactivate-user`,
+ *   The hook tests (`use-disabled-users-table`, `use-reactivate-user`,
  *   `use-reactivate-user`, `use-delete-user`) cover state/mutation logic in
  *   isolation. This file verifies the *component* — i.e. that
- *   `DeactivatedUsersTable` wires its (mocked) state to real rendering in
+ *   `DisabledUsersTable` wires its (mocked) state to real rendering in
  *   `TableShell` / `KebabMenu`, and that the real modal sub-components surface a
  *   loading indicator while their mutation is pending.
  *
@@ -15,7 +15,7 @@
  *      user lacks the claim, and produce NO modal. When the user lacks *both*
  *      claims, the whole kebab is replaced with a dash (`—`).
  *   2. Infinite scroll works with/without filters — the `hasNextPage` /
- *      `isFetchingNextPage` footers ("Loading more…" / "No more deactivated users"
+ *      `isFetchingNextPage` footers ("Loading more…" / "No more disabled users"
  *      + "(all loaded)") render correctly, independent of whether a search or
  *      role filter is active.
  *   3. Loading indicator in each modal component — opening the Reactivate / Delete
@@ -25,20 +25,20 @@
  *
  * WIRING / DATA FLOW
  *   Backend (NestJS):
- *     GET     /user/deactivated?name=&role_id=&sort=&cursor=&limit=20
+ *     GET     /user/disabled?name=&role_id=&sort=&cursor=&limit=20
  *             → PaginatedResponse<UserWithRelationResponse>
  *     PATCH   /user/:id/reactivate
  *     DELETE  /user/:id
  *   Frontend:
- *     DeactivatedUserService → useDeactivatedUsers (infinite query) →
- *       useDeactivatedUserTable → DeactivatedUsersTable
+ *     DisabledUserService → useDisabledUsers (infinite query) →
+ *       useDisabledUserTable → DisabledUsersTable
  *         → KebabMenu (row actions) + ReactivateUserModal / PermanentDeleteUserModal
  *     Permissions: UserProvider (currentUser.claims) → usePermissions(
  *       "user_management_permissions") → useUserManagementPermissionsHelper →
- *       canReactivate | canDelete | hasAnyDeactivatedRowAction.
+ *       canReactivate | canDelete | hasAnyDisabledRowAction.
  *
  * STRATEGY (mirrors `divisions/test/DivisionManagementTable.test.tsx`)
- *   - Mock `useDeactivatedUserTable` as a *stateful* implementation: real
+ *   - Mock `useDisabledUserTable` as a *stateful* implementation: real
  *     `useState` for `search`/`filterRole`/`sort`/modal targets so user clicks
  *     and typing re-render and we assert on the resulting DOM — not just spies.
  *     Display flags (`isLoading`/`isError`/`filtered`/`hasNextPage`/
@@ -88,8 +88,8 @@ const { mockUseUser, mockUseTable, mockUseReactivateUser, mockUseDeleteUser, rea
 vi.mock("../../../context/currentUser/use-user", () => ({
   useUser: mockUseUser,
 }));
-vi.mock("../hooks/use-deactivated-users-table", () => ({
-  useDeactivatedUserTable: mockUseTable,
+vi.mock("../hooks/use-disabled-users-table", () => ({
+  useDisabledUserTable: mockUseTable,
 }));
 vi.mock("../hooks/api/use-reactivate-user", () => ({
   useReactivateUser: mockUseReactivateUser,
@@ -112,7 +112,7 @@ vi.mock("../../../components/tables/Skeleton/TableSkeleton", () => ({
   },
 }));
 
-import DeactivatedUsersTable from "../components/DeactivatedUsersTable";
+import DisabledUsersTable from "../components/DisabledUsersTable";
 
 // ─── Permission fixtures ─────────────────────────────────────────────────
 // Keys match `UserManagementPermissions` (snake_case) which in turn match the
@@ -122,7 +122,7 @@ const FULL_PERMS: UserManagementPermissions = {
   add: true,
   edit: true,
   reset_password: true,
-  deactivate: true,
+  disable: true,
   reactivate: true,
   delete: true,
 };
@@ -132,7 +132,7 @@ const NO_ROW_ACTIONS: UserManagementPermissions = {
   add: true,
   edit: true,
   reset_password: true,
-  deactivate: true,
+  disable: true,
   reactivate: false,
   delete: false,
 };
@@ -171,7 +171,7 @@ const USER_A: SystemUser = {
   role: "Admin" as UserRole,
   email: "jane@example.com",
   createtAt: "Sep 2025",
-  deactivatedAt: "Sep 26, 2025",
+  disabledAt: "Sep 26, 2025",
 };
 
 const USER_B: SystemUser = {
@@ -183,7 +183,7 @@ const USER_B: SystemUser = {
   email: "bob@example.com",
   divisionName: "Civil Works",
   createtAt: "Aug 2025",
-  deactivatedAt: "Sep 25, 2025",
+  disabledAt: "Sep 25, 2025",
 };
 
 /** Display-flag overrides that drive what `TableShell` renders. */
@@ -205,7 +205,7 @@ interface HookDisplayState {
  * Mirrors `makeHookImpl` in `DivisionManagementTable.test.tsx`.
  */
 function makeHookImpl(overrides: HookDisplayState = {}) {
-  const impl = function useDeactivatedUserTable() {
+  const impl = function useDisabledUserTable() {
     const [search, setSearch] = React.useState("");
     const [filterRole, setFilterRole] = React.useState<
       Exclude<UserRole, "Super Admin"> | "All"
@@ -291,7 +291,7 @@ function loggedIn(overrides: Partial<User> = {}) {
 // vitest config clears call/instance records between tests; implementations are
 // re-set explicitly here so tests stay deterministic and independent.
 
-describe("DeactivatedUsersTable (UI)", () => {
+describe("DisabledUsersTable (UI)", () => {
   beforeEach(() => {
     React.act(() => {}); // no-op guard; real setup per-test below
     // Default wiring used by data-rendering tests.
@@ -321,7 +321,7 @@ describe("DeactivatedUsersTable (UI)", () => {
         permissions: { user_management_permissions: { ...ONLY_DELETE } },
       });
 
-      render(<DeactivatedUsersTable />);
+      render(<DisabledUsersTable />);
 
       fireEvent.click(screen.getAllByTitle("More actions")[0]);
 
@@ -347,7 +347,7 @@ describe("DeactivatedUsersTable (UI)", () => {
         permissions: { user_management_permissions: { ...ONLY_REACTIVATE } },
       });
 
-      render(<DeactivatedUsersTable />);
+      render(<DisabledUsersTable />);
 
       fireEvent.click(screen.getAllByTitle("More actions")[0]);
 
@@ -365,7 +365,7 @@ describe("DeactivatedUsersTable (UI)", () => {
     });
 
     it("replaces the whole kebab with a dash when the user lacks ALL row actions", () => {
-      /* hasAnyDeactivatedRowAction = false → renderActions returns `—` and
+      /* hasAnyDisabledRowAction = false → renderActions returns `—` and
          no KebabMenu trigger is mounted. */
       mockUseTable.mockImplementation(
         makeHookImpl({ filtered: [USER_A], hasNextPage: false }),
@@ -374,7 +374,7 @@ describe("DeactivatedUsersTable (UI)", () => {
         permissions: { user_management_permissions: { ...NO_ROW_ACTIONS } },
       });
 
-      render(<DeactivatedUsersTable />);
+      render(<DisabledUsersTable />);
 
       // No kebab trigger for either the desktop row or the mobile card.
       expect(screen.queryByTitle("More actions")).not.toBeInTheDocument();
@@ -388,7 +388,7 @@ describe("DeactivatedUsersTable (UI)", () => {
       mockUseTable.mockImplementation(impl);
       loggedIn();
 
-      render(<DeactivatedUsersTable />);
+      render(<DisabledUsersTable />);
 
       fireEvent.click(screen.getAllByTitle("More actions")[0]);
       const reactivate = screen.getByRole("button", { name: "Reactivate" });
@@ -405,7 +405,7 @@ describe("DeactivatedUsersTable (UI)", () => {
       mockUseTable.mockImplementation(impl);
       loggedIn();
 
-      render(<DeactivatedUsersTable />);
+      render(<DisabledUsersTable />);
 
       fireEvent.click(screen.getAllByTitle("More actions")[0]);
       const del = screen.getByRole("button", { name: "Delete" });
@@ -435,7 +435,7 @@ describe("DeactivatedUsersTable (UI)", () => {
         isLoading: false,
       });
 
-      render(<DeactivatedUsersTable />);
+      render(<DisabledUsersTable />);
 
       fireEvent.click(screen.getAllByTitle("More actions")[0]);
       expect(
@@ -453,7 +453,7 @@ describe("DeactivatedUsersTable (UI)", () => {
       );
       mockUseUser.mockReturnValue({ currentUser: null, isLoading: false });
 
-      render(<DeactivatedUsersTable />);
+      render(<DisabledUsersTable />);
 
       expect(screen.queryByTitle("More actions")).not.toBeInTheDocument();
       // Target seeded but the table guards with `canReactivate`, so no modal.
@@ -465,7 +465,7 @@ describe("DeactivatedUsersTable (UI)", () => {
 
   describe("toolbar controls", () => {
     it("renders the search input with the 'Search name…' placeholder", () => {
-      render(<DeactivatedUsersTable />);
+      render(<DisabledUsersTable />);
 
       expect(
         screen.getByPlaceholderText("Search name..."),
@@ -476,7 +476,7 @@ describe("DeactivatedUsersTable (UI)", () => {
       /* The search input is bound to the hook's `search` state. Because the mock
          impl uses real useState, typing re-renders and the value + `hasFilters`
          both react. */
-      render(<DeactivatedUsersTable />);
+      render(<DisabledUsersTable />);
 
       const input = screen.getByPlaceholderText(
         "Search name...",
@@ -491,7 +491,7 @@ describe("DeactivatedUsersTable (UI)", () => {
     });
 
     it("Clear button resets search, role filter and sort", () => {
-      render(<DeactivatedUsersTable />);
+      render(<DisabledUsersTable />);
 
       fireEvent.change(screen.getByPlaceholderText("Search name..."), {
         target: { value: "jane" },
@@ -511,7 +511,7 @@ describe("DeactivatedUsersTable (UI)", () => {
 
   it("role <select> change activates filters (Clear appears)", () => {
       /* Non-default role filter → hasFilters true → Clear button. */
-      render(<DeactivatedUsersTable />);
+      render(<DisabledUsersTable />);
 
       const select = screen.getByRole("combobox") as HTMLSelectElement;
       expect(select.value).toBe("All");
@@ -523,13 +523,13 @@ describe("DeactivatedUsersTable (UI)", () => {
     });
 
     it("Clear is absent when no filter is active", () => {
-      render(<DeactivatedUsersTable />);
+      render(<DisabledUsersTable />);
 
       expect(screen.queryByText("Clear")).not.toBeInTheDocument();
     });
 
     it("sort toggle flips Newest↔Oldest and activates filters (Clear appears)", () => {
-      render(<DeactivatedUsersTable />);
+      render(<DisabledUsersTable />);
 
       const sortBtn = screen.getByText("Newest");
       fireEvent.click(sortBtn);
@@ -543,7 +543,7 @@ describe("DeactivatedUsersTable (UI)", () => {
 
   describe("row rendering", () => {
     it("renders each user's name in both the mobile card and the desktop row", () => {
-      render(<DeactivatedUsersTable />);
+      render(<DisabledUsersTable />);
 
       expect(screen.getAllByText("Jane Doe")).toHaveLength(2);
       expect(screen.getAllByText("Bob Santos")).toHaveLength(2);
@@ -553,7 +553,7 @@ describe("DeactivatedUsersTable (UI)", () => {
       /* The toolbar select offers "All Roles" + each AssignableRole. Note
          "Super Admin" is intentionally NOT assignable (excluded from
          ROLE_ID_MAP), so it does not appear as a filter option. */
-      render(<DeactivatedUsersTable />);
+      render(<DisabledUsersTable />);
 
       const options = screen.getAllByRole("option").map((o) => o.textContent);
       expect(options).toEqual(["All Roles", "Admin", "Receiver", "Division"]);
@@ -562,7 +562,7 @@ describe("DeactivatedUsersTable (UI)", () => {
     it("surfaces the division name for Division-role users (mobile + desktop)", () => {
       /* USER_B has role "Division" + divisionName "Civil Works"; the table
          renders it in both the desktop Role column and the mobile card. */
-      render(<DeactivatedUsersTable />);
+      render(<DisabledUsersTable />);
 
       expect(screen.getAllByText("Civil Works")).toHaveLength(2);
     });
@@ -584,13 +584,13 @@ describe("DeactivatedUsersTable (UI)", () => {
         }),
       );
 
-      render(<DeactivatedUsersTable />);
+      render(<DisabledUsersTable />);
 
       expect(screen.getAllByText("Loading more…")).toHaveLength(2);
       expect(screen.queryByText(/No more/)).not.toBeInTheDocument();
     });
 
-    it("shows 'No more deactivated users' + '(all loaded)' when all pages are consumed", () => {
+    it("shows 'No more disabled users' + '(all loaded)' when all pages are consumed", () => {
       mockUseTable.mockImplementation(
         makeHookImpl({
           filtered: [USER_A],
@@ -599,9 +599,9 @@ describe("DeactivatedUsersTable (UI)", () => {
         }),
       );
 
-      render(<DeactivatedUsersTable />);
+      render(<DisabledUsersTable />);
 
-      expect(screen.getAllByText("No more deactivated users")).toHaveLength(1);
+      expect(screen.getAllByText("No more disabled users")).toHaveLength(1);
       expect(screen.queryByText("Loading more…")).not.toBeInTheDocument();
       // Desktop summary appends "(all loaded)" instead of a footer.
       expect(document.body.textContent).toMatch(/\(all loaded\)/);
@@ -610,7 +610,7 @@ describe("DeactivatedUsersTable (UI)", () => {
     it("shows neither footer while idle and more pages remain", () => {
       /* hasNextPage=true, isFetchingNextPage=false → user hasn't reached the
          bottom yet. Nothing should render. */
-      render(<DeactivatedUsersTable />);
+      render(<DisabledUsersTable />);
       expect(screen.queryByText("Loading more…")).not.toBeInTheDocument();
       expect(screen.queryByText(/No more/)).not.toBeInTheDocument();
     });
@@ -626,7 +626,7 @@ describe("DeactivatedUsersTable (UI)", () => {
         }),
       );
 
-      render(<DeactivatedUsersTable />);
+      render(<DisabledUsersTable />);
 
       fireEvent.change(screen.getByPlaceholderText("Search name..."), {
         target: { value: "jane" },
@@ -645,7 +645,7 @@ describe("DeactivatedUsersTable (UI)", () => {
         }),
       );
 
-      render(<DeactivatedUsersTable />);
+      render(<DisabledUsersTable />);
 
       fireEvent.change(screen.getByRole("combobox"), {
         target: { value: "Division" },
@@ -664,7 +664,7 @@ describe("DeactivatedUsersTable (UI)", () => {
         makeHookImpl({ filtered: [USER_A], isLoading: true }),
       );
 
-      render(<DeactivatedUsersTable />);
+      render(<DisabledUsersTable />);
 
       expect(screen.getByTestId("mobile-skeleton")).toBeInTheDocument();
       expect(screen.getByTestId("desktop-skeleton")).toBeInTheDocument();
@@ -682,10 +682,10 @@ describe("DeactivatedUsersTable (UI)", () => {
         }),
       );
 
-      render(<DeactivatedUsersTable />);
+      render(<DisabledUsersTable />);
 
       expect(
-        screen.getByText(/Failed to load deactivated users: Killed by gremlins/),
+        screen.getByText(/Failed to load disabled users: Killed by gremlins/),
       ).toBeInTheDocument();
       // Skeletons only render during isLoading, not isError.
       expect(screen.queryByTestId("desktop-skeleton")).not.toBeInTheDocument();
@@ -697,11 +697,11 @@ describe("DeactivatedUsersTable (UI)", () => {
         makeHookImpl({ filtered: [], hasNextPage: false }),
       );
 
-      render(<DeactivatedUsersTable />);
+      render(<DisabledUsersTable />);
 
       // The empty message renders once per surface: mobile card + desktop row.
       expect(
-        screen.getAllByText("No deactivated users match your filters."),
+        screen.getAllByText("No disabled users match your filters."),
       ).toHaveLength(2);
       expect(screen.queryByTestId("mobile-skeleton")).not.toBeInTheDocument();
     });
@@ -716,7 +716,7 @@ describe("DeactivatedUsersTable (UI)", () => {
       );
       loggedIn();
 
-      render(<DeactivatedUsersTable />);
+      render(<DisabledUsersTable />);
 
       fireEvent.click(screen.getAllByTitle("More actions")[0]);
       fireEvent.click(screen.getByRole("button", { name: "Reactivate" }));
@@ -734,7 +734,7 @@ describe("DeactivatedUsersTable (UI)", () => {
       );
       loggedIn();
 
-      render(<DeactivatedUsersTable />);
+      render(<DisabledUsersTable />);
 
       fireEvent.click(screen.getAllByTitle("More actions")[0]);
       fireEvent.click(screen.getByRole("button", { name: "Delete" }));
@@ -751,7 +751,7 @@ describe("DeactivatedUsersTable (UI)", () => {
     });
 
     it("renders no modal until a kebab action fires", () => {
-      render(<DeactivatedUsersTable />);
+      render(<DisabledUsersTable />);
 
       expect(screen.queryByText(/Reactivate/)).not.toBeInTheDocument();
       expect(
@@ -779,7 +779,7 @@ describe("DeactivatedUsersTable (UI)", () => {
       // isPending = true → isSubmitting = true in the real modal.
       wireMutations(true, false);
 
-      render(<DeactivatedUsersTable />);
+      render(<DisabledUsersTable />);
 
       // Submit button becomes the loading copy.
       expect(screen.getByText("Reactivating…")).toBeInTheDocument();
@@ -799,7 +799,7 @@ describe("DeactivatedUsersTable (UI)", () => {
       loggedIn();
       wireMutations(false, true); // isPending delete = true → isDeleting = true
 
-      render(<DeactivatedUsersTable />);
+      render(<DisabledUsersTable />);
 
       expect(screen.getByText("Deleting...")).toBeInTheDocument();
       const submit = screen.getByRole("button", { name: "Deleting..." });
@@ -818,7 +818,7 @@ describe("DeactivatedUsersTable (UI)", () => {
       loggedIn();
       wireMutations(false, false); // both idle
 
-      render(<DeactivatedUsersTable />);
+      render(<DisabledUsersTable />);
 
       expect(screen.getByText("Reactivate")).toBeInTheDocument();
       expect(screen.getByText("Delete Permanently")).toBeInTheDocument();
@@ -845,7 +845,7 @@ describe("DeactivatedUsersTable (UI)", () => {
       loggedIn();
       wireMutations(false, false);
 
-      render(<DeactivatedUsersTable />);
+      render(<DisabledUsersTable />);
 
       fireEvent.click(screen.getByRole("button", { name: "Reactivate" }));
 
@@ -868,7 +868,7 @@ describe("DeactivatedUsersTable (UI)", () => {
       loggedIn();
       wireMutations(false, false);
 
-      render(<DeactivatedUsersTable />);
+      render(<DisabledUsersTable />);
 
       const submit = screen.getByRole("button", { name: "Delete Permanently" });
       expect(submit).toBeDisabled(); // canConfirm false before typing

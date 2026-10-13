@@ -35,7 +35,7 @@ jest.mock("passport-jwt", () => ({
  * against the Role enum.
  *
  * `managementPermissions` is the UserManagementPermissionsEntity — it
- * has add/edit/reset_password/deactivate/reactivate/delete booleans
+ * has add/edit/reset_password/disable/reactivate/delete booleans
  * but no `view` field (view is synthesized as always-true in the
  * strategy when the Admin+permissions branch is taken).
  */
@@ -46,7 +46,7 @@ function buildMockUser(
     add: boolean;
     edit: boolean;
     reset_password: boolean;
-    deactivate: boolean;
+    disable: boolean;
     reactivate: boolean;
     delete: boolean;
   } | null = null,
@@ -104,7 +104,7 @@ describe("JwtStrategy", () => {
         add: true,
         edit: false,
         reset_password: true,
-        deactivate: false,
+        disable: false,
         reactivate: true,
         delete: false,
       });
@@ -123,7 +123,7 @@ describe("JwtStrategy", () => {
             add: true,
             edit: false,
             reset_password: true,
-            deactivate: false,
+            disable: false,
             reactivate: true,
             delete: false,
           },
@@ -144,7 +144,7 @@ describe("JwtStrategy", () => {
         add: true,
         edit: true,
         reset_password: true,
-        deactivate: true,
+        disable: true,
         reactivate: true,
         delete: true,
       });

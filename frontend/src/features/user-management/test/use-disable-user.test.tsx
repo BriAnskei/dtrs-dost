@@ -1,15 +1,15 @@
 /**
- * Tests for `useDeactivateUser` — the mutation hook that deactivates a user
+ * Tests for `useDisableUser` — the mutation hook that disables a user
  * account.
  *
  * WHY THIS HOOK MATTERS:
- *   Triggered from DeactivateUserModal's "Deactivate" button. On success it
+ *   Triggered from DisableUserModal's "Disable" button. On success it
  *   invalidates the `["users"]` query (so the table refetches and the row
  *   disappears), fires a success toast, and lets the caller close the modal.
  *   On failure it surfaces the error message via `getApiErrorMessage`.
  *
  * WHAT WE MOCK:
- *   - `userService` (../services/user.service) — `deactivate` is scripted to
+ *   - `userService` (../services/user.service) — `disable` is scripted to
  *     succeed or reject.
  *   - `getApiErrorMessage` (../../../lib/api-error) — mocked so we can assert
  *     the fallback message is used without constructing a real AxiosError.
@@ -24,16 +24,16 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { userService } from "../services/user.service";
-import { useDeactivateUser } from "../hooks/use-deactivate-user";
+import { useDisableUser } from "../hooks/use-disable-user";
 
-const { mockDeactivate, mockGetApiErrorMessage, mockToast } = vi.hoisted(() => ({
-  mockDeactivate: vi.fn(),
+const { mockDisable, mockGetApiErrorMessage, mockToast } = vi.hoisted(() => ({
+  mockDisable: vi.fn(),
   mockGetApiErrorMessage: vi.fn(),
   mockToast: { success: vi.fn(), error: vi.fn() },
 }));
 
 vi.mock("../services/user.service", () => ({
-  userService: { deactivate: mockDeactivate },
+  userService: { disable: mockDisable },
 }));
 
 vi.mock("../../../lib/api-error", () => ({
@@ -72,9 +72,9 @@ function makeSpyClient() {
 
 // ─── Tests ───────────────────────────────────────────────────────────────────
 
-describe("useDeactivateUser", () => {
+describe("useDisableUser", () => {
   beforeEach(() => {
-    mockDeactivate.mockReset();
+    mockDisable.mockReset();
     mockGetApiErrorMessage.mockReset();
     mockToast.success.mockReset();
     mockToast.error.mockReset();
@@ -82,14 +82,14 @@ describe("useDeactivateUser", () => {
 
   it("mutates with the correct user id", async () => {
     /*
-     * The hook calls `userService.deactivate(id)` — verify the exact id is
-     * forwarded, so the wrong user is never deactivated.
+     * The hook calls `userService.disable(id)` — verify the exact id is
+     * forwarded, so the wrong user is never disabled.
      */
-    mockDeactivate.mockResolvedValueOnce(undefined);
+    mockDisable.mockResolvedValueOnce(undefined);
     mockGetApiErrorMessage.mockReturnValue("Failed");
 
     const { client } = makeSpyClient();
-    const { result } = renderHook(() => useDeactivateUser(), {
+    const { result } = renderHook(() => useDisableUser(), {
       wrapper: makeWrapper(client),
     });
 
@@ -97,26 +97,26 @@ describe("useDeactivateUser", () => {
       result.current.mutate("user-123");
     });
 
-    expect(mockDeactivate).toHaveBeenCalledTimes(1);
-    expect(mockDeactivate).toHaveBeenCalledWith("user-123");
+    expect(mockDisable).toHaveBeenCalledTimes(1);
+    expect(mockDisable).toHaveBeenCalledWith("user-123");
 
     client.clear();
   });
 
   it("isPending is true during mutation, false after settlement", async () => {
     /*
-     * The DeactivateUserModal button shows "Deactivating…" and is disabled
+     * The DisableUserModal button shows "Disabling…" and is disabled
      * while `isPending` is true. This prevents double-submitting a destructive
      * action.
      */
-    let resolveDeactivate!: () => void;
+    let resolveDisable!: () => void;
     const pendingPromise = new Promise<void>((resolve) => {
-      resolveDeactivate = resolve;
+      resolveDisable = resolve;
     });
-    mockDeactivate.mockReturnValueOnce(pendingPromise);
+    mockDisable.mockReturnValueOnce(pendingPromise);
 
     const { client } = makeSpyClient();
-    const { result } = renderHook(() => useDeactivateUser(), {
+    const { result } = renderHook(() => useDisableUser(), {
       wrapper: makeWrapper(client),
     });
 
@@ -135,7 +135,7 @@ describe("useDeactivateUser", () => {
 
     // Resolve the mutation.
     await act(async () => {
-      resolveDeactivate();
+      resolveDisable();
     });
 
     // Flush the post-resolution notification.
@@ -147,17 +147,17 @@ describe("useDeactivateUser", () => {
     client.clear();
   });
 
-  it("invalidates the ['users'], ['deactivated-users'] and ['divisions'] queries on success", async () => {
+  it("invalidates the ['users'], ['disabled-users'] and ['divisions'] queries on success", async () => {
     /*
-     * After deactivation the cached lists are stale — the hook invalidates
-     * ["users"] (active-user table), ["deactivated-users"] (the row that was
+     * After disabling the cached lists are stale — the hook invalidates
+     * ["users"] (active-user table), ["disabled-users"] (the row that was
      * just moved here) and ["divisions"] (division totals) so all affected
      * views refetch in one go.
      */
-    mockDeactivate.mockResolvedValueOnce(undefined);
+    mockDisable.mockResolvedValueOnce(undefined);
 
     const { client, invalidateQueries } = makeSpyClient();
-    const { result } = renderHook(() => useDeactivateUser(), {
+    const { result } = renderHook(() => useDisableUser(), {
       wrapper: makeWrapper(client),
     });
 
@@ -173,7 +173,7 @@ describe("useDeactivateUser", () => {
     await waitFor(() => expect(invalidateQueries).toHaveBeenCalledTimes(3));
     expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: ["users"] });
     expect(invalidateQueries).toHaveBeenCalledWith({
-      queryKey: ["deactivated-users"],
+      queryKey: ["disabled-users"],
     });
     expect(invalidateQueries).toHaveBeenCalledWith({
       queryKey: ["divisions"],
@@ -182,16 +182,16 @@ describe("useDeactivateUser", () => {
     client.clear();
   });
 
-  it("toasts success on a successful deactivation", async () => {
+  it("toasts success on a successful disabling", async () => {
     /*
-     * User feedback: a green toast "User deactivated successfully" appears
+     * User feedback: a green toast "User disabled successfully" appears
      * after the mutation resolves.
      */
-    mockDeactivate.mockResolvedValueOnce(undefined);
+    mockDisable.mockResolvedValueOnce(undefined);
     mockGetApiErrorMessage.mockReturnValue("Failed");
 
     const { client } = makeSpyClient();
-    const { result } = renderHook(() => useDeactivateUser(), {
+    const { result } = renderHook(() => useDisableUser(), {
       wrapper: makeWrapper(client),
     });
 
@@ -201,23 +201,23 @@ describe("useDeactivateUser", () => {
 
     await waitFor(() => expect(mockToast.success).toHaveBeenCalledTimes(1));
     expect(mockToast.success).toHaveBeenCalledWith(
-      "User deactivated successfully",
+      "User disabled successfully",
     );
 
     client.clear();
   });
 
-  it("toasts error and does NOT toast success when deactivation fails", async () => {
+  it("toasts error and does NOT toast success when disabling fails", async () => {
     /*
      * On a 403/500 from the backend, the hook surfaces the error message
      * via `getApiErrorMessage` and fires a red toast. No success toast fires.
      * No query invalidation happens (the list stays in sync with reality).
      */
-    mockDeactivate.mockRejectedValueOnce(new Error("Forbidden: cannot deactivate"));
-    mockGetApiErrorMessage.mockReturnValue("Forbidden: cannot deactivate");
+    mockDisable.mockRejectedValueOnce(new Error("Forbidden: cannot disable"));
+    mockGetApiErrorMessage.mockReturnValue("Forbidden: cannot disable");
 
     const { client, invalidateQueries } = makeSpyClient();
-    const { result } = renderHook(() => useDeactivateUser(), {
+    const { result } = renderHook(() => useDisableUser(), {
       wrapper: makeWrapper(client),
     });
 
@@ -226,7 +226,7 @@ describe("useDeactivateUser", () => {
     });
 
     await waitFor(() => expect(mockToast.error).toHaveBeenCalledTimes(1));
-    expect(mockToast.error).toHaveBeenCalledWith("Forbidden: cannot deactivate");
+    expect(mockToast.error).toHaveBeenCalledWith("Forbidden: cannot disable");
     expect(mockToast.success).not.toHaveBeenCalled();
     expect(invalidateQueries).not.toHaveBeenCalled();
 
@@ -240,11 +240,11 @@ describe("useDeactivateUser", () => {
      * In practice the function always returns a string, but we assert the
      * contract: the error message is passed through to toast.error verbatim.
      */
-    mockDeactivate.mockRejectedValueOnce(new Error("Network error"));
+    mockDisable.mockRejectedValueOnce(new Error("Network error"));
     mockGetApiErrorMessage.mockReturnValue("(╯°□°)╯︵ ┻━┻");
 
     const { client } = makeSpyClient();
-    const { result } = renderHook(() => useDeactivateUser(), {
+    const { result } = renderHook(() => useDisableUser(), {
       wrapper: makeWrapper(client),
     });
 

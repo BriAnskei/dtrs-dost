@@ -8,7 +8,7 @@ import PermissionRoute from "../features/auth/authorization/PermissionRoute";
 import PublicRoute from "../features/auth/authorization/PublicRoute";
 import ProtectedRoute from "../features/auth/authorization/protectedRoute";
 import RoleRoute from "../features/auth/authorization/RoleRoutes";
-import DeactivatedUsersPage from "../features/deactivated-user-management/components/DeactivatedUsersPage";
+import DisabledUsersPage from "../features/disabled-user-management/components/DisabledUsersPage";
 import DivisionManagementPage from "../features/divisions/components/DivisionManagementPage";
 import ExtractedQueuePage from "../features/documents/extracted-queue/components/ExtractedQueuePage";
 import MyUploadedDocumentsPage from "../features/documents/extracted-queue-receiver/components/MyUploadedDocumentsPage";
@@ -140,17 +140,17 @@ const SUPER_ADMIN_ROUTES: RouteType[] = [
   },
 
   {
-    path: "/deactive",
+    path: "/disable",
     element: (
       <PermissionRoute
         hasPermission={(user) =>
           hasPermission(
             user.permissions.user_management_permissions,
-            UserManagementPermissionEnum.Deactivate,
+            UserManagementPermissionEnum.Disable,
           )
         }
       >
-        <DeactivatedUsersPage />
+        <DisabledUsersPage />
       </PermissionRoute>
     ),
   },

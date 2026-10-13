@@ -7,7 +7,7 @@ export interface UserWithRelationResponse {
   role: string;
   contact?: string;
   created_at: string;
-  deactivated_at?: string;
+  disabled_at?: string;
 }
 
 export type UserRole = "Super Admin" | "Admin" | "Receiver" | "Division";
@@ -27,7 +27,7 @@ export interface SystemUser {
   role: UserRole;
   email: string;
   createtAt: string;
-  deactivatedAt?: string;
+  disabledAt?: string;
 }
 
 /** Shown when the API doesn't provide a value for an optional field. */

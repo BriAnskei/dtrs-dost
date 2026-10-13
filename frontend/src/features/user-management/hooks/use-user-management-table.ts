@@ -75,7 +75,7 @@ export function useUserManagementTable() {
   // modal state
   const [addModal, setAddModal] = useState(false);
   const [editTarget, setEditTarget] = useState<SystemUser | null>(null);
-  const [deactivateTarget, setDeactivateTarget] = useState<SystemUser | null>(null);
+  const [disableTarget, setDisableTarget] = useState<SystemUser | null>(null);
   const [resetTarget, setResetTarget] = useState<SystemUser | null>(null);
 
   return {
@@ -102,8 +102,8 @@ export function useUserManagementTable() {
     setAddModal,
     editTarget,
     setEditTarget,
-    deactivateTarget,
-    setDeactivateTarget,
+    disableTarget,
+    setDisableTarget,
     resetTarget,
     setResetTarget,
   };

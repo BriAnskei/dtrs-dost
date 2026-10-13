@@ -12,7 +12,7 @@ import { useUserManagementTable } from "../hooks/use-user-management-table";
 import { EMPTY_FORM } from "../types/create-user.type";
 import type { SystemUser, UserRole } from "../types/user.type";
 import AddUserModal from "./modal/AddUserModal";
-import DeactivateUserModal from "./modal/DeactivateUserModal";
+import DisableUserModal from "./modal/DisableUserModal";
 import EditUserModal from "./modal/EditUserModal";
 import ResetPasswordModal from "./modal/reset/ResetPasswordModal";
 
@@ -20,7 +20,7 @@ export default function UserManagementTable({
   maxTableHeight = "560px",
   maxMobileHeight = "520px",
 }: TableShellProp = {}) {
-  const { canAdd, canEdit, canResetPassword, canDeactivate, hasAnyRowAction } =
+  const { canAdd, canEdit, canResetPassword, canDisable, hasAnyRowAction } =
     useUserManagementPermissionsHelper();
 
   const {
@@ -47,8 +47,8 @@ export default function UserManagementTable({
     setAddModal,
     editTarget,
     setEditTarget,
-    deactivateTarget,
-    setDeactivateTarget,
+    disableTarget,
+    setDisableTarget,
     resetTarget,
     setResetTarget,
   } = useUserManagementTable();
@@ -69,12 +69,12 @@ export default function UserManagementTable({
       disabledReason: noPermission("reset passwords"),
     },
     {
-      label: "Deactivate",
+      label: "Disable",
       icon: <XCircle className="h-4 w-4" />,
-      handler: () => setDeactivateTarget(user),
+      handler: () => setDisableTarget(user),
       danger: true,
-      disabled: !canDeactivate,
-      disabledReason: noPermission("deactivate users"),
+      disabled: !canDisable,
+      disabledReason: noPermission("disable users"),
     },
   ];
 
@@ -353,10 +353,10 @@ export default function UserManagementTable({
         <ResetPasswordModal user={resetTarget} onClose={() => setResetTarget(null)} />
       )}
 
-      {deactivateTarget && canDeactivate && (
-        <DeactivateUserModal
-          user={deactivateTarget}
-          onClose={() => setDeactivateTarget(null)}
+      {disableTarget && canDisable && (
+        <DisableUserModal
+          user={disableTarget}
+          onClose={() => setDisableTarget(null)}
         />
       )}
     </>

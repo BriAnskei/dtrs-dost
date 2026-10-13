@@ -155,11 +155,11 @@ export const OTHERS_NAV_ITEMS: NavItem[] = [
           hasUserManagementPermission(user, UserManagementPermissionEnum.View),
       },
       {
-        name: "Deactivated",
-        path: "/deactive",
+        name: "Disabled",
+        path: "/disable",
         roles: [1, 2],
         hasPermission: (user) =>
-          hasUserManagementPermission(user, UserManagementPermissionEnum.Deactivate),
+          hasUserManagementPermission(user, UserManagementPermissionEnum.Disable),
       },
       {
         name: "Divisions",

@@ -41,7 +41,7 @@ const bodyWrapper = (scrollable: boolean) =>
 
 /**
  * Reusable modal shell shared by the user-management modals (Add, Edit,
- * Deactivate, ResetPassword, UserCredentials). Hoists the structure every
+ * Disable, ResetPassword, UserCredentials). Hoists the structure every
  * modal duplicated: `createPortal` to `document.body`, the click-guarded
  * backdrop, the `rounded-2xl` card, the anti-autofill honeypot `<form>`, and the
  * scrollable body wrapper (with `THIN_SCROLLBAR` baked in so callers don't

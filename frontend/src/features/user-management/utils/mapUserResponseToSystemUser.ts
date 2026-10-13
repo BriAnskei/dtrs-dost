@@ -21,8 +21,8 @@ export function mapUserResponseToSystemUser(user: UserWithRelationResponse): Sys
     contact: user.contact ?? NO_VALUE_PLACEHOLDER,
     divisionName: user.division_name,
     createtAt: formatDate(user.created_at),
-    ...(user.deactivated_at && {
-      deactivatedAt: formatDate(user.deactivated_at),
+    ...(user.disabled_at && {
+      disabledAt: formatDate(user.disabled_at),
     }),
   };
 }

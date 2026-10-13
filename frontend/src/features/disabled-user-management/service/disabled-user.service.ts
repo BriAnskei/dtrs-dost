@@ -5,12 +5,12 @@ import type {
   UserWithRelationResponse,
 } from "../../user-management/types/user.type";
 
-export const DeactivatedUserService = {
-  async findAllDeactivated(
+export const DisabledUserService = {
+  async findAllDisabled(
     params: FindUsersParams,
   ): Promise<PaginatedResponse<UserWithRelationResponse>> {
     const { data } = await apiClient.get<PaginatedResponse<UserWithRelationResponse>>(
-      "/user/deactivated",
+      "/user/disabled",
       {
         params,
       },

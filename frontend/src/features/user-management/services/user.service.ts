@@ -44,7 +44,7 @@ export const userService = {
     await apiClient.patch(`user/${id}`, data);
   },
 
-  async deactivate(id: string): Promise<void> {
-    await apiClient.patch(`/user/${id}/deactivate`);
+  async disable(id: string): Promise<void> {
+    await apiClient.patch(`/user/${id}/disable`);
   },
 };

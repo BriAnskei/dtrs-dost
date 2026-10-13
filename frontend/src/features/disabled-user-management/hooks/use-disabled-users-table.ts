@@ -8,9 +8,9 @@ import type {
   UserRole,
 } from "../../user-management/types/user.type";
 import { mapUsersResponseToSystemUsers } from "../../user-management/utils/mapUserResponseToSystemUser";
-import { useDeactivatedUsers } from "./api/use-deactivated-users";
+import { useDisabledUsers } from "./api/use-disabled-users";
 
-export function useDeactivatedUserTable() {
+export function useDisabledUserTable() {
   const [search, setSearch] = useState("");
   const [filterRole, setFilterRole] = useState<Exclude<UserRole, "Super Admin"> | "All">(
     "All",
@@ -28,7 +28,7 @@ export function useDeactivatedUserTable() {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-  } = useDeactivatedUsers({ name: debouncedSearch || undefined, role_id, sort });
+  } = useDisabledUsers({ name: debouncedSearch || undefined, role_id, sort });
 
   const users = useMemo<SystemUser[]>(
     () =>

@@ -9,16 +9,16 @@ import { ALL_ROLES } from "../../user-management/constants";
 import { getRoleBadgeColor } from "../../user-management/helpers";
 import { useUserManagementPermissionsHelper } from "../../user-management/hooks/permission/use-user-management-permissions-helper";
 import type { SystemUser, UserRole } from "../../user-management/types/user.type";
-import { useDeactivatedUserTable } from "../hooks/use-deactivated-users-table";
+import { useDisabledUserTable } from "../hooks/use-disabled-users-table";
 import PermanentDeleteUserModal from "./modal/PermanentDeleteUserModal";
 import ReactivateUserModal from "./modal/ReactivateUserModal";
 
-export default function DeactivatedUserTable({
+export default function DisabledUserTable({
   maxTableHeight = "560px",
   maxMobileHeight = "520px",
 }: TableShellProp = {}) {
   // NEW
-  const { canReactivate, canDelete, hasAnyDeactivatedRowAction } =
+  const { canReactivate, canDelete, hasAnyDisabledRowAction } =
     useUserManagementPermissionsHelper();
 
   const {
@@ -44,7 +44,7 @@ export default function DeactivatedUserTable({
     setReactivateTarget,
     deleteTarget,
     setDeleteTarget,
-  } = useDeactivatedUserTable();
+  } = useDisabledUserTable();
 
   // NEW: disabled + reason on both actions
   const userActions = (user: SystemUser) => [
@@ -68,7 +68,7 @@ export default function DeactivatedUserTable({
   // NEW: shared by the desktop Action column and the mobile card.
   // If neither action is allowed, show a dash instead of an all-disabled menu.
   const renderActions = (user: SystemUser) =>
-    hasAnyDeactivatedRowAction ? (
+    hasAnyDisabledRowAction ? (
       <KebabMenu actions={userActions(user)} />
     ) : (
       <span className="text-gray-300 dark:text-gray-600" aria-hidden="true">
@@ -122,11 +122,11 @@ export default function DeactivatedUserTable({
       ),
     },
     {
-      label: "Deactivated At",
+      label: "Disabled At",
       width: "w-24",
       render: (user) => (
         <span className="text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap">
-          {user.deactivatedAt}
+          {user.disabledAt}
         </span>
       ),
     },
@@ -145,8 +145,8 @@ export default function DeactivatedUserTable({
         isLoading={isLoading}
         isError={isError}
         error={error}
-        entityName="deactivated users"
-        emptyMessage="No deactivated users match your filters."
+        entityName="disabled users"
+        emptyMessage="No disabled users match your filters."
         hasNextPage={hasNextPage}
         isFetchingNextPage={isFetchingNextPage}
         mobileScrollRef={mobileScrollRef}
@@ -262,10 +262,10 @@ export default function DeactivatedUserTable({
               </div>
               <div>
                 <p className="text-theme-xs text-gray-400 dark:text-gray-500 font-medium uppercase tracking-wide">
-                  Deactivated At
+                  Disabled At
                 </p>
                 <p className="text-theme-xs text-gray-700 dark:text-gray-300 mt-0.5">
-                  {user.deactivatedAt}
+                  {user.disabledAt}
                 </p>
               </div>
               <div className="col-span-2">

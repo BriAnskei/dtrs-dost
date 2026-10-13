@@ -273,7 +273,7 @@ const USER_WITH_CLAIMS = {
       add: true,
       edit: false,
       reset_password: true,
-      deactivate: false,
+      disable: false,
       reactivate: false,
       delete: false,
     },

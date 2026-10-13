@@ -4,11 +4,11 @@ import { type EntityManager, ILike, type Repository } from "typeorm";
 import { Role } from "../../../auth/authorization/enum/roles.enum";
 import { decodeCursor, encodeCursor } from "../../../common/pagination/cursor";
 import { escapeLike } from "../../../util/escapeLike";
-import { FindDeactivatedUsersQueryDto } from "../dto/queries/find-deactivated-user-query-dto";
+import { FindDisabledUsersQueryDto } from "../dto/queries/find-disabled-user-query-dto";
 import { FindUsersQueryDto } from "../dto/queries/find-user-query-dto";
 import { UserEntity } from "../entities/user.entity";
 import { UserSortOrder } from "../enums/user-sort-order-enum";
-import { DeactivatedUserCursor, UserCursor } from "../types/user-cursor";
+import { DisabledUserCursor, UserCursor } from "../types/user-cursor";
 
 @Injectable()
 export class UserRepository {
@@ -179,8 +179,8 @@ export class UserRepository {
     });
   }
 
-  async findAllDeactivatedWithRelation(
-    query: FindDeactivatedUsersQueryDto,
+  async findAllDisabledWithRelation(
+    query: FindDisabledUsersQueryDto,
   ): Promise<{ users: UserEntity[]; nextCursor: string | null }> {
     const { limit, cursor, name, role_id, sort = UserSortOrder.Newest } = query;
 
@@ -194,7 +194,7 @@ export class UserRepository {
       .andWhere("user.is_active = :isActive", {
         isActive: false,
       })
-      .andWhere("user.deactivated_at IS NOT NULL");
+      .andWhere("user.disabled_at IS NOT NULL");
 
     // Name filter
     if (name) {
@@ -212,33 +212,33 @@ export class UserRepository {
 
     // Cursor
     if (cursor) {
-      const decodedCursor = decodeCursor<DeactivatedUserCursor>(cursor);
+      const decodedCursor = decodeCursor<DisabledUserCursor>(cursor);
 
       if (sort === UserSortOrder.Newest) {
         queryBuilder.andWhere(
           `(
-          user.deactivated_at < :cursorDeactivatedAt
+          user.disabled_at < :cursorDisabledAt
           OR (
-            user.deactivated_at = :cursorDeactivatedAt
+            user.disabled_at = :cursorDisabledAt
             AND user.id < :cursorId
           )
         )`,
           {
-            cursorDeactivatedAt: decodedCursor.deactivatedAt,
+            cursorDisabledAt: decodedCursor.disabledAt,
             cursorId: decodedCursor.id,
           },
         );
       } else {
         queryBuilder.andWhere(
           `(
-          user.deactivated_at > :cursorDeactivatedAt
+          user.disabled_at > :cursorDisabledAt
           OR (
-            user.deactivated_at = :cursorDeactivatedAt
+            user.disabled_at = :cursorDisabledAt
             AND user.id > :cursorId
           )
         )`,
           {
-            cursorDeactivatedAt: decodedCursor.deactivatedAt,
+            cursorDisabledAt: decodedCursor.disabledAt,
             cursorId: decodedCursor.id,
           },
         );
@@ -247,9 +247,9 @@ export class UserRepository {
 
     // Sorting
     if (sort === UserSortOrder.Newest) {
-      queryBuilder.orderBy("user.deactivated_at", "DESC").addOrderBy("user.id", "DESC");
+      queryBuilder.orderBy("user.disabled_at", "DESC").addOrderBy("user.id", "DESC");
     } else {
-      queryBuilder.orderBy("user.deactivated_at", "ASC").addOrderBy("user.id", "ASC");
+      queryBuilder.orderBy("user.disabled_at", "ASC").addOrderBy("user.id", "ASC");
     }
 
     // Fetch one extra record to determine whether another page exists
@@ -264,9 +264,9 @@ export class UserRepository {
     const lastUser = users.at(-1);
 
     const nextCursor =
-      hasNextPage && lastUser?.deactivated_at
-        ? encodeCursor<DeactivatedUserCursor>({
-            deactivatedAt: lastUser.deactivated_at.toISOString(),
+      hasNextPage && lastUser?.disabled_at
+        ? encodeCursor<DisabledUserCursor>({
+            disabledAt: lastUser.disabled_at.toISOString(),
             id: lastUser.id,
           })
         : null;
@@ -276,7 +276,7 @@ export class UserRepository {
       nextCursor,
     };
   }
-  async deactivate(id: string): Promise<boolean> {
+  async disable(id: string): Promise<boolean> {
     const result = await this.repository.update(
       {
         id,
@@ -284,7 +284,7 @@ export class UserRepository {
       },
       {
         is_active: false,
-        deactivated_at: new Date(),
+        disabled_at: new Date(),
       },
     );
 
@@ -294,7 +294,7 @@ export class UserRepository {
   async reactivate(id: string): Promise<boolean> {
     const res = await this.repository.update(id, {
       is_active: true,
-      deactivated_at: null,
+      disabled_at: null,
     });
 
     return (res.affected ?? 0) > 0;

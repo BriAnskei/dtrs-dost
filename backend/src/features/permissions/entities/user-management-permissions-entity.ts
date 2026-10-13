@@ -24,7 +24,7 @@ export class UserManagementPermissionsEntity {
   reset_password!: boolean;
 
   @Column({ default: false })
-  deactivate!: boolean;
+  disable!: boolean;
 
   @Column({ default: false })
   reactivate!: boolean;

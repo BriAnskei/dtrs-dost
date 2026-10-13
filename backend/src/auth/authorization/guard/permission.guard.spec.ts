@@ -128,7 +128,7 @@ describe("PermissionsGuard", () => {
         add: true,
         edit: true,
         reset_password: true,
-        deactivate: true,
+        disable: true,
         reactivate: true,
         delete: true,
       });
@@ -184,7 +184,7 @@ describe("PermissionsGuard", () => {
         add: false,
         edit: false,
         reset_password: false,
-        deactivate: false,
+        disable: false,
         reactivate: false,
         delete: false,
       });
@@ -214,7 +214,7 @@ describe("PermissionsGuard", () => {
         add: true,
         edit: true,
         reset_password: true,
-        deactivate: true,
+        disable: true,
         reactivate: true,
         // 'delete' is intentionally missing
       } as unknown as Record<string, boolean>);
@@ -246,7 +246,7 @@ describe("PermissionsGuard", () => {
         add: false,
         edit: false,
         reset_password: false,
-        deactivate: false,
+        disable: false,
         reactivate: false,
         delete: false,
       });
@@ -260,23 +260,23 @@ describe("PermissionsGuard", () => {
      * looks up the correct field by the `permission` string from metadata,
      * not a hardcoded key.
      */
-    it("should return true for 'deactivate' permission when it is true", () => {
+    it("should return true for 'disable' permission when it is true", () => {
       const requiredPermission = {
         domain: PermissionDomain.UserManagement,
-        permission: "deactivate",
+        permission: "disable",
       };
       reflector.getAllAndOverride.mockReturnValue(requiredPermission);
 
-      const userWithDeactivate = buildUser(Role.Admin, {
+      const userWithDisable = buildUser(Role.Admin, {
         view: true,
         add: false,
         edit: false,
         reset_password: false,
-        deactivate: true,
+        disable: true,
         reactivate: false,
         delete: false,
       });
-      const context = createMockContext(userWithDeactivate);
+      const context = createMockContext(userWithDisable);
 
       expect(guard.canActivate(context)).toBe(true);
     });

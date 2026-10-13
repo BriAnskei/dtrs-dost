@@ -10,7 +10,7 @@ import {
 } from "@nestjs/common";
 import { Roles } from "../../../auth/authorization/decorator/roles.decorator";
 import { Role } from "../../../auth/authorization/enum/roles.enum";
-import { FindDeactivatedUsersQueryDto } from "../../user/dto/queries/find-deactivated-user-query-dto";
+import { FindDisabledUsersQueryDto } from "../../user/dto/queries/find-disabled-user-query-dto";
 import { SetUserManagementPermissionDto } from "../dto/client/set-user-management-permission-dto";
 import { UserPermissionService } from "../service/user-permission.service";
 
@@ -20,7 +20,7 @@ export class UserPermissionController {
 
   @Get("/user-management")
   @Roles(Role.SuperAdmin)
-  async findAllUserManagementPermission(@Query() query: FindDeactivatedUsersQueryDto) {
+  async findAllUserManagementPermission(@Query() query: FindDisabledUsersQueryDto) {
     return this.service.findAllUserManagementPermissions(query);
   }
 

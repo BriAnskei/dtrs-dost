@@ -65,7 +65,7 @@ export class UserEntity {
   is_active!: boolean;
 
   @Column({ type: "timestamptz", nullable: true })
-  deactivated_at!: Date | null;
+  disabled_at!: Date | null;
 
   @CreateDateColumn({
     type: "timestamptz",

@@ -1,11 +1,11 @@
 import { useState } from "react";
 import Input from "../../../../components/form/input/InputField";
 import { useVerifyPasswordStep } from "../../hooks/reset-password/use-verify-password";
-import { useDeactivateUser } from "../../hooks/use-deactivate-user";
+import { useDisableUser } from "../../hooks/use-disable-user";
 import type { SystemUser } from "../../types/user.type";
 import Modal from "../../../../components/Modal";
 
-export default function DeactivateUserModal({
+export default function DisableUserModal({
   user,
   onClose,
 }: {
@@ -23,7 +23,7 @@ export default function DeactivateUserModal({
     handleVerifyPassword,
   } = useVerifyPasswordStep(() => setVerified(true));
 
-  const { mutate, isPending } = useDeactivateUser();
+  const { mutate, isPending } = useDisableUser();
 
   const busy = isVerifying || isPending;
 
@@ -46,7 +46,7 @@ export default function DeactivateUserModal({
         <>
           <div>
             <h2 className="text-theme-sm font-semibold text-gray-800 dark:text-white/90">
-              {verified ? "Deactivate User" : "Verify Your Identity"}
+              {verified ? "Disable User" : "Verify Your Identity"}
             </h2>
             <p className="text-theme-xs text-gray-400 dark:text-gray-500 mt-0.5">
               {verified
@@ -83,7 +83,7 @@ export default function DeactivateUserModal({
           {!verified ? (
             <div className="flex flex-col gap-1">
               <p className="text-theme-xs text-gray-500 dark:text-gray-400 mb-3">
-                Deactivating another user is a sensitive action. Confirm your own
+                Disabling another user is a sensitive action. Confirm your own
                 password to continue.
               </p>
 
@@ -92,8 +92,8 @@ export default function DeactivateUserModal({
                 size="sm"
                 label="Your Password"
                 labelRequired
-                id="deactivate-admin-password"
-                name="deactivate-admin-password-no-autofill"
+                id="disable-admin-password"
+                name="disable-admin-password-no-autofill"
                 value={adminPassword}
                 onChange={(e) => {
                   setAdminPassword(e.target.value);
@@ -108,7 +108,7 @@ export default function DeactivateUserModal({
             </div>
           ) : (
             <p className="text-theme-xs text-gray-500 dark:text-gray-400">
-              Are you sure you want to deactivate{" "}
+              Are you sure you want to disable{" "}
               <span className="font-medium text-gray-700 dark:text-gray-200">
                 {user.name}
               </span>
@@ -144,7 +144,7 @@ export default function DeactivateUserModal({
               disabled={isPending}
               className="px-4 py-2 text-theme-sm font-medium text-white bg-danger hover:bg-danger/90 rounded-lg transition-colors disabled:opacity-50"
             >
-              {isPending ? "Deactivating…" : "Deactivate"}
+              {isPending ? "Disabling…" : "Disable"}
             </button>
           )}
         </>

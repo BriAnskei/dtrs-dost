@@ -1,17 +1,17 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { getApiErrorMessage } from "../../../../lib/api-error";
-import { DeactivatedUserService } from "../../service/deactivated-user.service";
+import { DisabledUserService } from "../../service/disabled-user.service";
 
 export function useReactivateUser() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (userId: string) => DeactivatedUserService.reactivate(userId),
+    mutationFn: (userId: string) => DisabledUserService.reactivate(userId),
 
     onSuccess: async () => {
       await queryClient.invalidateQueries({
-        queryKey: ["deactivated-users"],
+        queryKey: ["disabled-users"],
       });
 
       await queryClient.invalidateQueries({

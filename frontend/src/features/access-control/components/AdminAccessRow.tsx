@@ -64,7 +64,7 @@ export default function AdminAccessRow({
         });
       }
       // Turning off a permission that other permissions depend on
-      // (e.g. deactivate) clears those dependents too, so the draft
+      // (e.g. disable) clears those dependents too, so the draft
       // never reaches a combination the backend would reject.
       if (!val) {
         functionKeys

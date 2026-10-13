@@ -22,10 +22,10 @@
  *   getCurrentUser        → open (no roles, no permissions)
  *   searchByName          → @Roles(SuperAdmin)
  *   findAll               → @Roles(SuperAdmin, Admin) + @RequirePermission(UM, View)
- *   findAllDeactivated     → @Roles(SuperAdmin, Admin) + @RequirePermission(UM, Deactivate)
+ *   findAllDisabled     → @Roles(SuperAdmin, Admin) + @RequirePermission(UM, Disable)
  *   updateUserPassword     → @Roles(SuperAdmin, Admin) + @RequirePermission(UM, ResetPassword)
  *   update                 → @Roles(SuperAdmin, Admin) + @RequirePermission(UM, Edit)
- *   deactivate             → @Roles(SuperAdmin, Admin) + @RequirePermission(UM, Deactivate)
+ *   disable             → @Roles(SuperAdmin, Admin) + @RequirePermission(UM, Disable)
  *   reactivate             → @Roles(SuperAdmin, Admin) + @RequirePermission(UM, Reactivate)
  *   delete                 → @Roles(SuperAdmin, Admin) + @RequirePermission(UM, Reactivate)
  */
@@ -42,7 +42,7 @@ import { PermissionsGuard } from "../../../auth/authorization/guard/permission.g
 import { RolesGuard } from "../../../auth/authorization/guard/roles.guard";
 import { PaginatedResponse } from "../../../common/pagination/paginated-response";
 import { CreateUserDto } from "../dto/create/create-user-dto";
-import { FindDeactivatedUsersQueryDto } from "../dto/queries/find-deactivated-user-query-dto";
+import { FindDisabledUsersQueryDto } from "../dto/queries/find-disabled-user-query-dto";
 import { FindUsersQueryDto } from "../dto/queries/find-user-query-dto";
 import { UpdateUserDto } from "../dto/updates/update-user-dto";
 import { UpdateUserPasswordDto } from "../dto/updates/update-user-password.dto";
@@ -71,7 +71,7 @@ const RECEIVER_USER = {
       add: false,
       edit: false,
       reset_password: false,
-      deactivate: false,
+      disable: false,
       reactivate: false,
       delete: false,
     },
@@ -89,7 +89,7 @@ const ADMIN_USER_NO_PERMISSIONS = {
       add: false,
       edit: false,
       reset_password: false,
-      deactivate: false,
+      disable: false,
       reactivate: false,
       delete: false,
     },
@@ -107,7 +107,7 @@ const ADMIN_USER_FULL_PERMISSIONS = {
       add: true,
       edit: true,
       reset_password: true,
-      deactivate: true,
+      disable: true,
       reactivate: true,
       delete: true,
     },
@@ -150,10 +150,10 @@ describe("UserController", () => {
       findCurrentUser: jest.fn(),
       searchByName: jest.fn(),
       findAll: jest.fn(),
-      findAllDeactivated: jest.fn(),
+      findAllDisabled: jest.fn(),
       updateUserPassword: jest.fn(),
       update: jest.fn(),
-      deactivate: jest.fn(),
+      disable: jest.fn(),
       reactivate: jest.fn(),
       delete: jest.fn(),
     };
@@ -290,16 +290,16 @@ describe("UserController", () => {
 
     /*
      * Parameterized check for the remaining Admin-gated endpoints:
-     *   findAllDeactivated, updateUserPassword, update, deactivate,
+     *   findAllDisabled, updateUserPassword, update, disable,
      *   reactivate, delete
      * Each carries @Roles(SuperAdmin, Admin) and a specific
      * @RequirePermission claim.
      */
     it.each([
-      ["findAllDeactivated", UserManagementPermission.Deactivate],
+      ["findAllDisabled", UserManagementPermission.Disable],
       ["updateUserPassword", UserManagementPermission.ResetPassword],
       ["update", UserManagementPermission.Edit],
-      ["deactivate", UserManagementPermission.Deactivate],
+      ["disable", UserManagementPermission.Disable],
       ["reactivate", UserManagementPermission.Reactivate],
       ["delete", UserManagementPermission.Reactivate],
     ])(
@@ -445,7 +445,7 @@ describe("UserController", () => {
           division_name: undefined,
           email: "jane@example.com",
           created_at: new Date("2025-01-01T00:00:00Z"),
-          deactivated_at: null,
+          disabled_at: null,
         },
       ];
 
@@ -511,9 +511,9 @@ describe("UserController", () => {
     });
   });
 
-  describe("findAllDeactivated (GET /user/deactivated?...) ", () => {
+  describe("findAllDisabled (GET /user/disabled?...) ", () => {
     it("forwards the query DTO and returns the paginated response", async () => {
-      const query: FindDeactivatedUsersQueryDto = {
+      const query: FindDisabledUsersQueryDto = {
         limit: 20,
         sort: UserSortOrder.Newest,
       };
@@ -523,12 +523,12 @@ describe("UserController", () => {
         nextCursor: null,
       };
 
-      service.findAllDeactivated.mockResolvedValue(expected);
+      service.findAllDisabled.mockResolvedValue(expected);
 
-      const result = await controller.findAllDeactivated(query);
+      const result = await controller.findAllDisabled(query);
 
-      expect(service.findAllDeactivated).toHaveBeenCalledTimes(1);
-      expect(service.findAllDeactivated).toHaveBeenCalledWith(query);
+      expect(service.findAllDisabled).toHaveBeenCalledTimes(1);
+      expect(service.findAllDisabled).toHaveBeenCalledWith(query);
       expect(result).toBe(expected);
     });
   });
@@ -593,13 +593,13 @@ describe("UserController", () => {
     });
   });
 
-  describe("deactivate (PATCH /user/:id/deactivate)", () => {
+  describe("disable (PATCH /user/:id/disable)", () => {
     /*
      * The controller reads the acting user's id from `req.user.id` and passes
-     * it as the second argument so the service can prevent self-deactivation.
+     * it as the second argument so the service can prevent self-disabling.
      */
     it("forwards both the target id and the acting user id from the request", async () => {
-      const id = "user-to-deactivate";
+      const id = "user-to-disable";
       const mockReq = {
         user: {
           id: "acting-user-id",
@@ -609,16 +609,16 @@ describe("UserController", () => {
         },
       };
 
-      service.deactivate.mockResolvedValue(undefined);
+      service.disable.mockResolvedValue(undefined);
 
-      const result = await controller.deactivate(id, mockReq as any);
+      const result = await controller.disable(id, mockReq as any);
 
-      expect(service.deactivate).toHaveBeenCalledTimes(1);
-      expect(service.deactivate).toHaveBeenCalledWith(id, "acting-user-id");
+      expect(service.disable).toHaveBeenCalledTimes(1);
+      expect(service.disable).toHaveBeenCalledWith(id, "acting-user-id");
       expect(result).toBeUndefined();
     });
 
-    it("propagates a BadRequestException when deactivating your own account", async () => {
+    it("propagates a BadRequestException when disabling your own account", async () => {
       const id = "user-1";
       const mockReq = {
         user: {
@@ -629,12 +629,12 @@ describe("UserController", () => {
         },
       };
 
-      service.deactivate.mockRejectedValue(
-        new Error("You cannot deactivate your own account"),
+      service.disable.mockRejectedValue(
+        new Error("You cannot disable your own account"),
       );
 
-      await expect(controller.deactivate(id, mockReq as any)).rejects.toThrow(
-        "You cannot deactivate your own account",
+      await expect(controller.disable(id, mockReq as any)).rejects.toThrow(
+        "You cannot disable your own account",
       );
     });
   });
