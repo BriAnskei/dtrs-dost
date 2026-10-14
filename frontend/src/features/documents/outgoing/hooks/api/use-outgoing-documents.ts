@@ -4,7 +4,7 @@ import type { FindOutgoingDocumentsParams } from "../../types/outgoing-document.
 
 type OutgoingDocumentFilters = Pick<
   FindOutgoingDocumentsParams,
-  "search" | "dateField" | "startDate" | "endDate" | "uploaderId" | "sort"
+  "search" | "dateField" | "startDate" | "endDate" | "sort"
 >;
 
 export function useOutgoingDocuments(filters: OutgoingDocumentFilters) {

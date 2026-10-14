@@ -1,5 +1,4 @@
 import { IQueryHandler, QueryHandler } from "@nestjs/cqrs";
-import { capitalizeWords } from "../../../../../util/capitalizer";
 import { OutgoingDocumentResponseDto } from "../../dto/outgoing-document-response.dto";
 import { OutgoingDocumentEntity } from "../../entities/outgoing-document-entity";
 import { OutgoingDocumentRepository } from "../../repository/outgoing-documents-repository";

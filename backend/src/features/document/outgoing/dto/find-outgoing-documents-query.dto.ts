@@ -39,9 +39,6 @@ export class FindOutgoingDocumentsQueryDto {
   @IsDateString({ strict: true })
   endDate?: string;
 
-  @IsOptional()
-  @IsUUID()
-  uploaderId?: string;
 
   @IsOptional()
   @IsEnum(OutgoingDocumentSortOrder)

@@ -36,7 +36,6 @@ export class OutgoingDocumentRepository {
       dateField,
       startDate,
       endDate,
-      uploaderId,
       cursor,
       sort = OutgoingDocumentSortOrder.NewestUpload,
     } = query;
@@ -52,7 +51,6 @@ export class OutgoingDocumentRepository {
 
     this.applySearchFilter(queryBuilder, search);
     this.applyDateFilter(queryBuilder, dateField, startDate, endDate);
-    this.applyUploaderFilter(queryBuilder, uploaderId);
 
     if (cursor) {
       this.applyCursor(queryBuilder, cursor, sort);
@@ -97,9 +95,7 @@ export class OutgoingDocumentRepository {
     queryBuilder.andWhere(
       `(
         outgoing.subject ILIKE :search
-        OR outgoing."to" ILIKE :search
         OR documentFile.code ILIKE :search
-        OR CAST(outgoing.tracking_sequence AS TEXT) ILIKE :search
       )`,
       { search: `%${term}%` },
     );
@@ -134,19 +130,6 @@ export class OutgoingDocumentRepository {
         queryBuilder.andWhere(`${column} <= :endDate`, { endDate });
       }
     }
-  }
-
-  private applyUploaderFilter(
-    queryBuilder: SelectQueryBuilder<OutgoingDocumentEntity>,
-    uploaderId?: string,
-  ): void {
-    if (!uploaderId) {
-      return;
-    }
-
-    queryBuilder.andWhere("documentFile.uploader_id = :uploaderId", {
-      uploaderId,
-    });
   }
 
   private applyCursor(
@@ -227,25 +210,17 @@ export class OutgoingDocumentRepository {
     id: string,
   ): void {
     if (sortValue === null) {
-      // Continue through NULL dates, which are ordered last.
-      queryBuilder.andWhere(
-        `outgoing.date_prepared IS NULL
-         AND outgoing.id < :cursorId`,
-        { cursorId: id },
-      );
-
-      return;
+      throw new BadRequestException("Invalid cursor sort value");
     }
 
     queryBuilder.andWhere(
       `(
-        outgoing.date_prepared < :cursorValue
-        OR outgoing.date_prepared IS NULL
-        OR (
-          outgoing.date_prepared = :cursorValue
-          AND outgoing.id < :cursorId
-        )
-      )`,
+      outgoing.date_prepared < :cursorValue
+      OR (
+        outgoing.date_prepared = :cursorValue
+        AND outgoing.id < :cursorId
+      )
+    )`,
       {
         cursorValue: sortValue,
         cursorId: id,
@@ -272,7 +247,7 @@ export class OutgoingDocumentRepository {
 
       case OutgoingDocumentSortOrder.LatestPrepared:
         queryBuilder
-          .orderBy("outgoing.date_prepared", "DESC", "NULLS LAST")
+          .orderBy("outgoing.date_prepared", "DESC")
           .addOrderBy("outgoing.id", "DESC");
         break;
 
