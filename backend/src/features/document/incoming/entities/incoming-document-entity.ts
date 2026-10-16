@@ -42,6 +42,14 @@ export class IncomingDocumentEntity {
   document_file!: DocumentFileEntity;
 
   @Column({
+    type: "bigint",
+    default: () => "nextval('incoming_document_tracking_seq'::regclass)",
+    nullable: false,
+    unique: true,
+  })
+  tracking_sequence!: string;
+
+  @Column({
     type: "text",
     nullable: false,
   })

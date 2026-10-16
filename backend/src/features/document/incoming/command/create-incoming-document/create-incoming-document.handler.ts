@@ -6,6 +6,7 @@ import { buildDocumentKey } from "../../../../../storage/s3/buildDocumentKey";
 import { S3Service } from "../../../../../storage/s3/s3.service";
 import { capitalizeWords } from "../../../../../util/capitalizer";
 import { DocumentFileService } from "../../../document-file/document-file.service";
+import { generateDocumentCode } from "../../../utils/document-code.util";
 import { IncomingDocumentRepository } from "../../repository/incoming-document.repository";
 import { CreateIncomingDocumentCommand } from "./create-incoming-document.command";
 
@@ -57,27 +58,26 @@ export class CreateIncomingDocumentHandler
           manager,
         );
 
+        const code = generateDocumentCode("incoming", savedDocument.tracking_sequence);
+        await this.documentFileService.updateCode(documentFile.id, code, manager);
+
         return {
           id: savedDocument.id,
           documentFileId: documentFile.id,
-          subject: savedDocument.subject,
-          document_from: savedDocument.document_from,
-          recipient: savedDocument.recipient,
-          date_received: savedDocument.date_received,
-          status: savedDocument.status,
+          code,
         };
       });
 
-      this.eventBus.publish(
-        new IncomingDocumentCreatedEvent(
-          result.id,
-          result.documentFileId,
-          uploaderId,
-          result.subject,
-          result.document_from,
-          result.recipient,
-        ),
-      );
+      // this.eventBus.publish(
+      //   new IncomingDocumentCreatedEvent(
+      //     result.id,
+      //     result.documentFileId,
+      //     uploaderId,
+      //     result.subject,
+      //     result.document_from,
+      //     result.recipient,
+      //   ),
+      // );
 
       return result;
     } catch (error) {

@@ -8,7 +8,7 @@ import type {
   CreateOutgoingDocumentResponse,
 } from "./types/create-outgoing-document";
 
-export const AdminsUploadService = {
+export const AdminDocumentUploadService = {
   async createOutgoingDocument({
     file,
     dto,
@@ -18,13 +18,9 @@ export const AdminsUploadService = {
     formData.append("file", file);
     formData.append("subject", dto.subject);
     formData.append("to", dto.to);
-
     formData.append("date_prepared", dto.date_prepared);
-
     formData.append("date_received", dto.date_received);
-
     formData.append("received_by", dto.received_by);
-
     formData.append("summary", dto.summary);
 
     const { data } = await apiClient.post<CreateOutgoingDocumentResponse>(
@@ -56,6 +52,11 @@ export const AdminsUploadService = {
     const { data } = await apiClient.post<CreateIncomingDocumentResponse>(
       "/incoming-documents",
       formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      },
     );
 
     return data;

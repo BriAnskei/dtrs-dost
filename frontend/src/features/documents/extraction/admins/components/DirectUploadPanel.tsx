@@ -3,9 +3,11 @@ import { toast } from "sonner";
 import { WIZARD_STEPS } from "../../constans";
 import type { DocumentDirection, FieldKey } from "../../types/extraction-types";
 import { useExtraction } from "../hooks/use-extraction";
+import { useIncomingSave } from "../hooks/use-incoming-save";
 import { useOutgoingSave } from "../hooks/use-outgoing-save";
 import DocumentTypeSelector from "./DocumentTypeSelelector";
 import ExtractionConsole from "./ExtractionConsole";
+import SaveIncomingModal from "./modal/SaveIncomingModel";
 import SaveOutgoingModal from "./modal/SaveOutgoingModal";
 import PdfDropzone from "./PDFDropzone";
 import ReviewSplitView from "./ReviewSplitView";
@@ -59,6 +61,8 @@ export default function DirectUploadPanel() {
     setStep(0);
   };
 
+  // Both hooks are always called (hooks can't be conditional); `enabled`
+  // makes only the one matching the current direction produce a draft.
   const outgoingSave = useOutgoingSave({
     enabled: direction === "outgoing",
     file,
@@ -66,6 +70,16 @@ export default function DirectUploadPanel() {
     edits,
     onSaved: startOver,
   });
+
+  const incomingSave = useIncomingSave({
+    enabled: direction === "incoming",
+    file,
+    outcome,
+    edits,
+    onSaved: startOver,
+  });
+
+  const activeSave = direction === "outgoing" ? outgoingSave : incomingSave;
 
   const runExtraction = async () => {
     if (!file) return;
@@ -98,22 +112,10 @@ export default function DirectUploadPanel() {
       return next;
     });
 
+  // Opens the confirm modal for the active direction.
   const handleSave = () => {
     if (!outcome) return;
-
-    if (direction === "outgoing") {
-      outgoingSave.open();
-      return;
-    }
-
-    // Incoming: wired later.
-    const payload = outcome.rows.map((r) => ({
-      field: r.field,
-      value: r.field in edits ? (edits[r.field] ?? "").trim() : r.value,
-      edited: r.field in edits,
-    }));
-    // TODO: send `payload` (+ file, direction, outcome.assignedDivision) to the incoming save endpoint.
-    void payload;
+    activeSave.open();
   };
 
   const meta = WIZARD_STEPS[step];
@@ -129,7 +131,7 @@ export default function DirectUploadPanel() {
         }
       : {};
 
-  const saveBlocked = outgoingSave.issues.length > 0;
+  const saveBlocked = activeSave.issues.length > 0;
 
   return (
     <div className="space-y-6">
@@ -218,7 +220,7 @@ export default function DirectUploadPanel() {
           <div className="flex items-center gap-3">
             {saveBlocked && (
               <p className="max-w-xs text-right text-theme-xs text-danger">
-                {outgoingSave.issues.join(" · ")}
+                {activeSave.issues.join(" · ")}
               </p>
             )}
             <button
@@ -234,6 +236,7 @@ export default function DirectUploadPanel() {
       </div>
 
       {outgoingSave.modalProps && <SaveOutgoingModal {...outgoingSave.modalProps} />}
+      {incomingSave.modalProps && <SaveIncomingModal {...incomingSave.modalProps} />}
     </div>
   );
 }

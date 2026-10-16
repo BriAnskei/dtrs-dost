@@ -12,6 +12,7 @@ import { AuthorizationModule } from "./auth/authorization/authorization.module";
 import { getDatabaseConfig } from "./config/database.config";
 import { ExtractedDocumentQueueModule } from "./features/document/extracted-document-queue/extracted-document-queue.module";
 import { ExtractionModule } from "./features/document/extraction/extraction.module";
+import { IncomingDocumentModule } from "./features/document/incoming/incoming.module";
 import { OutgoingDocumentModule } from "./features/document/outgoing/ougoing.module";
 import { PermissionsModule } from "./features/permissions/permissions.module";
 import { UserModule } from "./features/user/user.module";
@@ -48,6 +49,7 @@ import { UserModule } from "./features/user/user.module";
     // Documents
     ExtractionModule,
     ExtractedDocumentQueueModule,
+    IncomingDocumentModule,
     OutgoingDocumentModule,
   ],
   controllers: [AppController],

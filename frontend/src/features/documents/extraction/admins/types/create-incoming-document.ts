@@ -14,9 +14,5 @@ export interface CreateIncomingDocumentInput {
 export interface CreateIncomingDocumentResponse {
   id: string;
   documentFileId: string;
-  subject: string;
-  document_from: string;
-  recipient: string;
-  date_received: string;
-  status: string;
+  code: string;
 }

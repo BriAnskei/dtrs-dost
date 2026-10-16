@@ -21,7 +21,7 @@ export class IncomingDocumentController {
   constructor(private readonly commandBus: CommandBus) {}
 
   @Post()
-  @Roles(Role.ReceiverOfficer)
+  @Roles(Role.Admin, Role.SuperAdmin)
   @UseInterceptors(
     FileInterceptor("file", {
       storage: memoryStorage(),

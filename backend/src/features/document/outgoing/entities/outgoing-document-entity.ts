@@ -29,8 +29,9 @@ export class OutgoingDocumentEntity {
 
   @Column({
     type: "bigint",
-    default: () => "nextval('document_tracking_code_seq'::regclass)",
+    default: () => "nextval('outgoing_document_tracking_seq'::regclass)",
     nullable: false,
+    unique: true,
   })
   tracking_sequence!: string;
 

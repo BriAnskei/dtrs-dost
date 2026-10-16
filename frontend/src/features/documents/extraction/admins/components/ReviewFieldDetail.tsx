@@ -1,5 +1,7 @@
 import { useRef, useState } from "react";
+import DatePicker from "../../../../../components/form/date-picker";
 import { CHUNK_LEVEL_FIELDS, FIELD_LABELS } from "../../constans";
+import { DATE_FIELDS, isIsoDate, normalizeDate } from "../../helpers/date-helpers";
 import type { ChunkLocation, ResultRow } from "../../types/extraction-types";
 
 const pct = (v: number | null) => (v === null ? "—" : `${v}%`);
@@ -57,7 +59,12 @@ export default function ReviewFieldDetail({
   const isEdited = editedValue !== undefined;
   const current = editedValue ?? row.value ?? "";
   const multiline = CHUNK_LEVEL_FIELDS.has(row.field);
+  const isDate = DATE_FIELDS.has(row.field);
   const label = FIELD_LABELS[row.field];
+
+  // Seed for the date picker: the current value as YYYY-MM-DD, or empty if it can't be read as one.
+  const normalizedCurrent = normalizeDate(current);
+  const pickerSeed = isIsoDate(normalizedCurrent) ? normalizedCurrent : "";
 
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState("");
@@ -77,6 +84,14 @@ export default function ReviewFieldDetail({
       // Typing the extracted value back in is the same as no edit.
       onEdit(draft.trim() === (row.value ?? "").trim() ? null : draft);
     }
+    setEditing(false);
+  };
+
+  /** Date fields commit as soon as a date is picked (or typed and confirmed). */
+  const commitDate = (dateStr: string) => {
+    if (!dateStr) return;
+    onEdit(dateStr === (row.value ?? "").trim() ? null : dateStr);
+    doneRef.current = true;
     setEditing(false);
   };
 
@@ -137,7 +152,31 @@ export default function ReviewFieldDetail({
         )}
       </div>
 
-      {editing && (
+      {editing && isDate && (
+        <div className="flex items-center gap-2">
+          <div className="min-w-0 flex-1">
+            <DatePicker
+              id={`review-date-${row.field}`}
+              placeholder="YYYY-MM-DD"
+              value={pickerSeed}
+              allowInput
+              appendToBody
+              onChange={(_dates, dateStr) => commitDate(dateStr)}
+            />
+          </div>
+          <button
+            type="button"
+            className={iconBtn}
+            onClick={() => setEditing(false)}
+            title="Cancel"
+            aria-label="Cancel change"
+          >
+            <XIcon />
+          </button>
+        </div>
+      )}
+
+      {editing && !isDate && (
         <div className="flex items-start gap-2">
           {multiline ? (
             <textarea rows={3} {...fieldProps} className={`${inputCls} resize-y`} />

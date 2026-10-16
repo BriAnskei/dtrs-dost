@@ -13,18 +13,17 @@ interface Options {
   file: File | null;
   outcome: ExtractionOutcome | null;
   edits: Partial<Record<FieldKey, string>>;
-  /** Called after a successful save, before navigating (reset the wizard here). */
+  /** Resets the wizard. Called when the user leaves the success state. */
   onSaved: () => void;
 }
 
-/**
- * Everything the outgoing "Save File" flow needs: final values, blockers,
- * the confirm modal's open state, and the create + navigate call.
- */
+
 export function useOutgoingSave({ enabled, file, outcome, edits, onSaved }: Options) {
   const navigate = useNavigate();
   const createOutgoing = useCreateOutgoingDocument();
   const [isOpen, setIsOpen] = useState(false);
+  // Set once the server has created the document. Switches the modal to its success view.
+  const [savedCode, setSavedCode] = useState<string | null>(null);
 
   const draft = useMemo(
     () => (enabled && outcome ? buildOutgoingDraft(outcome.rows, edits) : null),
@@ -38,11 +37,13 @@ export function useOutgoingSave({ enabled, file, outcome, edits, onSaved }: Opti
     if (draft && draft.issues.length === 0) setIsOpen(true);
   }, [draft]);
 
-  const close = useCallback(() => setIsOpen(false), []);
+  /** Dismiss before saving: keeps the review step intact. */
+  const cancel = useCallback(() => setIsOpen(false), []);
 
   const confirm = useCallback(
     (received: { dateReceived: string; receivedBy: string }) => {
-      if (!file || !draft || draft.issues.length > 0) return;
+      // `savedCode` guard: the document already exists, never create it twice.
+      if (!file || !draft || draft.issues.length > 0 || savedCode) return;
 
       createOutgoing.mutate(
         {
@@ -57,17 +58,29 @@ export function useOutgoingSave({ enabled, file, outcome, edits, onSaved }: Opti
           },
         },
         {
-          // The mutation hook already toasts + invalidates. On error the modal stays open for a retry.
-          onSuccess: () => {
-            setIsOpen(false);
-            onSaved();
-            navigate(OUTGOING_LIST_PATH);
-          },
+          // The mutation hook already toasts on error and invalidates the list.
+          // On error the modal stays open for a retry.
+          onSuccess: (result) => setSavedCode(result.code),
         },
       );
     },
-    [file, draft, createOutgoing, onSaved, navigate],
+    [file, draft, savedCode, createOutgoing],
   );
+
+  /** Leave the success state and start a fresh upload. */
+  const saveAnother = useCallback(() => {
+    setIsOpen(false);
+    setSavedCode(null);
+    onSaved();
+  }, [onSaved]);
+
+  /** Leave the success state and go to the outgoing list. */
+  const goToOutgoing = useCallback(() => {
+    setIsOpen(false);
+    setSavedCode(null);
+    onSaved();
+    navigate(OUTGOING_LIST_PATH);
+  }, [onSaved, navigate]);
 
   /** Spread onto <SaveOutgoingModal />; null while the modal should be closed. */
   const modalProps: ComponentProps<typeof SaveOutgoingModal> | null =
@@ -76,8 +89,11 @@ export function useOutgoingSave({ enabled, file, outcome, edits, onSaved }: Opti
           draft,
           editedCount: Object.keys(edits).length,
           isSaving: createOutgoing.isPending,
-          onCancel: close,
+          savedCode,
+          onCancel: cancel,
           onConfirm: confirm,
+          onSaveAnother: saveAnother,
+          onGoToOutgoing: goToOutgoing,
         }
       : null;
 
