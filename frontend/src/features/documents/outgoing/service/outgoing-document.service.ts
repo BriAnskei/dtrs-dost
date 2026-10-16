@@ -1,8 +1,8 @@
 import { apiClient } from "../../../../lib/api-client";
-import type { PaginatedResponse } from "../../../../type/paginated-response.type";
 import type {
   FindOutgoingDocumentsParams,
   OutgoingDocumentResponse,
+  PaginatedResponse,
 } from "../types/outgoing-document.type";
 
 export const outgoingDocumentService = {

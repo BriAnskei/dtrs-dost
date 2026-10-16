@@ -12,6 +12,7 @@ export interface FindOutgoingDocumentsParams {
   dateField?: OutgoingDocumentDateField;
   startDate?: string;
   endDate?: string;
+  uploaderId?: string;
   sort?: OutgoingDocumentSort;
   cursor?: string;
 }
@@ -34,3 +35,7 @@ export interface OutgoingDocumentResponse {
   uploader_name: string | null;
 }
 
+export interface PaginatedResponse<T> {
+  data: T[];
+  nextCursor: string | null;
+}
