@@ -1,3 +1,4 @@
+import { memo, useLayoutEffect, useRef } from "react";
 import { FIELD_LABELS } from "../../constans";
 import { confidenceTone, isFlagged } from "../../helpers/extraction-helpers";
 import type { FieldKey, ResultRow } from "../../types/extraction-types";
@@ -12,7 +13,7 @@ interface Props {
   flaggedCount: number;
 }
 
-export default function ReviewFieldList({
+function ReviewFieldListImpl({
   rows,
   edits,
   selected,
@@ -21,6 +22,14 @@ export default function ReviewFieldList({
   onNextFlagged,
   flaggedCount,
 }: Props) {
+  // Scroll the selected row into view on arrow-key / programmatic navigation.
+  const activeRef = useRef<HTMLButtonElement | null>(null);
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: selected is intentional
+  useLayoutEffect(() => {
+    activeRef.current?.scrollIntoView({ block: "nearest" });
+  }, [selected]);
+
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <div className="mb-2 flex items-center justify-between gap-2">
@@ -64,6 +73,7 @@ export default function ReviewFieldList({
               type="button"
               role="option"
               aria-selected={active}
+              ref={active ? activeRef : undefined}
               tabIndex={-1}
               onClick={() => onSelect(r.field)}
               className={`w-full rounded-xl border p-3 text-left transition ${
@@ -108,3 +118,15 @@ export default function ReviewFieldList({
     </div>
   );
 }
+
+export default memo(ReviewFieldListImpl, (prev, next) => {
+  return (
+    prev.rows === next.rows &&
+    prev.edits === next.edits &&
+    prev.selected === next.selected &&
+    prev.onSelect === next.onSelect &&
+    prev.onMove === next.onMove &&
+    prev.onNextFlagged === next.onNextFlagged &&
+    prev.flaggedCount === next.flaggedCount
+  );
+});

@@ -54,6 +54,7 @@ export default function ReviewSplitView({
   outcome,
   edits,
   onEdit,
+  height,
 }: {
   file: File;
   outcome: ExtractionOutcome;
@@ -61,6 +62,8 @@ export default function ReviewSplitView({
   edits: Partial<Record<FieldKey, string>>;
   /** string = new value, null = revert to the extracted value. */
   onEdit: (field: FieldKey, value: string | null) => void;
+  /** Height of the split-view grid (defaults to 34rem / h-136). */
+  height?: string;
 }) {
   const { selected, select, move, nextFlagged, flaggedCount } = useReviewSelection(
     outcome.rows,
@@ -116,14 +119,17 @@ export default function ReviewSplitView({
         </button>
       </div>
 
-      <div className="grid h-136 gap-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]">
+      <div
+        className="grid gap-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]"
+        style={{ height: height ?? "34rem" }}
+      >
         {/* Kept mounted (just hidden) so the PDF isn't reloaded when switching tabs */}
         <div className={`${tab === "document" ? "block" : "hidden"} min-h-0 lg:block`}>
           <PdfViewer
             file={file}
             highlights={highlights}
             selectedId={selected}
-            onHighlightClick={(id) => select(id as FieldKey)}
+            onFieldClick={(field) => select(field as FieldKey)}
           />
         </div>
 
