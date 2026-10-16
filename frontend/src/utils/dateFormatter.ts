@@ -24,7 +24,7 @@ const DATETIME_OPTIONS: Intl.DateTimeFormatOptions = {
 
 /** Format an ISO date string as a localized date (no time). */
 export function formatDate(iso: string): string {
-  const [year, month, day] = iso.split("-").map(Number);
+  const [year, month, day] = iso.split("T")[0].split("-").map(Number);
 
   return new Date(Date.UTC(year, month - 1, day)).toLocaleDateString(undefined, {
     ...DATE_OPTIONS,

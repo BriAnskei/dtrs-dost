@@ -1,0 +1,27 @@
+[33mbe25b70[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfeature/document[m[33m)[m refactor: change term from deactivate to disabled.
+[33m2470599[m feat: new module for outgoing docs
+[33m5ffa3d3[m feat: ougoing extraciton handler
+[33m48dac2d[m feat: implement outgoing config
+[33maeaa58b[m fix: file upload validation, and refactor configuration
+[33m4499d92[m refactor: extraction handler and wired more functionality
+[33m6825caa[m feat: implement receiver extraction and file upload handler
+[33mee277d3[m refactor: file structure for extraction separations
+[33md5ad113[m[33m ([m[1;32mmain[m[33m)[m Merge branch 'feature/extraction'
+[33m820a6b4[m test: document extraction module test
+[33m4c8ca04[m feat: wired all extraciton module functionality.
+[33m00ac9b3[m feat: implement extraction module functionality
+[33m1c7f498[m feat: extraction ui with hightlighting
+[33m734d1fe[m Delete QA_TEST_CASES_USER_MANAGEMENT.md
+[33m744dbac[m Add comprehensive QA test cases for user management module
+[33m294ab82[m feat: added unit test for user-managemenr permissions, authorication(backend/client)
+[33mfbe77a3[m test(access-control): move access-control tests into access-control module
+[33m76e6958[m feat: unit test for usermanagement for user management module
+[33ma8b32ee[m feat: implement ui configuration for desabled not pemirted action
+[33m23f0acb[m feat: wired claim-based access control logic in client
+[33m7dc1c51[m feat: inctruduced claims-based authorization
+[33me9902e4[m refactored: features file sturcture
+[33m203cb46[m re
+[33m98132fb[m feat: implement delete  user functionality -implemeting access control for usermanagement(damin role) -add new unit test for the divisions, deactvated users management
+[33maf5138a[m feat: implemented unit test, and wired deactivated accounts. -implementing actions for deactivated acc(drop, reactivate).
+[33mb2403b2[m refactored: implemented shell/reusable components for modal, table, and input/label
+[33m65186b6[m refactor: table componenet implementaiton

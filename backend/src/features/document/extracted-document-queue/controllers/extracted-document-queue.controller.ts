@@ -13,7 +13,7 @@ import { memoryStorage } from "multer";
 import type { AuthenticatedRequest } from "../../../../auth/authentication/types/authenticated-request";
 import { Roles } from "../../../../auth/authorization/decorator/roles.decorator";
 import { Role } from "../../../../auth/authorization/enum/roles.enum";
-import { ParsePdfFilePipe } from "../../pipes/parse-pdf-file-pipe";
+import { ParsePdfFilePipe } from "../../../../common/pipes/parse-pdf-file-pipe";
 import { CreateExtractedDocumentDto } from "../dto/create-extracted-document-dto";
 import { FindExtractedDocumentQueuesQueryDto } from "../dto/find-extracted-document-queues-query.dto";
 import { FindMyExtractedDocumentQueuesQueryDto } from "../dto/find-my-extracted-document-queues-query.dto";

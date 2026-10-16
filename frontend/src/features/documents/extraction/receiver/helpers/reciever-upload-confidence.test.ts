@@ -17,8 +17,8 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { formatPercent, isLowConfidence, toPercent } from "./reciever-upload-confidence";
 import { CONFIDENCE_THRESHOLDS } from "../receiver-upload-constants";
+import { formatPercent, isLowConfidence, toPercent } from "./reciever-upload-confidence";
 
 describe("reciever-upload-confidence", () => {
   describe("toPercent", () => {

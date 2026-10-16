@@ -15,7 +15,7 @@ import { memoryStorage } from "multer";
 import type { AuthenticatedRequest } from "../../../../auth/authentication/types/authenticated-request";
 import { Roles } from "../../../../auth/authorization/decorator/roles.decorator";
 import { Role } from "../../../../auth/authorization/enum/roles.enum";
-import { ParsePdfFilePipe } from "../../pipes/parse-pdf-file-pipe";
+import { ParsePdfFilePipe } from "../../../../common/pipes/parse-pdf-file-pipe";
 import { CreateOutgoingDocumentCommand } from "../commands/create-outgoing-document/create-outgoing-document.command";
 import { CreateOutgoingDocumentDto } from "../dto/create-outgoing-document-dto";
 import { FindOutgoingDocumentsQueryDto } from "../dto/find-outgoing-documents-query.dto";
