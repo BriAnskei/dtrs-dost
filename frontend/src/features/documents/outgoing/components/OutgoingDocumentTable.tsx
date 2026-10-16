@@ -45,7 +45,7 @@ export default function OutgoingDocumentsTable({
       label: "Tracking No.",
       width: "w-28",
       render: (row) => (
-        <span className="font-medium text-gray-800 text-theme-sm dark:text-white/90 whitespace-nowrap">
+        <span className="font-medium text-primary text-theme-sm dark:text-secondary whitespace-nowrap">
           {row.trackingNo}
         </span>
       ),
@@ -68,6 +68,15 @@ export default function OutgoingDocumentsTable({
       render: (row) => (
         <span className="text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap">
           {row.datePrepared}
+        </span>
+      ),
+    },
+    {
+      label: "Date Received",
+      width: "w-24",
+      render: (row) => (
+        <span className="text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap">
+          {row.dateReceived}
         </span>
       ),
     },
@@ -142,7 +151,7 @@ export default function OutgoingDocumentsTable({
         >
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
-              <p className="text-theme-xs font-medium text-gray-400 dark:text-gray-500">
+              <p className="text-theme-xs font-medium text-primary dark:text-secondary">
                 {row.trackingNo}
               </p>
               <p className="text-theme-sm font-semibold text-gray-800 dark:text-white/90 leading-snug mt-0.5 wrap-break-word">
@@ -162,6 +171,14 @@ export default function OutgoingDocumentsTable({
               </p>
               <p className="text-theme-xs text-gray-700 dark:text-gray-300 mt-0.5">
                 {row.datePrepared}
+              </p>
+            </div>
+            <div>
+              <p className="text-theme-xs text-gray-400 dark:text-gray-500 font-medium uppercase tracking-wide">
+                Date Received
+              </p>
+              <p className="text-theme-xs text-gray-700 dark:text-gray-300 mt-0.5">
+                {row.dateReceived}
               </p>
             </div>
             <div>

@@ -5,4 +5,5 @@ export interface OutgoingDocumentRow {
   recipient: string;
   datePrepared: string;
   dateUploaded: string;
+  dateReceived: string;
 }
