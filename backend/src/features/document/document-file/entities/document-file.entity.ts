@@ -40,8 +40,8 @@ export class DocumentFileEntity {
   uploader!: UserEntity | null;
 
   @CreateDateColumn({
+    name: "created_at",
     type: "timestamptz",
-    default: () => "CURRENT_TIMESTAMP",
   })
   created_at!: Date;
 }

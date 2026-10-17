@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, Logger } from "@nestjs/common";
+import { BadRequestException, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { EntityManager, Repository, SelectQueryBuilder } from "typeorm";
 import { decodeCursor, encodeCursor } from "../../../../common/pagination/cursor";
@@ -12,9 +12,12 @@ import { IncomingDocumentDateField } from "../enums/incoming-document-date-field
 import { IncomingDocumentSortOrder } from "../enums/incoming-document-sort-order.enum";
 import { IncomingDocumentCursor } from "../types/incoming-document-cursor";
 
+type IncomingQueryBuilder = SelectQueryBuilder<IncomingDocumentEntity>;
+
 @Injectable()
 export class IncomingDocumentsRepository {
-  private readonly logger = new Logger(IncomingDocumentsRepository.name);
+  private static readonly APP_TIME_ZONE = "Asia/Manila";
+
   constructor(
     @InjectRepository(IncomingDocumentEntity)
     private readonly repository: Repository<IncomingDocumentEntity>,
@@ -25,9 +28,7 @@ export class IncomingDocumentsRepository {
     manager: EntityManager,
   ): Promise<IncomingDocumentEntity> {
     const repository = manager.getRepository(IncomingDocumentEntity);
-    const entity = repository.create(data);
-
-    return repository.save(entity);
+    return repository.save(repository.create(data));
   }
 
   async findAllWithRelation(
@@ -63,24 +64,7 @@ export class IncomingDocumentsRepository {
 
     this.applySorting(queryBuilder, sort);
 
-    const [sql] = queryBuilder.getQueryAndParameters();
-
-    this.logger.debug(
-      `[IncomingPagination] Request: ${JSON.stringify({
-        limit,
-        sort,
-        dateField,
-        startDate,
-        endDate,
-        status,
-        hasSearch: Boolean(search?.trim()),
-        hasCursor: Boolean(cursor),
-        cursorLength: cursor?.length ?? 0,
-        sql,
-      })}`,
-    );
-
-    const documents = await queryBuilder.take(limit + 1).getMany();
+    const documents = await queryBuilder.limit(limit + 1).getMany();
     const hasNextPage = documents.length > limit;
 
     if (hasNextPage) {
@@ -88,118 +72,101 @@ export class IncomingDocumentsRepository {
     }
 
     const lastDocument = documents.at(-1);
-    const fetchedCount = documents.length;
 
     const nextCursor =
       hasNextPage && lastDocument
         ? encodeCursor<IncomingDocumentCursor>({
-            id: lastDocument.id,
+            id: this.getCursorId(lastDocument, sort),
             sort,
             sortValue: this.getSortValue(lastDocument, sort),
           })
         : null;
 
-    const nextCursorPayload = nextCursor
-      ? decodeCursor<IncomingDocumentCursor>(nextCursor)
-      : null;
-
-    this.logger.debug(
-      `[IncomingPagination] Result: ${JSON.stringify({
-        sort,
-        limit,
-        fetchedCount,
-        returnedCount: documents.length,
-        hasNextPage,
-        nextCursorPresent: Boolean(nextCursor),
-        firstDocumentId: documents[0]?.id ?? null,
-        lastDocumentId: lastDocument?.id ?? null,
-        returnedDocumentIds: documents.map((document) => document.id),
-        nextCursorId: nextCursorPayload?.id ?? null,
-        nextCursorSort: nextCursorPayload?.sort ?? null,
-        nextCursorSortValue:
-          sort === IncomingDocumentSortOrder.SubjectAsc
-            ? `[subject length: ${nextCursorPayload?.sortValue?.length ?? 0}]`
-            : (nextCursorPayload?.sortValue ?? null),
-      })}`,
-    );
-
-    return {
-      data: documents,
-      nextCursor,
-    };
+    return { data: documents, nextCursor };
   }
 
-  private applySearchFilter(
-    queryBuilder: SelectQueryBuilder<IncomingDocumentEntity>,
-    search?: string,
-  ): void {
+  private applySearchFilter(queryBuilder: IncomingQueryBuilder, search?: string): void {
     const term = search?.trim();
 
     if (!term) {
       return;
     }
 
+    // Escape LIKE wildcards so user input is matched literally.
+    // ILIKE uses backslash as the default escape character.
+    const escaped = term.replace(/[\\%_]/g, "\\$&");
+
+    // Two independent subqueries so each side can use its own trigram GIN index.
+    // UNION ALL: duplicates are harmless inside IN (...) and it skips the dedupe step.
     queryBuilder.andWhere(
       `incoming.id IN (
-      SELECT subject_match.id
-      FROM incoming_documents subject_match
-      WHERE subject_match.subject ILIKE :search
+        SELECT subject_match.id
+        FROM incoming_documents subject_match
+        WHERE subject_match.subject ILIKE :search
 
-      UNION
+        UNION ALL
 
-      SELECT code_match.id
-      FROM document_files code_file
-      INNER JOIN incoming_documents code_match
-        ON code_match.document_file_id = code_file.id
-      WHERE code_file.code ILIKE :search
-    )`,
-      { search: `%${term}%` },
+        SELECT code_match.id
+        FROM document_files code_file
+        INNER JOIN incoming_documents code_match
+          ON code_match.document_file_id = code_file.id
+        WHERE code_file.code ILIKE :search
+      )`,
+      { search: `%${escaped}%` },
     );
   }
 
   private applyStatusFilter(
-    queryBuilder: SelectQueryBuilder<IncomingDocumentEntity>,
+    queryBuilder: IncomingQueryBuilder,
     status?: IncomingDocumentStatus,
   ): void {
-    if (!status) {
-      return;
+    if (status) {
+      queryBuilder.andWhere("incoming.status = :status", { status });
     }
-
-    queryBuilder.andWhere("incoming.status = :status", { status });
   }
 
   private applyDateFilter(
-    queryBuilder: SelectQueryBuilder<IncomingDocumentEntity>,
+    queryBuilder: IncomingQueryBuilder,
     dateField: IncomingDocumentDateField,
     startDate?: string,
     endDate?: string,
   ): void {
-    const dateColumns: Record<IncomingDocumentDateField, string> = {
-      [IncomingDocumentDateField.UploadDate]: "documentFile.created_at",
-      [IncomingDocumentDateField.DateReceived]: "incoming.date_received",
-    };
+    if (dateField === IncomingDocumentDateField.UploadDate) {
+      // created_at is timestamptz. Convert the date-only bounds to
+      // Manila-midnight instants, so the filter doesn't depend on the
+      // DB session timezone. The column stays untouched, so the index is used.
+      const tz = IncomingDocumentsRepository.APP_TIME_ZONE;
 
-    const column = dateColumns[dateField];
+      if (startDate) {
+        queryBuilder.andWhere(
+          `documentFile.created_at >= (CAST(:startDate AS date)::timestamp AT TIME ZONE :tz)`,
+          { startDate, tz },
+        );
+      }
 
+      if (endDate) {
+        // Exclusive upper bound: midnight at the start of the day after endDate.
+        queryBuilder.andWhere(
+          `documentFile.created_at < ((CAST(:endDate AS date) + 1)::timestamp AT TIME ZONE :tz)`,
+          { endDate, tz },
+        );
+      }
+
+      return;
+    }
+
+    // date_received is a plain DATE, so there's no timezone involved.
     if (startDate) {
-      queryBuilder.andWhere(`${column} >= :startDate`, { startDate });
+      queryBuilder.andWhere("incoming.date_received >= :startDate", { startDate });
     }
 
     if (endDate) {
-      if (dateField === IncomingDocumentDateField.UploadDate) {
-        // Include the entire end date for the timestamp column.
-        queryBuilder.andWhere(`${column} < CAST(:endDate AS date) + INTERVAL '1 day'`, {
-          endDate,
-        });
-      } else {
-        // date_received is a PostgreSQL DATE column.
-        queryBuilder.andWhere(`${column} <= :endDate`, { endDate });
-      }
+      queryBuilder.andWhere("incoming.date_received <= :endDate", { endDate });
     }
   }
 
   private applyCursor(
-    queryBuilder: SelectQueryBuilder<IncomingDocumentEntity>,
+    queryBuilder: IncomingQueryBuilder,
     cursor: string,
     sort: IncomingDocumentSortOrder,
   ): void {
@@ -215,42 +182,22 @@ export class IncomingDocumentsRepository {
     }
 
     const { id, sortValue } = decoded;
-    this.logger.debug(
-      `[IncomingPagination] Applying cursor: ${JSON.stringify({
-        sort,
-        cursorId: id,
-        cursorSortValue:
-          sort === IncomingDocumentSortOrder.SubjectAsc
-            ? `[subject length: ${sortValue.length}]`
-            : sortValue,
-      })}`,
-    );
 
     switch (sort) {
       case IncomingDocumentSortOrder.NewestUpload:
-        this.applyCursorCondition(
-          queryBuilder,
-          "documentFile.created_at",
-          sortValue,
-          id,
-          "<",
-        );
+        // For upload sorts, `id` is the document_files.id.
+        this.applyUploadCursor(queryBuilder, id, "<");
         break;
 
       case IncomingDocumentSortOrder.OldestUpload:
-        this.applyCursorCondition(
-          queryBuilder,
-          "documentFile.created_at",
-          sortValue,
-          id,
-          ">",
-        );
+        this.applyUploadCursor(queryBuilder, id, ">");
         break;
 
       case IncomingDocumentSortOrder.LatestReceived:
         this.applyCursorCondition(
           queryBuilder,
           "incoming.date_received",
+          "date",
           sortValue,
           id,
           "<",
@@ -258,7 +205,14 @@ export class IncomingDocumentsRepository {
         break;
 
       case IncomingDocumentSortOrder.SubjectAsc:
-        this.applyCursorCondition(queryBuilder, "incoming.subject", sortValue, id, ">");
+        this.applyCursorCondition(
+          queryBuilder,
+          "incoming.subject",
+          "text",
+          sortValue,
+          id,
+          ">",
+        );
         break;
 
       default:
@@ -266,43 +220,67 @@ export class IncomingDocumentsRepository {
     }
   }
 
+  /**
+   * Sort key is (documentFile.created_at, documentFile.id), both on one table,
+   * so it matches idx_document_files_created_at_id.
+   *
+   * The cursor's created_at is looked up from the DB instead of being taken from
+   * the cursor string: a JS Date only has millisecond precision while timestamptz
+   * has microseconds, which would skip or duplicate rows on near-ties.
+   *
+   * The scalar subquery is uncorrelated, so Postgres evaluates it once as an
+   * InitPlan and the row comparison can still be used as an index condition.
+   */
+  private applyUploadCursor(
+    queryBuilder: IncomingQueryBuilder,
+    documentFileId: string,
+    operator: "<" | ">",
+  ): void {
+    queryBuilder.andWhere(
+      `(documentFile.created_at, documentFile.id) ${operator} (
+        (SELECT cursor_file.created_at
+           FROM document_files cursor_file
+          WHERE cursor_file.id = CAST(:cursorId AS uuid)),
+        CAST(:cursorId AS uuid)
+      )`,
+      { cursorId: documentFileId },
+    );
+  }
+
+  /**
+   * Row-wise comparison so Postgres can turn it into a single index range on
+   * (column, id) instead of scanning and filtering through an OR.
+   * Requires both columns to be sorted in the same direction (they are).
+   */
   private applyCursorCondition(
-    queryBuilder: SelectQueryBuilder<IncomingDocumentEntity>,
+    queryBuilder: IncomingQueryBuilder,
     column: string,
+    castType: "date" | "text",
     sortValue: string,
     id: string,
     operator: "<" | ">",
   ): void {
     queryBuilder.andWhere(
-      `(
-      ${column} ${operator} :cursorValue
-      OR (
-        ${column} = :cursorValue
-        AND incoming.id ${operator} :cursorId
-      )
-    )`,
-      {
-        cursorValue: sortValue,
-        cursorId: id,
-      },
+      `(${column}, incoming.id) ${operator} (CAST(:cursorValue AS ${castType}), CAST(:cursorId AS uuid))`,
+      { cursorValue: sortValue, cursorId: id },
     );
   }
 
   private applySorting(
-    queryBuilder: SelectQueryBuilder<IncomingDocumentEntity>,
+    queryBuilder: IncomingQueryBuilder,
     sort: IncomingDocumentSortOrder,
   ): void {
     switch (sort) {
       case IncomingDocumentSortOrder.NewestUpload:
         queryBuilder
           .orderBy("documentFile.created_at", "DESC")
-          .addOrderBy("incoming.id", "DESC");
+          .addOrderBy("documentFile.id", "DESC");
         break;
 
       case IncomingDocumentSortOrder.OldestUpload:
         queryBuilder
           .orderBy("documentFile.created_at", "ASC")
-          .addOrderBy("incoming.id", "ASC");
+          .addOrderBy("documentFile.id", "ASC");
         break;
 
       case IncomingDocumentSortOrder.LatestReceived:
@@ -320,6 +298,21 @@ export class IncomingDocumentsRepository {
     }
   }
 
+  private getCursorId(
+    document: IncomingDocumentEntity,
+    sort: IncomingDocumentSortOrder,
+  ): string {
+    switch (sort) {
+      case IncomingDocumentSortOrder.NewestUpload:
+      case IncomingDocumentSortOrder.OldestUpload:
+        return document.document_file.id;
+
+      case IncomingDocumentSortOrder.LatestReceived:
+      case IncomingDocumentSortOrder.SubjectAsc:
+        return document.id;
+    }
+  }
+
   private getSortValue(
     document: IncomingDocumentEntity,
     sort: IncomingDocumentSortOrder,
@@ -327,6 +320,7 @@ export class IncomingDocumentsRepository {
     switch (sort) {
       case IncomingDocumentSortOrder.NewestUpload:
       case IncomingDocumentSortOrder.OldestUpload:
+        // Informational only: the real created_at is re-read from the DB in applyUploadCursor.
         return document.document_file.created_at.toISOString();
 
       case IncomingDocumentSortOrder.LatestReceived:

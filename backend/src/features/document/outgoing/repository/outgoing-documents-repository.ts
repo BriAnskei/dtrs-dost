@@ -9,8 +9,12 @@ import { OutgoingDocumentDateField } from "../enums/outgoing-document-date-field
 import { OutgoingDocumentSortOrder } from "../enums/outgoing-document-sort-order.enum";
 import { OutgoingDocumentCursor } from "../types/outgoing-document-cursor.type";
 
+type OutgoingQueryBuilder = SelectQueryBuilder<OutgoingDocumentEntity>;
+
 @Injectable()
 export class OutgoingDocumentRepository {
+  private static readonly APP_TIME_ZONE = "Asia/Manila";
+
   constructor(
     @InjectRepository(OutgoingDocumentEntity)
     private readonly repository: Repository<OutgoingDocumentEntity>,
@@ -21,10 +25,7 @@ export class OutgoingDocumentRepository {
     manager: EntityManager,
   ): Promise<OutgoingDocumentEntity> {
     const repository = manager.getRepository(OutgoingDocumentEntity);
-
-    const outgoingDocument = repository.create(data);
-
-    return repository.save(outgoingDocument);
+    return repository.save(repository.create(data));
   }
 
   async findAllWithRelation(
@@ -44,9 +45,11 @@ export class OutgoingDocumentRepository {
       throw new BadRequestException("startDate must not be later than endDate");
     }
 
+    // document_file_id is NOT NULL, so INNER JOIN is equivalent to the previous
+    // LEFT JOIN but lets the planner choose the join order freely.
     const queryBuilder = this.repository
       .createQueryBuilder("outgoing")
-      .leftJoinAndSelect("outgoing.document_file", "documentFile")
+      .innerJoinAndSelect("outgoing.document_file", "documentFile")
       .leftJoinAndSelect("documentFile.uploader", "uploader");
 
     this.applySearchFilter(queryBuilder, search);
@@ -58,7 +61,9 @@ export class OutgoingDocumentRepository {
 
     this.applySorting(queryBuilder, sort);
 
-    const documents = await queryBuilder.take(limit + 1).getMany();
+    // Fetch one extra row to detect whether another page exists.
+    // limit() is safe here: every join is one-to-one or many-to-one.
+    const documents = await queryBuilder.limit(limit + 1).getMany();
     const hasNextPage = documents.length > limit;
 
     if (hasNextPage) {
@@ -70,70 +75,94 @@ export class OutgoingDocumentRepository {
     const nextCursor =
       hasNextPage && lastDocument
         ? encodeCursor<OutgoingDocumentCursor>({
-            id: lastDocument.id,
+            id: this.getCursorId(lastDocument, sort),
             sort,
             sortValue: this.getSortValue(lastDocument, sort),
           })
         : null;
 
-    return {
-      data: documents,
-      nextCursor,
-    };
+    return { data: documents, nextCursor };
   }
 
-  private applySearchFilter(
-    queryBuilder: SelectQueryBuilder<OutgoingDocumentEntity>,
-    search?: string,
-  ): void {
+  private applySearchFilter(queryBuilder: OutgoingQueryBuilder, search?: string): void {
     const term = search?.trim();
 
     if (!term) {
       return;
     }
 
+    // Escape LIKE wildcards so user input is matched literally.
+    // ILIKE uses backslash as the default escape character.
+    const escaped = term.replace(/[\\%_]/g, "\\$&");
+
+    // Two independent subqueries so each side can use its own trigram GIN index.
+    // A plain OR across two tables cannot be answered by a BitmapOr.
+    // UNION ALL: duplicates are harmless inside IN (...) and it skips the dedupe step.
     queryBuilder.andWhere(
-      `(
-        outgoing.subject ILIKE :search
-        OR documentFile.code ILIKE :search
+      `outgoing.id IN (
+        SELECT subject_match.id
+        FROM outgoing_documents subject_match
+        WHERE subject_match.subject ILIKE :search
+
+        UNION ALL
+
+        SELECT code_match.id
+        FROM document_files code_file
+        INNER JOIN outgoing_documents code_match
+          ON code_match.document_file_id = code_file.id
+        WHERE code_file.code ILIKE :search
       )`,
-      { search: `%${term}%` },
+      { search: `%${escaped}%` },
     );
   }
 
   private applyDateFilter(
-    queryBuilder: SelectQueryBuilder<OutgoingDocumentEntity>,
+    queryBuilder: OutgoingQueryBuilder,
     dateField: OutgoingDocumentDateField,
     startDate?: string,
     endDate?: string,
   ): void {
-    const dateColumns: Record<OutgoingDocumentDateField, string> = {
-      [OutgoingDocumentDateField.UploadDate]: "documentFile.created_at",
-      [OutgoingDocumentDateField.DatePrepared]: "outgoing.date_prepared",
-      [OutgoingDocumentDateField.DateReceived]: "outgoing.date_received",
-    };
+    if (dateField === OutgoingDocumentDateField.UploadDate) {
+      // created_at is timestamptz. Convert the date-only bounds to
+      // Manila-midnight instants, so the filter doesn't depend on the
+      // DB session timezone. The column stays untouched, so the index is used.
+      const tz = OutgoingDocumentRepository.APP_TIME_ZONE;
 
-    const column = dateColumns[dateField];
+      if (startDate) {
+        queryBuilder.andWhere(
+          `documentFile.created_at >= (CAST(:startDate AS date)::timestamp AT TIME ZONE :tz)`,
+          { startDate, tz },
+        );
+      }
+
+      if (endDate) {
+        // Exclusive upper bound: midnight at the start of the day after endDate.
+        queryBuilder.andWhere(
+          `documentFile.created_at < ((CAST(:endDate AS date) + 1)::timestamp AT TIME ZONE :tz)`,
+          { endDate, tz },
+        );
+      }
+
+      return;
+    }
+
+    // date_prepared and date_received are plain DATE columns: no timezone involved.
+    const column =
+      dateField === OutgoingDocumentDateField.DatePrepared
+        ? "outgoing.date_prepared"
+        : "outgoing.date_received";
 
     if (startDate) {
       queryBuilder.andWhere(`${column} >= :startDate`, { startDate });
     }
 
     if (endDate) {
-      if (dateField === OutgoingDocumentDateField.UploadDate) {
-        // created_at is a timestamp: include the entire end date.
-        queryBuilder.andWhere(`${column} < CAST(:endDate AS date) + INTERVAL '1 day'`, {
-          endDate,
-        });
-      } else {
-        // date_prepared and date_received are PostgreSQL DATE columns.
-        queryBuilder.andWhere(`${column} <= :endDate`, { endDate });
-      }
+      queryBuilder.andWhere(`${column} <= :endDate`, { endDate });
     }
   }
 
   private applyCursor(
-    queryBuilder: SelectQueryBuilder<OutgoingDocumentEntity>,
+    queryBuilder: OutgoingQueryBuilder,
     cursor: string,
     sort: OutgoingDocumentSortOrder,
   ): void {
@@ -149,38 +178,77 @@ export class OutgoingDocumentRepository {
 
     switch (sort) {
       case OutgoingDocumentSortOrder.NewestUpload:
+        // For upload sorts, `id` is the document_files.id.
+        this.applyUploadCursor(queryBuilder, id, "<");
+        break;
+
+      case OutgoingDocumentSortOrder.OldestUpload:
+        this.applyUploadCursor(queryBuilder, id, ">");
+        break;
+
+      case OutgoingDocumentSortOrder.LatestPrepared:
         this.applyCursorCondition(
           queryBuilder,
-          "documentFile.created_at",
+          "outgoing.date_prepared",
+          "date",
           sortValue,
           id,
           "<",
         );
         break;
 
-      case OutgoingDocumentSortOrder.OldestUpload:
+      case OutgoingDocumentSortOrder.SubjectAsc:
         this.applyCursorCondition(
           queryBuilder,
-          "documentFile.created_at",
+          "outgoing.subject",
+          "text",
           sortValue,
           id,
           ">",
         );
         break;
 
-      case OutgoingDocumentSortOrder.LatestPrepared:
-        this.applyLatestPreparedCursor(queryBuilder, sortValue, id);
-        break;
-
-      case OutgoingDocumentSortOrder.SubjectAsc:
-        this.applyCursorCondition(queryBuilder, "outgoing.subject", sortValue, id, ">");
-        break;
+      default:
+        throw new BadRequestException("Unsupported sort order");
     }
   }
 
+  /**
+   * Sort key is (documentFile.created_at, documentFile.id), both on one table,
+   * so it matches idx_document_files_created_at_id.
+   *
+   * The cursor's created_at is looked up from the DB instead of being taken from
+   * the cursor string: a JS Date only has millisecond precision while timestamptz
+   * has microseconds, which would skip or duplicate rows on near-ties.
+   *
+   * The scalar subquery is uncorrelated, so Postgres evaluates it once as an
+   * InitPlan and the row comparison can still be used as an index condition.
+   */
+  private applyUploadCursor(
+    queryBuilder: OutgoingQueryBuilder,
+    documentFileId: string,
+    operator: "<" | ">",
+  ): void {
+    queryBuilder.andWhere(
+      `(documentFile.created_at, documentFile.id) ${operator} (
+        (SELECT cursor_file.created_at
+           FROM document_files cursor_file
+          WHERE cursor_file.id = CAST(:cursorId AS uuid)),
+        CAST(:cursorId AS uuid)
+      )`,
+      { cursorId: documentFileId },
+    );
+  }
+
+  /**
+   * Row-wise comparison so Postgres can turn it into a single index range on
+   * (column, id) instead of scanning and filtering through an OR.
+   * Requires both columns to be sorted in the same direction (they are).
+   */
   private applyCursorCondition(
-    queryBuilder: SelectQueryBuilder<OutgoingDocumentEntity>,
+    queryBuilder: OutgoingQueryBuilder,
     column: string,
+    castType: "date" | "text",
     sortValue: string | null,
     id: string,
     operator: "<" | ">",
@@ -190,59 +258,26 @@ export class OutgoingDocumentRepository {
     }
 
     queryBuilder.andWhere(
-      `(
-        ${column} ${operator} :cursorValue
-        OR (
-          ${column} = :cursorValue
-          AND outgoing.id ${operator} :cursorId
-        )
-      )`,
-      {
-        cursorValue: sortValue,
-        cursorId: id,
-      },
-    );
-  }
-
-  private applyLatestPreparedCursor(
-    queryBuilder: SelectQueryBuilder<OutgoingDocumentEntity>,
-    sortValue: string | null,
-    id: string,
-  ): void {
-    if (sortValue === null) {
-      throw new BadRequestException("Invalid cursor sort value");
-    }
-
-    queryBuilder.andWhere(
-      `(
-      outgoing.date_prepared < :cursorValue
-      OR (
-        outgoing.date_prepared = :cursorValue
-        AND outgoing.id < :cursorId
-      )
-    )`,
-      {
-        cursorValue: sortValue,
-        cursorId: id,
-      },
+      `(${column}, outgoing.id) ${operator} (CAST(:cursorValue AS ${castType}), CAST(:cursorId AS uuid))`,
+      { cursorValue: sortValue, cursorId: id },
     );
   }
 
   private applySorting(
-    queryBuilder: SelectQueryBuilder<OutgoingDocumentEntity>,
+    queryBuilder: OutgoingQueryBuilder,
     sort: OutgoingDocumentSortOrder,
   ): void {
     switch (sort) {
       case OutgoingDocumentSortOrder.NewestUpload:
         queryBuilder
           .orderBy("documentFile.created_at", "DESC")
-          .addOrderBy("outgoing.id", "DESC");
+          .addOrderBy("documentFile.id", "DESC");
         break;
 
       case OutgoingDocumentSortOrder.OldestUpload:
         queryBuilder
           .orderBy("documentFile.created_at", "ASC")
-          .addOrderBy("outgoing.id", "ASC");
+          .addOrderBy("documentFile.id", "ASC");
         break;
 
       case OutgoingDocumentSortOrder.LatestPrepared:
@@ -254,6 +289,24 @@ export class OutgoingDocumentRepository {
       case OutgoingDocumentSortOrder.SubjectAsc:
         queryBuilder.orderBy("outgoing.subject", "ASC").addOrderBy("outgoing.id", "ASC");
         break;
+
+      default:
+        throw new BadRequestException("Unsupported sort order");
+    }
+  }
+
+  private getCursorId(
+    document: OutgoingDocumentEntity,
+    sort: OutgoingDocumentSortOrder,
+  ): string {
+    switch (sort) {
+      case OutgoingDocumentSortOrder.NewestUpload:
+      case OutgoingDocumentSortOrder.OldestUpload:
+        return document.document_file.id;
+
+      case OutgoingDocumentSortOrder.LatestPrepared:
+      case OutgoingDocumentSortOrder.SubjectAsc:
+        return document.id;
     }
   }
 
