@@ -1,12 +1,12 @@
 import { Search } from "lucide-react";
 import Input from "../../../../components/form/input/InputField";
+import DateRangeFilter from "../../../../components/ui/date/DateRangeFilter";
+import type { DateRange } from "../../../../components/ui/date/date-constants";
 import { DATE_FIELD_OPTIONS, SORT_OPTIONS } from "../constants";
-import type { DateRange } from "../date-constants";
 import type {
   OutgoingDocumentDateField,
   OutgoingDocumentSort,
 } from "../types/outgoing-document.type";
-import DateRangeFilter from "./DateRangeFilter";
 
 interface OutgoingDocumentsFiltersProps {
   search: string;

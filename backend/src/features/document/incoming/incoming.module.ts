@@ -8,7 +8,8 @@ import { IncomingDocumentAssignmentEntity } from "./entities/incoming-document-a
 import { IncomingDocumentEntity } from "./entities/incoming-document-entity";
 import { IncomingDocumentRoutingEntity } from "./entities/incoming-document-routing.entity";
 import { IncomingDocumentStatusHistoryEntity } from "./entities/incoming-document-status-history-entity";
-import { IncomingDocumentRepository } from "./repository/incoming-document.repository";
+import { FindIncomingDocumentsHandler } from "./query/find-incoming-documents/find-incoming-documents.handler";
+import { IncomingDocumentsRepository } from "./repository/incoming-document.repository";
 
 @Module({
   imports: [
@@ -22,6 +23,10 @@ import { IncomingDocumentRepository } from "./repository/incoming-document.repos
     StorageModule,
   ],
   controllers: [IncomingDocumentController],
-  providers: [IncomingDocumentRepository, CreateIncomingDocumentHandler],
+  providers: [
+    IncomingDocumentsRepository,
+    CreateIncomingDocumentHandler,
+    FindIncomingDocumentsHandler,
+  ],
 })
 export class IncomingDocumentModule {}

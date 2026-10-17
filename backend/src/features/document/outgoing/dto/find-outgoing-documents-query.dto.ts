@@ -5,7 +5,6 @@ import {
   IsInt,
   IsOptional,
   IsString,
-  IsUUID,
   Max,
   MaxLength,
   Min,
@@ -38,7 +37,6 @@ export class FindOutgoingDocumentsQueryDto {
   @IsOptional()
   @IsDateString({ strict: true })
   endDate?: string;
-
 
   @IsOptional()
   @IsEnum(OutgoingDocumentSortOrder)

@@ -119,7 +119,7 @@ export default function OutgoingDocumentsTable({
       maxTableHeight={maxTableHeight}
       maxMobileHeight={maxMobileHeight}
       getRowKey={(row) => row.id}
-      onRowClick={handleViewDetails}
+      // onRowClick={handleViewDetails}
       renderToolbar={() => (
         <OutgoingDocumentsFilters
           search={search}
