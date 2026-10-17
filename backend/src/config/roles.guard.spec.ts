@@ -1,8 +1,8 @@
 import { ExecutionContext, ForbiddenException } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
-import { RolesGuard } from "../auth/authorization/guard/roles.guard";
-import { Role } from "../auth/authorization/enum/roles.enum";
 import { ROLES_KEY } from "../auth/authorization/decorator/roles.decorator";
+import { Role } from "../auth/authorization/enum/roles.enum";
+import { RolesGuard } from "../auth/authorization/guard/roles.guard";
 
 /**
  * Creates a mock ExecutionContext with a configurable `req.user`.

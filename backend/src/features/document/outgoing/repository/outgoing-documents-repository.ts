@@ -2,6 +2,7 @@ import { BadRequestException, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { EntityManager, Repository, SelectQueryBuilder } from "typeorm";
 import { decodeCursor, encodeCursor } from "../../../../common/pagination/cursor";
+import { applyCursorCondition } from "../../../../common/pagination/cursor-query.util";
 import { PaginatedResponse } from "../../../../common/pagination/paginated-response";
 import { FindOutgoingDocumentsQueryDto } from "../dto/find-outgoing-documents-query.dto";
 import { OutgoingDocumentEntity } from "../entities/outgoing-document-entity";
@@ -256,11 +257,14 @@ export class OutgoingDocumentRepository {
     if (sortValue === null) {
       throw new BadRequestException("Invalid cursor sort value");
     }
-
-    queryBuilder.andWhere(
-      `(${column}, outgoing.id) ${operator} (CAST(:cursorValue AS ${castType}), CAST(:cursorId AS uuid))`,
-      { cursorValue: sortValue, cursorId: id },
-    );
+    applyCursorCondition(queryBuilder, {
+      column,
+      alias: "outgoing",
+      castType,
+      sortValue,
+      id,
+      operator,
+    });
   }
 
   private applySorting(

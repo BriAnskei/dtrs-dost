@@ -2,6 +2,7 @@ import { BadRequestException, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { EntityManager, Repository, SelectQueryBuilder } from "typeorm";
 import { decodeCursor, encodeCursor } from "../../../../common/pagination/cursor";
+import { applyCursorCondition } from "../../../../common/pagination/cursor-query.util";
 import { PaginatedResponse } from "../../../../common/pagination/paginated-response";
 import { FindIncomingDocumentsQueryDto } from "../dto/find-incoming-documents-query.dto";
 import {
@@ -260,10 +261,14 @@ export class IncomingDocumentsRepository {
     id: string,
     operator: "<" | ">",
   ): void {
-    queryBuilder.andWhere(
-      `(${column}, incoming.id) ${operator} (CAST(:cursorValue AS ${castType}), CAST(:cursorId AS uuid))`,
-      { cursorValue: sortValue, cursorId: id },
-    );
+    applyCursorCondition(queryBuilder, {
+      column,
+      alias: "incoming",
+      castType,
+      sortValue,
+      id,
+      operator,
+    });
   }
 
   private applySorting(
