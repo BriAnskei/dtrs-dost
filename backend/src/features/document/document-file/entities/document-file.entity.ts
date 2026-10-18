@@ -1,11 +1,4 @@
-import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  JoinColumn,
-  ManyToOne,
-  PrimaryGeneratedColumn,
-} from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { UserEntity } from "../../../user/entities/user.entity";
 
 @Entity("document_files")
@@ -38,10 +31,4 @@ export class DocumentFileEntity {
   })
   @JoinColumn({ name: "uploader_id" })
   uploader!: UserEntity | null;
-
-  @CreateDateColumn({
-    name: "created_at",
-    type: "timestamptz",
-  })
-  created_at!: Date;
 }

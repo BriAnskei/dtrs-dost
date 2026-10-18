@@ -1,5 +1,6 @@
 import {
   Column,
+  CreateDateColumn,
   Entity,
   JoinColumn,
   OneToMany,
@@ -113,4 +114,10 @@ export class IncomingDocumentEntity {
     (assignment) => assignment.incoming_document,
   )
   assignments!: IncomingDocumentAssignmentEntity[];
+
+  @CreateDateColumn({
+    type: "timestamptz",
+    default: () => "CURRENT_TIMESTAMP",
+  })
+  created_at!: Date;
 }

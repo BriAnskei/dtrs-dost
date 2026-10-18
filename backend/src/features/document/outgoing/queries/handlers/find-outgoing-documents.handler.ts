@@ -41,7 +41,7 @@ export class FindOutgoingDocumentsHandler
     dto.date_prepared = document.date_prepared;
     dto.date_received = document.date_received;
     dto.received_by = document.received_by;
-    dto.created_at = document.document_file.created_at;
+    dto.created_at = document.created_at;
     dto.uploader_id = document.document_file.uploader_id;
     dto.uploader_name = document.document_file.uploader?.full_name ?? null;
 

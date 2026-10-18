@@ -59,12 +59,6 @@ const RECEIVER_ROUTES: NavItem[] = [
     icon: <Document />,
     roles: [3],
   },
-  {
-    name: "Invalid Docs",
-    path: "/invalid-documents",
-    icon: <BoxCubeIcon />,
-    roles: [3],
-  },
 ];
 
 // Division
@@ -100,11 +94,6 @@ export const NAV_ITEMS: NavItem[] = [
       {
         name: "Extracted Docs",
         path: "/extracted-queues",
-        roles: [1, 2],
-      },
-      {
-        name: "Invalid Docs",
-        path: "/upload-invalid",
         roles: [1, 2],
       },
       {

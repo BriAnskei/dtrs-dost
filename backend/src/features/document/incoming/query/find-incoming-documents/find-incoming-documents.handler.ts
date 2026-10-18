@@ -47,7 +47,7 @@ export class FindIncomingDocumentsHandler
     dto.summary = document.summary;
 
     dto.updated_at = document.updated_at;
-    dto.created_at = document.document_file.created_at;
+    dto.created_at = document.created_at;
 
     dto.uploader_id = document.document_file.uploader_id;
     dto.uploader_name = document.document_file.uploader?.full_name ?? null;

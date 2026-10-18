@@ -44,7 +44,7 @@ export default function OutgoingDocumentsFilters({
           name="outgoing-search-no-autofill"
           data-form-type="other"
           onChange={(e) => onSearchChange(e.target.value)}
-          placeholder="Search tracking no., subject, recipient..."
+          placeholder="Search tracking no., subject..."
           autoComplete="new-password"
         />
       </div>

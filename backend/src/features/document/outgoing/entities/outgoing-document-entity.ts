@@ -1,5 +1,6 @@
 import {
   Column,
+  CreateDateColumn,
   Entity,
   Index,
   JoinColumn,
@@ -52,4 +53,10 @@ export class OutgoingDocumentEntity {
 
   @Column({ type: "varchar", length: 255, nullable: false })
   received_by!: string;
+
+  @CreateDateColumn({
+    type: "timestamptz",
+    default: () => "CURRENT_TIMESTAMP",
+  })
+  created_at!: Date;
 }

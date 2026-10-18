@@ -10,9 +10,15 @@ import type { IncomingDocumentRow } from "../types/incoming-document-row.type";
 import IncomingDocumentsFilters from "./IncomingDocumentFilters";
 
 function StatusBadge({ status }: { status: IncomingDocumentStatus }) {
+  // Drop any bg-* classes (including dark:bg-*) so only the text color remains
+  const textOnly = STATUS_BADGE_CLASSES[status]
+    .split(" ")
+    .filter((cls) => !/(^|:)bg-/.test(cls))
+    .join(" ");
+
   return (
     <span
-      className={`inline-flex items-center rounded-full px-2 py-0.5 text-theme-xs font-medium whitespace-nowrap ${STATUS_BADGE_CLASSES[status]}`}
+      className={`inline-flex items-center text-theme-xs font-medium whitespace-nowrap ${textOnly}`}
     >
       {STATUS_LABELS[status]}
     </span>

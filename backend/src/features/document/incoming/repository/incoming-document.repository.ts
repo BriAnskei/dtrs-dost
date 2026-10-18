@@ -77,7 +77,7 @@ export class IncomingDocumentsRepository {
     const nextCursor =
       hasNextPage && lastDocument
         ? encodeCursor<IncomingDocumentCursor>({
-            id: this.getCursorId(lastDocument, sort),
+            id: lastDocument.id, // always incoming_documents.id now
             sort,
             sortValue: this.getSortValue(lastDocument, sort),
           })
@@ -94,11 +94,13 @@ export class IncomingDocumentsRepository {
     }
 
     // Escape LIKE wildcards so user input is matched literally.
-    // ILIKE uses backslash as the default escape character.
     const escaped = term.replace(/[\\%_]/g, "\\$&");
 
-    // Two independent subqueries so each side can use its own trigram GIN index.
-    // UNION ALL: duplicates are harmless inside IN (...) and it skips the dedupe step.
+    // Two independent branches so each can use its own trigram GIN index:
+    //   - incoming_documents.subject  -> idx_incoming_documents_subject_trgm
+    //   - document_files.code         -> idx_document_files_code_trgm
+    // document_files is shared with outgoing_documents; joining back to
+    // incoming_documents keeps only rows that belong to incoming.
     queryBuilder.andWhere(
       `incoming.id IN (
         SELECT subject_match.id
@@ -133,14 +135,15 @@ export class IncomingDocumentsRepository {
     endDate?: string,
   ): void {
     if (dateField === IncomingDocumentDateField.UploadDate) {
-      // created_at is timestamptz. Convert the date-only bounds to
-      // Manila-midnight instants, so the filter doesn't depend on the
-      // DB session timezone. The column stays untouched, so the index is used.
+      // created_at is timestamptz and now lives on incoming_documents.
+      // Convert the date-only bounds to Manila-midnight instants so the filter
+      // doesn't depend on the DB session timezone. The column stays untouched,
+      // so idx_incoming_documents_created_id can be used.
       const tz = IncomingDocumentsRepository.APP_TIME_ZONE;
 
       if (startDate) {
         queryBuilder.andWhere(
-          `documentFile.created_at >= (CAST(:startDate AS date)::timestamp AT TIME ZONE :tz)`,
+          `incoming.created_at >= (CAST(:startDate AS date)::timestamp AT TIME ZONE :tz)`,
           { startDate, tz },
         );
       }
@@ -148,7 +151,7 @@ export class IncomingDocumentsRepository {
       if (endDate) {
         // Exclusive upper bound: midnight at the start of the day after endDate.
         queryBuilder.andWhere(
-          `documentFile.created_at < ((CAST(:endDate AS date) + 1)::timestamp AT TIME ZONE :tz)`,
+          `incoming.created_at < ((CAST(:endDate AS date) + 1)::timestamp AT TIME ZONE :tz)`,
           { endDate, tz },
         );
       }
@@ -186,7 +189,6 @@ export class IncomingDocumentsRepository {
 
     switch (sort) {
       case IncomingDocumentSortOrder.NewestUpload:
-        // For upload sorts, `id` is the document_files.id.
         this.applyUploadCursor(queryBuilder, id, "<");
         break;
 
@@ -222,8 +224,8 @@ export class IncomingDocumentsRepository {
   }
 
   /**
-   * Sort key is (documentFile.created_at, documentFile.id), both on one table,
-   * so it matches idx_document_files_created_at_id.
+   * Sort key is (incoming.created_at, incoming.id), both on incoming_documents,
+   * so it matches idx_incoming_documents_created_id (forward or backward scan).
    *
    * The cursor's created_at is looked up from the DB instead of being taken from
    * the cursor string: a JS Date only has millisecond precision while timestamptz
@@ -231,20 +233,21 @@ export class IncomingDocumentsRepository {
    *
    * The scalar subquery is uncorrelated, so Postgres evaluates it once as an
    * InitPlan and the row comparison can still be used as an index condition.
+   * (A stale cursor whose id no longer exists yields NULL -> an empty page.)
    */
   private applyUploadCursor(
     queryBuilder: IncomingQueryBuilder,
-    documentFileId: string,
+    incomingId: string,
     operator: "<" | ">",
   ): void {
     queryBuilder.andWhere(
-      `(documentFile.created_at, documentFile.id) ${operator} (
-        (SELECT cursor_file.created_at
-           FROM document_files cursor_file
-          WHERE cursor_file.id = CAST(:cursorId AS uuid)),
+      `(incoming.created_at, incoming.id) ${operator} (
+        (SELECT cursor_row.created_at
+           FROM incoming_documents cursor_row
+          WHERE cursor_row.id = CAST(:cursorId AS uuid)),
         CAST(:cursorId AS uuid)
       )`,
-      { cursorId: documentFileId },
+      { cursorId: incomingId },
     );
   }
 
@@ -278,14 +281,14 @@ export class IncomingDocumentsRepository {
     switch (sort) {
       case IncomingDocumentSortOrder.NewestUpload:
         queryBuilder
-          .orderBy("documentFile.created_at", "DESC")
-          .addOrderBy("documentFile.id", "DESC");
+          .orderBy("incoming.created_at", "DESC")
+          .addOrderBy("incoming.id", "DESC");
         break;
 
       case IncomingDocumentSortOrder.OldestUpload:
         queryBuilder
-          .orderBy("documentFile.created_at", "ASC")
-          .addOrderBy("documentFile.id", "ASC");
+          .orderBy("incoming.created_at", "ASC")
+          .addOrderBy("incoming.id", "ASC");
         break;
 
       case IncomingDocumentSortOrder.LatestReceived:
@@ -303,21 +306,6 @@ export class IncomingDocumentsRepository {
     }
   }
 
-  private getCursorId(
-    document: IncomingDocumentEntity,
-    sort: IncomingDocumentSortOrder,
-  ): string {
-    switch (sort) {
-      case IncomingDocumentSortOrder.NewestUpload:
-      case IncomingDocumentSortOrder.OldestUpload:
-        return document.document_file.id;
-
-      case IncomingDocumentSortOrder.LatestReceived:
-      case IncomingDocumentSortOrder.SubjectAsc:
-        return document.id;
-    }
-  }
-
   private getSortValue(
     document: IncomingDocumentEntity,
     sort: IncomingDocumentSortOrder,
@@ -326,7 +314,7 @@ export class IncomingDocumentsRepository {
       case IncomingDocumentSortOrder.NewestUpload:
       case IncomingDocumentSortOrder.OldestUpload:
         // Informational only: the real created_at is re-read from the DB in applyUploadCursor.
-        return document.document_file.created_at.toISOString();
+        return document.created_at.toISOString();
 
       case IncomingDocumentSortOrder.LatestReceived:
         return document.date_received;

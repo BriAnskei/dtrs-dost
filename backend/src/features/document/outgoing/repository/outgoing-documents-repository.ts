@@ -2,7 +2,6 @@ import { BadRequestException, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { EntityManager, Repository, SelectQueryBuilder } from "typeorm";
 import { decodeCursor, encodeCursor } from "../../../../common/pagination/cursor";
-import { applyCursorCondition } from "../../../../common/pagination/cursor-query.util";
 import { PaginatedResponse } from "../../../../common/pagination/paginated-response";
 import { FindOutgoingDocumentsQueryDto } from "../dto/find-outgoing-documents-query.dto";
 import { OutgoingDocumentEntity } from "../entities/outgoing-document-entity";
@@ -46,8 +45,8 @@ export class OutgoingDocumentRepository {
       throw new BadRequestException("startDate must not be later than endDate");
     }
 
-    // document_file_id is NOT NULL, so INNER JOIN is equivalent to the previous
-    // LEFT JOIN but lets the planner choose the join order freely.
+    // document_file_id is NOT NULL, so INNER JOIN is equivalent to a LEFT JOIN
+    // but lets the planner choose the join order freely.
     const queryBuilder = this.repository
       .createQueryBuilder("outgoing")
       .innerJoinAndSelect("outgoing.document_file", "documentFile")
@@ -76,7 +75,7 @@ export class OutgoingDocumentRepository {
     const nextCursor =
       hasNextPage && lastDocument
         ? encodeCursor<OutgoingDocumentCursor>({
-            id: this.getCursorId(lastDocument, sort),
+            id: lastDocument.id,
             sort,
             sortValue: this.getSortValue(lastDocument, sort),
           })
@@ -96,7 +95,8 @@ export class OutgoingDocumentRepository {
     // ILIKE uses backslash as the default escape character.
     const escaped = term.replace(/[\\%_]/g, "\\$&");
 
-    // Two independent subqueries so each side can use its own trigram GIN index.
+    // Two independent subqueries so each side can use its own trigram GIN index
+    // (idx_outgoing_documents_subject_trgm, idx_document_files_code_trgm).
     // A plain OR across two tables cannot be answered by a BitmapOr.
     // UNION ALL: duplicates are harmless inside IN (...) and it skips the dedupe step.
     queryBuilder.andWhere(
@@ -131,7 +131,7 @@ export class OutgoingDocumentRepository {
 
       if (startDate) {
         queryBuilder.andWhere(
-          `documentFile.created_at >= (CAST(:startDate AS date)::timestamp AT TIME ZONE :tz)`,
+          `outgoing.created_at >= (CAST(:startDate AS date)::timestamp AT TIME ZONE :tz)`,
           { startDate, tz },
         );
       }
@@ -139,7 +139,7 @@ export class OutgoingDocumentRepository {
       if (endDate) {
         // Exclusive upper bound: midnight at the start of the day after endDate.
         queryBuilder.andWhere(
-          `documentFile.created_at < ((CAST(:endDate AS date) + 1)::timestamp AT TIME ZONE :tz)`,
+          `outgoing.created_at < ((CAST(:endDate AS date) + 1)::timestamp AT TIME ZONE :tz)`,
           { endDate, tz },
         );
       }
@@ -179,7 +179,6 @@ export class OutgoingDocumentRepository {
 
     switch (sort) {
       case OutgoingDocumentSortOrder.NewestUpload:
-        // For upload sorts, `id` is the document_files.id.
         this.applyUploadCursor(queryBuilder, id, "<");
         break;
 
@@ -215,8 +214,9 @@ export class OutgoingDocumentRepository {
   }
 
   /**
-   * Sort key is (documentFile.created_at, documentFile.id), both on one table,
-   * so it matches idx_document_files_created_at_id.
+   * Sort key is (outgoing.created_at, outgoing.id), both on outgoing_documents,
+   * so it matches idx_outgoing_documents_created_at_id and never has to walk the
+   * shared document_files table (most of whose rows belong to incoming files).
    *
    * The cursor's created_at is looked up from the DB instead of being taken from
    * the cursor string: a JS Date only has millisecond precision while timestamptz
@@ -227,17 +227,17 @@ export class OutgoingDocumentRepository {
    */
   private applyUploadCursor(
     queryBuilder: OutgoingQueryBuilder,
-    documentFileId: string,
+    outgoingId: string,
     operator: "<" | ">",
   ): void {
     queryBuilder.andWhere(
-      `(documentFile.created_at, documentFile.id) ${operator} (
-        (SELECT cursor_file.created_at
-           FROM document_files cursor_file
-          WHERE cursor_file.id = CAST(:cursorId AS uuid)),
+      `(outgoing.created_at, outgoing.id) ${operator} (
+        (SELECT cursor_doc.created_at
+           FROM outgoing_documents cursor_doc
+          WHERE cursor_doc.id = CAST(:cursorId AS uuid)),
         CAST(:cursorId AS uuid)
       )`,
-      { cursorId: documentFileId },
+      { cursorId: outgoingId },
     );
   }
 
@@ -257,14 +257,11 @@ export class OutgoingDocumentRepository {
     if (sortValue === null) {
       throw new BadRequestException("Invalid cursor sort value");
     }
-    applyCursorCondition(queryBuilder, {
-      column,
-      alias: "outgoing",
-      castType,
-      sortValue,
-      id,
-      operator,
-    });
+
+    queryBuilder.andWhere(
+      `(${column}, outgoing.id) ${operator} (CAST(:cursorValue AS ${castType}), CAST(:cursorId AS uuid))`,
+      { cursorValue: sortValue, cursorId: id },
+    );
   }
 
   private applySorting(
@@ -274,14 +271,14 @@ export class OutgoingDocumentRepository {
     switch (sort) {
       case OutgoingDocumentSortOrder.NewestUpload:
         queryBuilder
-          .orderBy("documentFile.created_at", "DESC")
-          .addOrderBy("documentFile.id", "DESC");
+          .orderBy("outgoing.created_at", "DESC")
+          .addOrderBy("outgoing.id", "DESC");
         break;
 
       case OutgoingDocumentSortOrder.OldestUpload:
         queryBuilder
-          .orderBy("documentFile.created_at", "ASC")
-          .addOrderBy("documentFile.id", "ASC");
+          .orderBy("outgoing.created_at", "ASC")
+          .addOrderBy("outgoing.id", "ASC");
         break;
 
       case OutgoingDocumentSortOrder.LatestPrepared:
@@ -299,21 +296,6 @@ export class OutgoingDocumentRepository {
     }
   }
 
-  private getCursorId(
-    document: OutgoingDocumentEntity,
-    sort: OutgoingDocumentSortOrder,
-  ): string {
-    switch (sort) {
-      case OutgoingDocumentSortOrder.NewestUpload:
-      case OutgoingDocumentSortOrder.OldestUpload:
-        return document.document_file.id;
-
-      case OutgoingDocumentSortOrder.LatestPrepared:
-      case OutgoingDocumentSortOrder.SubjectAsc:
-        return document.id;
-    }
-  }
-
   private getSortValue(
     document: OutgoingDocumentEntity,
     sort: OutgoingDocumentSortOrder,
@@ -321,7 +303,8 @@ export class OutgoingDocumentRepository {
     switch (sort) {
       case OutgoingDocumentSortOrder.NewestUpload:
       case OutgoingDocumentSortOrder.OldestUpload:
-        return document.document_file.created_at.toISOString();
+        // Informational only: the exact created_at is re-read from the DB in applyUploadCursor.
+        return document.created_at.toISOString();
 
       case OutgoingDocumentSortOrder.LatestPrepared:
         return document.date_prepared;
