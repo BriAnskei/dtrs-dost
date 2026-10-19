@@ -139,7 +139,6 @@ export default function ReviewSplitView({
           <DecisionBanner
             decision={outcome.decision}
             minEffective={outcome.minEffective}
-            assignedDivision={outcome.assignedDivision}
           />
           <ReviewFieldList
             rows={outcome.rows}

@@ -113,6 +113,7 @@ export async function extractNativeText(
     const tokens: ExtractionToken[] = line.map((w) => ({
       text: w.text,
       bbox: toBox(w, viewport.width, viewport.height),
+      confidence: PDF_EXTRACTION_CONFIG.nativeTextConfidence,
     }));
     return {
       chunkId: `p${pageNumber}-t${i + 1}`,

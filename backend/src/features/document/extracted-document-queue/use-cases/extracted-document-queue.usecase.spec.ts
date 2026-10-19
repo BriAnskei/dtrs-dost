@@ -9,27 +9,31 @@
  *   receiveDocument(file, dto, user_id): Promise<ReceiveDocumentResponse>
  *
  * It:
- *   1. Calls `extractionService.extract(...)` to get LLM-extracted fields.
- *   2. Generates an S3 object key, uploads the file buffer via `s3Service`.
- *   3. Opens a TypeORM transaction that:
+ *   1. Dedupes dto.chunks by chunkId (keep first occurrence).
+ *   2. Calls `extractionService.extract(...)` to get LLM-extracted fields.
+ *   3. Calls `resolveExtraction` once (computes effectiveConfidence per field
+ *      + final ACCEPT/REVIEW/INVALID decision).
+ *   4. Generates an S3 object key, uploads the file buffer via `s3Service`.
+ *   5. Opens a TypeORM transaction that:
  *      a. Creates a DocumentFileEntity via `documentFileService.create(...)`.
  *      b. Creates an ExtractedDocumentQueueEntity via
- *         `extractedDocumentQueueService.create(...)` — persisting the raw
- *         extracted_data, extracted_chunks, and a `decision` computed by
- *         `resolveDecision`.
- *      c. Returns `resolveExtraction(...)` (computes effectiveConfidence per
- *         field + final ACCEPT/REVIEW/INVALID decision for the client).
- *   4. On transaction failure, deletes the S3 object (cleanup) and rethrows.
+ *         `extractedDocumentQueueService.create(...)` — persisting the
+ *         extracted_data, deduped extracted_chunks, and the decision from
+ *         `resolveExtraction` (NOT a separate `resolveDecision`).
+ *      c. Returns the same `resolveExtraction` result to the client.
+ *   6. On transaction failure, deletes the S3 object (cleanup) and rethrows.
  *
  * KEY BEHAVIORS TESTED:
  *   - `resolveExtraction` — effectiveConfidence = round(aiConfidence * minSourceConfidence / 100).
- *   - `resolveDecision` — INVALID if any field value is null / aiConfidence null / effective null;
+ *   - Decision logic — INVALID if any field value is null / aiConfidence null / effective null;
  *     ACCEPT if min effective >= 90; REVIEW otherwise.
  *   - S3 upload happens BEFORE the transaction.
  *   - S3 cleanup fires when the transaction throws.
  *   - S3 cleanup swallows its own errors (logs only) and rethrows the original.
  *   - user_id is forwarded to documentFileService as uploader_id.
  *   - The decision persisted to the queue entity matches the resolved decision.
+ *   - Chunk deduplication: duplicate chunkIds are deduped once, same array
+ *     reaches extract, resolve, and store.
  */
 
 import { Test } from "@nestjs/testing";
@@ -50,10 +54,9 @@ import type {
 } from "../types/extracted-types";
 import type { CreateExtractedDocumentDto } from "../dto/create-extracted-document-dto";
 import { ExtractionService } from "../../extraction/extraction.service";
-import { DocumentFileService } from "../../document-file/document-file.service";
+import { DocumentFileService } from "../../document-file/service/document-file.service";
 import { ExtractedDocumentQueueService } from "../service/extracted-document-queue.service";
 import { S3Service } from "../../../../storage/s3/s3.service";
-import type { Decision } from "../extration-queue.constant";
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -67,13 +70,19 @@ function makeField(
   return { field, value, chunkIds, aiConfidence };
 }
 
-/** Build an ExtractedChunk (receiver-side chunk with source confidence). */
+/** Build an ExtractedChunk (receiver-side chunk with source confidence + geometry). */
 function makeChunk(
   chunkId: string,
   text: string,
   sourceConfidence: number,
 ): ExtractedChunk {
-  return { chunkId, text, sourceConfidence };
+  return {
+    chunkId,
+    text,
+    sourceConfidence,
+    page: 1,
+    bbox: { x: 0, y: 0, w: 0.5, h: 0.05 },
+  };
 }
 
 /** A fake Express Multer file for the file upload param. */
@@ -103,8 +112,8 @@ function makeMockManager(): EntityManager {
  * Build the use-case with all collaborators mocked.
  *
  * The DataSource mock's `transaction` simply invokes the callback the use-case
- * passes to it — this means the REAL `resolveExtraction` and `resolveDecision`
- * logic in the use-case executes, ensuring we test the actual code.
+ * passes to it — this means the REAL `resolveExtraction` logic in the use-case
+ * executes, ensuring we test the actual code.
  *
  * Set `transactionShouldFail` to make `documentFileService.create` reject,
  * which triggers the use-case's catch block (S3 cleanup + rethrow).
@@ -151,7 +160,7 @@ async function buildUseCase(opts: {
 
   // The DataSource.transaction mock invokes the callback that the use-case
   // passes in. The callback runs the REAL use-case logic (resolveExtraction,
-  // resolveDecision, documentFileService.create, etc.).
+  // documentFileService.create, etc.).
   const mockDataSource = {
     transaction: jest.fn().mockImplementation(async (cb: (manager: EntityManager) => Promise<unknown>) =>
       cb({} as EntityManager),
@@ -202,11 +211,11 @@ describe("ExtractedDocumentQueueUseCase", () => {
 
       const response = await useCase.receiveDocument(file, dto, "user-123");
 
-      // 1. Extraction was called with "incoming" document type and the chunks.
+      // 1. Extraction was called with "incoming" document type and text-only chunks (geometry stripped).
       expect(mockExtractionService.extract).toHaveBeenCalledTimes(1);
       expect(mockExtractionService.extract).toHaveBeenCalledWith({
         documentType: "incoming",
-        chunks: dto.chunks,
+        chunks: dto.chunks.map(({ page, bbox, ...textOnly }) => textOnly),
       });
 
       // 2. S3 upload happened BEFORE the transaction, with the file buffer.
@@ -230,10 +239,10 @@ describe("ExtractedDocumentQueueUseCase", () => {
         expect.any(Object),
       );
 
-      // 5. Queue entity was created with extracted_data, chunks, and a decision.
+      // 5. Queue entity was created with extracted_data, deduped chunks, and a decision.
       expect(mockExtractedDocumentQueueService.create).toHaveBeenCalledTimes(1);
       const createArg = mockExtractedDocumentQueueService.create!.mock.calls[0][0];
-      expect(createArg.extracted_chunks).toBe(dto.chunks);
+      expect(createArg.extracted_chunks).toEqual([makeChunk("c1", "Subject: Foo", 95)]);
       expect(createArg.extracted_data).toHaveLength(5);
       expect(createArg.decision).toMatch(/^(ACCEPT|REVIEW|INVALID)$/);
 
@@ -406,18 +415,18 @@ describe("ExtractedDocumentQueueUseCase", () => {
   });
 
   /*
-   * ── resolveDecision: ACCEPT / REVIEW / INVALID ───────────────────────
+   * ── resolveExtraction decision: ACCEPT / REVIEW / INVALID ──────────────
    *
    * Constants: ACCEPT_CONFIDENCE_THRESHOLD = 90.
    *
    * - Any field with value === null → INVALID.
    * - Any field with aiConfidence === null (while value !== null) → INVALID
    *   (this covers LLM anti-hallucination nulls from ExtractionService).
-   * - effectiveConfidence === null (cited chunk missing) → INVALID.
+   * - effectiveConfidence === null (cited chunk missing or no citations) → INVALID.
    * - min effectiveConfidence >= 90 → ACCEPT.
    * - min effectiveConfidence < 90 → REVIEW.
    */
-  describe("resolveDecision — ACCEPT / REVIEW / INVALID", () => {
+  describe("resolveExtraction decision — ACCEPT / REVIEW / INVALID", () => {
     it("returns ACCEPT when all fields have effectiveConfidence >= 90", async () => {
       const { useCase, mockExtractionService } = await buildUseCase();
 
@@ -464,10 +473,10 @@ describe("ExtractedDocumentQueueUseCase", () => {
       expect(response.decision).toBe("REVIEW");
     });
 
-    it("returns INVALID when any field value is null (value === null in resolveDecision)", async () => {
+    it("returns INVALID when any field value is null (value === null in resolveExtraction)", async () => {
       const { useCase, mockExtractionService } = await buildUseCase();
 
-      // "from" has value=null → resolveDecision returns INVALID.
+      // "from" has value=null → resolveExtraction returns INVALID.
       const fields = [
         makeField("subject", "Foo", ["c1"], 95),
         makeField("from", null, [], null),
@@ -490,7 +499,7 @@ describe("ExtractedDocumentQueueUseCase", () => {
     it("returns INVALID when aiConfidence is null for a field with a value (anti-hallucination null)", async () => {
       const { useCase, mockExtractionService } = await buildUseCase();
 
-      // "subject" has value="Foo" but aiConfidence=null → resolveDecision returns INVALID.
+      // "subject" has value="Foo" but aiConfidence=null → resolveExtraction returns INVALID.
       const fields = [
         makeField("subject", "Foo", ["c1"], null),
         makeField("from", "Bar", ["c1"], 95),
@@ -555,6 +564,68 @@ describe("ExtractedDocumentQueueUseCase", () => {
       const createArg = mockExtractedDocumentQueueService.create!.mock.calls[0][0];
       expect(createArg.decision).toBe(response.decision);
       expect(createArg.decision).toBe("REVIEW");
+    });
+
+    it("stores the same decision returned to the client (ACCEPT path)", async () => {
+      const { useCase, mockExtractionService, mockExtractedDocumentQueueService } = await buildUseCase();
+
+      const fields = [
+        makeField("subject", "Foo", ["c1"], 95),
+        makeField("from", "Bar", ["c1"], 95),
+        makeField("to", "Baz", ["c1"], 95),
+        makeField("dateReceived", "10/03/2026", ["c1"], 95),
+        makeField("summary", "Summary text here", ["c1"], 95),
+      ];
+
+      mockExtractionService.extract = jest.fn().mockResolvedValue({ fields });
+
+      const response = await useCase.receiveDocument(
+        makeMulterFile(),
+        makeDto([makeChunk("c1", "Subject: Foo From: Bar To: Baz Date: 10/03/2026", 95)]),
+        "user-123",
+      );
+
+      const createArg = mockExtractedDocumentQueueService.create!.mock.calls[0][0];
+      expect(createArg.decision).toBe(response.decision);
+      expect(createArg.decision).toBe("ACCEPT");
+    });
+  });
+
+  /*
+   * ── Chunk deduplication ────────────────────────────────────────────────
+   *
+   * Duplicate chunkIds in dto.chunks are deduped once (keep first) in the
+   * use-case before extraction, resolution, and storage. The same deduped
+   * array reaches the LLM, resolveExtraction, and extracted_chunks.
+   */
+  describe("chunk deduplication", () => {
+    it("dedupes duplicate chunkIds, keeping the first occurrence", async () => {
+      const { useCase, mockExtractionService, mockDocumentFileService } = await buildUseCase();
+
+      const fields = [
+        makeField("subject", "Foo", ["c1"], 90),
+        makeField("from", "Bar", ["c1"], 90),
+        makeField("to", "Baz", ["c1"], 90),
+        makeField("dateReceived", "10/03/2026", ["c1"], 90),
+        makeField("summary", "Summary text here", ["c1"], 90),
+      ];
+
+      mockExtractionService.extract = jest.fn().mockResolvedValue({ fields });
+
+      const chunks = [
+        makeChunk("c1", "Subject: Foo From: Bar", 95),
+        makeChunk("c1", "DUPLICATE TEXT SHOULD BE IGNORED", 80), // duplicate chunkId
+        makeChunk("c2", "To: Baz Date: 10/03/2026", 95),
+      ];
+
+      await useCase.receiveDocument(makeMulterFile(), makeDto(chunks), "user-123");
+
+      // The LLM should receive deduped chunks (first occurrence wins).
+      const extractArg = mockExtractionService.extract!.mock.calls[0][0];
+      expect(extractArg.chunks).toHaveLength(2);
+      expect(extractArg.chunks[0].chunkId).toBe("c1");
+      expect(extractArg.chunks[0].text).toBe("Subject: Foo From: Bar"); // first occurrence
+      expect(extractArg.chunks[0].sourceConfidence).toBe(95); // first occurrence wins
     });
   });
 

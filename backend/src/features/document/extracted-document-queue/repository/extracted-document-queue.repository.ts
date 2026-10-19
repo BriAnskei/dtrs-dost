@@ -233,4 +233,10 @@ export class ExtractedDocumentQueueRepository {
       nextCursor,
     };
   }
+
+  async findOneById(id: string): Promise<ExtractedDocumentQueueEntity | null> {
+    return this.repository.findOne({
+      where: { id },
+    });
+  }
 }

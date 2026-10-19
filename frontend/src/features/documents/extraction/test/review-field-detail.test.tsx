@@ -147,7 +147,7 @@ describe("ReviewFieldDetail", () => {
       ).toBeInTheDocument();
     });
 
-    it("shows 'Not found' confidence when aiConfidence is null", () => {
+    it("shows 'could not be verified' message when aiConfidence is null but value is present", () => {
       render(
         <ReviewFieldDetail
           row={makeRow("subject", { aiConfidence: null, sourceConfidence: null, effectiveConfidence: null })}
@@ -157,10 +157,9 @@ describe("ReviewFieldDetail", () => {
         />,
       );
 
-      // When all confidences are null, pct renders "—" for each. The span contains the effective confidence.
-      expect(screen.getByText(/AI —/)).toBeInTheDocument();
-      expect(screen.getByText(/Source —/)).toBeInTheDocument();
-      expect(screen.getByText("—")).toBeInTheDocument();
+      expect(
+        screen.getByText(/could not be verified against the document text/),
+      ).toBeInTheDocument();
     });
 
     it("renders the Edit pencil button (not Save/Cancel)", () => {

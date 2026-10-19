@@ -5,7 +5,7 @@ import { OutgoingDocumentCreatedEvent } from "../../../../../common/events/outgo
 import { buildDocumentKey } from "../../../../../storage/s3/buildDocumentKey";
 import { S3Service } from "../../../../../storage/s3/s3.service";
 import { capitalizeWords } from "../../../../../util/capitalizer";
-import { DocumentFileService } from "../../../document-file/document-file.service";
+import { DocumentFileService } from "../../../document-file/service/document-file.service";
 import { generateDocumentCode } from "../../../utils/document-code.util";
 import { OutgoingDocumentRepository } from "../../repository/outgoing-documents-repository";
 import { CreateOutgoingDocumentCommand } from "./create-outgoing-document.command";

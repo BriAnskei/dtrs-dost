@@ -2,9 +2,12 @@ import {
   Body,
   Controller,
   Get,
+  Param,
+  ParseUUIDPipe,
   Post,
   Query,
   Req,
+  StreamableFile,
   UploadedFile,
   UseInterceptors,
 } from "@nestjs/common";
@@ -56,5 +59,11 @@ export class ExtractionQueueController {
     @Query() query: FindMyExtractedDocumentQueuesQueryDto,
   ) {
     return this.service.findAllByUploaderId(req.user.id, query);
+  }
+
+  @Get(":id")
+  @Roles(Role.SuperAdmin, Role.Admin)
+  findOne(@Param("id", ParseUUIDPipe) id: string) {
+    return this.service.findOne(id);
   }
 }

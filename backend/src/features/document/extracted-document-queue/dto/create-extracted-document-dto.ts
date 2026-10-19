@@ -5,12 +5,36 @@ import {
   IsArray,
   IsInt,
   IsNotEmpty,
+  IsNumber,
   IsString,
   Max,
   MaxLength,
   Min,
   ValidateNested,
 } from "class-validator";
+
+export class ChunkBBoxDto {
+  @IsNumber() @Min(0) @Max(1) x!: number;
+  @IsNumber() @Min(0) @Max(1) y!: number;
+  @IsNumber() @Min(0) @Max(1) w!: number;
+  @IsNumber() @Min(0) @Max(1) h!: number;
+}
+
+export class ChunkTokenDto {
+  @IsString()
+  @IsNotEmpty()
+  text!: string;
+
+  @ValidateNested()
+  @Type(() => ChunkBBoxDto)
+  bbox!: ChunkBBoxDto;
+
+  @IsNumber()
+  @Min(0)
+  @Max(1)
+  confidence!: number;
+}
+
 export class ReceiverChunkDto {
   @IsString()
   @IsNotEmpty()
@@ -26,6 +50,19 @@ export class ReceiverChunkDto {
   @Min(0)
   @Max(100)
   sourceConfidence!: number;
+
+  @IsInt()
+  @Min(1)
+  page!: number;
+
+  @ValidateNested()
+  @Type(() => ChunkBBoxDto)
+  bbox!: ChunkBBoxDto;
+
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => ChunkTokenDto)
+  tokens?: ChunkTokenDto[];
 }
 
 export class CreateExtractedDocumentDto {
@@ -57,7 +94,7 @@ export class CreateExtractedDocumentDto {
   })
   @IsArray()
   @ArrayNotEmpty()
-  @ArrayMaxSize(500)
+  @ArrayMaxSize(2000)
   @ValidateNested({ each: true })
   @Type(() => ReceiverChunkDto)
   chunks!: ReceiverChunkDto[];

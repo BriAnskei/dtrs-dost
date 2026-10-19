@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { EntityManager, Repository } from "typeorm";
-import { DocumentFileEntity } from "./entities/document-file.entity";
+import { DocumentFileEntity } from "../entities/document-file.entity";
 
 @Injectable()
 export class DocumentFileRepository {
@@ -25,5 +25,11 @@ export class DocumentFileRepository {
     const result = await repo.update({ id }, { code });
 
     return (result.affected ?? 0) > 0;
+  }
+
+  async findById(id: string): Promise<DocumentFileEntity | null> {
+    return this.repository.findOne({
+      where: { id },
+    });
   }
 }

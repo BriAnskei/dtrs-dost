@@ -1,4 +1,3 @@
-import { BadRequestException } from "@nestjs/common";
 import { Test } from "@nestjs/testing";
 import type { DocumentDirection } from "./contants/document-direction";
 import type { ExtractionRequestDto } from "./dto/extraction-request-dto";
@@ -55,27 +54,6 @@ async function buildService(
   };
 }
 
-/* NestJS HttpException stores the body on getResponse(), not on .message. */
-async function expectBadRequest(
-  action: () => Promise<unknown>,
-  expectedError: string,
-): Promise<void> {
-  let thrown: unknown;
-
-  try {
-    await action();
-    throw new Error("expected action to reject with BadRequestException");
-  } catch (error) {
-    thrown = error;
-  }
-
-  expect(thrown).toBeInstanceOf(BadRequestException);
-  expect((thrown as BadRequestException).getResponse()).toMatchObject({
-    success: false,
-    error: expectedError,
-  });
-}
-
 describe("ExtractionService", () => {
   it("deduplicates duplicate chunkIds in the request instead of throwing 400", async () => {
     const { service, mock } = await buildService(async (_dt, chunks) => {
@@ -126,11 +104,11 @@ describe("ExtractionService", () => {
     expect(byField.from.value).toBe("Bar");
   });
 
-  it("throws 400 when the LLM returns a duplicate field key", async () => {
+  it("keeps the first occurrence and warns when the LLM returns a duplicate field key", async () => {
     const { service } = await buildService(() =>
       Promise.resolve([
         field("subject", "Foo", ["p1-o1"], 90),
-        field("subject", "Bar", ["p1-o2"], 91), // duplicate FIELD name — genuinely invalid
+        field("subject", "Bar", ["p1-o2"], 91), // duplicate FIELD name — keep first
       ]),
     );
 
@@ -139,23 +117,30 @@ describe("ExtractionService", () => {
       chunk("p1-o2", "Subject: Bar"),
     ]);
 
-    await expectBadRequest(
-      () => service.extract(request),
-      "Duplicate extracted field: subject",
-    );
+    const result = await service.extract(request);
+
+    const byField = Object.fromEntries(result.fields.map((f) => [f.field, f]));
+    // First occurrence kept.
+    expect(byField.subject.value).toBe("Foo");
+    expect(byField.subject.chunkIds).toEqual(["p1-o1"]);
+    expect(byField.subject.aiConfidence).toBe(90);
   });
 
-  it("throws 400 when a field cites a chunkId the client never sent", async () => {
+  it("drops unknown chunkIds instead of throwing 400 when the LLM cites a chunkId the client never sent", async () => {
     const { service } = await buildService(() =>
       Promise.resolve([field("subject", "Foo", ["p2-o1"], 90)]),
     );
 
-    const request = makeRequest("incoming", [chunk("p1-o1", "nothing useful here")]);
+    const request = makeRequest("incoming", [chunk("p1-o1", "Subject: Foo")]);
 
-    await expectBadRequest(
-      () => service.extract(request),
-      'Invalid chunkId "p2-o1" returned for field "subject"',
-    );
+    const result = await service.extract(request);
+
+    const byField = Object.fromEntries(result.fields.map((f) => [f.field, f]));
+    // Unknown chunkId dropped → no source confidence. Value was still verified
+    // against the document text, so aiConfidence stays 90. The decision logic
+    // will mark INVALID because effectiveConfidence is null (no source).
+    expect(byField.subject.chunkIds).toEqual([]);
+    expect(byField.subject.aiConfidence).toBe(90);
   });
 
   it("does NOT throw 400 when an extracted value is absent from the document (anti-hallucination)", async () => {

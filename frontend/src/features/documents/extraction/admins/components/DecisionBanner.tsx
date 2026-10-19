@@ -15,20 +15,18 @@ const STYLE: Record<Decision, { box: string; title: string; text: string }> = {
   INVALID: {
     box: "border-error-200 bg-error-50 dark:border-error-500/30 dark:bg-error-500/10",
     title: "INVALID",
-    text: "One or more required fields were not found by the LLM.",
+    text: "One or more fields are missing or could not be verified.",
   },
 };
 
 interface Props {
   decision: Decision;
   minEffective: number | null;
-  assignedDivision: string | null;
 }
 
 export default function DecisionBanner({
   decision,
   minEffective,
-  assignedDivision,
 }: Props) {
   const s = STYLE[decision];
   return (
@@ -46,11 +44,6 @@ export default function DecisionBanner({
         </p>
       </div>
       <p className="mt-1 text-theme-xs text-gray-600 dark:text-gray-300">{s.text}</p>
-      {assignedDivision && (
-        <p className="mt-3 text-theme-sm text-gray-800 dark:text-white/90">
-          Assigned division: <span className="font-semibold">{assignedDivision}</span>
-        </p>
-      )}
     </div>
   );
 }

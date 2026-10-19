@@ -2,6 +2,7 @@ import { apiClient } from "../../../../lib/api-client";
 import type { PaginatedResponse } from "../../../../type/paginated-response.type";
 import type {
   ExtractedDocumentQueue,
+  ExtractedDocumentQueueDetail,
   FindExtractedDocumentQueuesParams,
 } from "../types/extracted-document-queue.types";
 
@@ -16,6 +17,14 @@ export const ExtractedQueueService = {
       {
         params,
       },
+    );
+
+    return response.data;
+  },
+
+  async findOne(id: string): Promise<ExtractedDocumentQueueDetail> {
+    const response = await apiClient.get<ExtractedDocumentQueueDetail>(
+      `${EXTRACTED_DOCUMENT_QUEUES_ENDPOINT}/${id}`,
     );
 
     return response.data;

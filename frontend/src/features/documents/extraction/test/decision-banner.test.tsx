@@ -12,10 +12,9 @@
  * Props:
  *   - decision: "ACCEPT" | "REVIEW" | "INVALID"
  *   - minEffective: number | null  (shown as "N%" or "—")
- *   - assignedDivision: string | null  (only rendered for incoming ACCEPT)
  *
  * Tests pin: the title text per decision, the minEffective display, the
- * "—" fallback for null, and conditional rendering of assignedDivision.
+ * "—" fallback for null, and the descriptive text per decision.
  */
 
 import { render, screen } from "@testing-library/react";
@@ -26,49 +25,37 @@ import { ACCEPT_THRESHOLD } from "../constans";
 
 describe("DecisionBanner", () => {
   it("renders ACCEPTED title for ACCEPT decision", () => {
-    render(
-      <DecisionBanner decision="ACCEPT" minEffective={95} assignedDivision={null} />,
-    );
+    render(<DecisionBanner decision="ACCEPT" minEffective={95} />);
 
     expect(screen.getByText("ACCEPTED")).toBeInTheDocument();
   });
 
   it("renders HUMAN REVIEW title for REVIEW decision", () => {
-    render(
-      <DecisionBanner decision="REVIEW" minEffective={85} assignedDivision={null} />,
-    );
+    render(<DecisionBanner decision="REVIEW" minEffective={85} />);
 
     expect(screen.getByText("HUMAN REVIEW REQUIRED")).toBeInTheDocument();
   });
 
   it("renders INVALID title for INVALID decision", () => {
-    render(
-      <DecisionBanner decision="INVALID" minEffective={null} assignedDivision={null} />,
-    );
+    render(<DecisionBanner decision="INVALID" minEffective={null} />);
 
     expect(screen.getByText("INVALID")).toBeInTheDocument();
   });
 
   it("displays minEffective as percentage when not null", () => {
-    render(
-      <DecisionBanner decision="ACCEPT" minEffective={92} assignedDivision={null} />,
-    );
+    render(<DecisionBanner decision="ACCEPT" minEffective={92} />);
 
     expect(screen.getByText("92%")).toBeInTheDocument();
   });
 
   it("displays '—' when minEffective is null", () => {
-    render(
-      <DecisionBanner decision="INVALID" minEffective={null} assignedDivision={null} />,
-    );
+    render(<DecisionBanner decision="INVALID" minEffective={null} />);
 
     expect(screen.getByText("—")).toBeInTheDocument();
   });
 
   it("shows the ACCEPT_THRESHOLD in the threshold line", () => {
-    render(
-      <DecisionBanner decision="ACCEPT" minEffective={95} assignedDivision={null} />,
-    );
+    render(<DecisionBanner decision="ACCEPT" minEffective={95} />);
 
     // The threshold text is split across multiple text nodes inside the <p>,
     // so use a function matcher to find the element containing the substring.
@@ -79,34 +66,11 @@ describe("DecisionBanner", () => {
     ).toBeInTheDocument();
   });
 
-  it("renders assignedDivision when provided", () => {
-    render(
-      <DecisionBanner
-        decision="ACCEPT"
-        minEffective={95}
-        assignedDivision="Planning and Design Division"
-      />,
-    );
-
-    expect(screen.getByText("Assigned division:")).toBeInTheDocument();
-    expect(screen.getByText("Planning and Design Division")).toBeInTheDocument();
-  });
-
-  it("does NOT render assignedDivision when null", () => {
-    const { container } = render(
-      <DecisionBanner decision="ACCEPT" minEffective={95} assignedDivision={null} />,
-    );
-
-    // The assignedDivision paragraph has class "mt-3". When null, it should
-    // not be rendered at all.
-    expect(container.querySelector(".mt-3")).toBeNull();
-  });
-
   it("renders the descriptive text for each decision", () => {
     const descriptions = {
       ACCEPT: "All fields present and confidence meets the threshold.",
       REVIEW: "At least one field is below the threshold and needs validation.",
-      INVALID: "One or more required fields were not found by the LLM.",
+      INVALID: "One or more fields are missing or could not be verified.",
     };
 
     for (const [decision, desc] of Object.entries(descriptions)) {
@@ -114,7 +78,6 @@ describe("DecisionBanner", () => {
         <DecisionBanner
           decision={decision as "ACCEPT" | "REVIEW" | "INVALID"}
           minEffective={90}
-          assignedDivision={null}
         />,
       );
 

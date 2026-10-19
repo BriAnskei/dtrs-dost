@@ -59,7 +59,7 @@ export interface PdfExtractionResult {
 export interface ExtractionToken {
   text: string; // one word
   bbox: BoundingBox;
-  confidence?: number;
+  confidence: number;
 }
 
 export interface ExtractionChunk {

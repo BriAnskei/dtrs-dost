@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { EntityManager } from "typeorm";
 import { PaginatedResponse } from "../../../../common/pagination/paginated-response";
 import { resolveExtraction } from "../domain/resolve-extraction";
@@ -8,6 +8,7 @@ import { FindMyExtractedDocumentQueuesQueryDto } from "../dto/find-my-extracted-
 import { MyExtractedDocumentQueueResponseDto } from "../dto/my-extracted-document-queue-response-dto";
 import { ExtractedDocumentQueueEntity } from "../entities/extracted-document-queue.entity";
 import { ExtractedDocumentQueueRepository } from "../repository/extracted-document-queue.repository";
+import { ChunkBBox, ExtractedToken } from "../types/extracted-types";
 
 @Injectable()
 export class ExtractedDocumentQueueService {
@@ -72,5 +73,42 @@ export class ExtractedDocumentQueueService {
       ...result,
       data: result.data.map(this.toMyDto),
     };
+  }
+
+  async findOne(id: string) {
+    const queue = await this.getOrThrow(id);
+    const resolved = resolveExtraction(queue.extracted_data, queue.extracted_chunks);
+
+    const chunk_locations: Record<
+      string,
+      { page: number; bbox: ChunkBBox; text: string; tokens?: ExtractedToken[] }
+    > = {};
+    for (const chunk of queue.extracted_chunks) {
+      if (chunk.page && chunk.bbox) {
+        chunk_locations[chunk.chunkId] = {
+          page: chunk.page,
+          bbox: chunk.bbox,
+          text: chunk.text,
+          tokens: chunk.tokens,
+        };
+      }
+    }
+
+    return {
+      id: queue.id,
+      file_name: queue.document_file.file_name,
+      uploader_name: queue.document_file.uploader?.full_name ?? null,
+      decision: queue.decision,
+      status: queue.status,
+      created_at: queue.created_at,
+      fields: resolved.fields,
+      chunk_locations,
+    };
+  }
+
+  async getOrThrow(id: string) {
+    const queue = await this.repository.findOneById(id);
+    if (!queue) throw new NotFoundException("Extracted document not found");
+    return queue;
   }
 }

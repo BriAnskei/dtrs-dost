@@ -1,4 +1,5 @@
 import { Ban, Check, Eye, Search } from "lucide-react";
+import { useNavigate } from "react-router";
 import Input from "../../../../components/form/input/InputField";
 import TableShell, {
   type TableShellColumn,
@@ -120,11 +121,14 @@ export default function ExtractedQueueTable({
     requestAction,
     requestBulkAccept,
     requestBulkInvalidate,
-    setViewTarget,
     // TODO (modals, later):
     //   pendingAction / closePendingAction / confirmPendingAction → confirm modal
     //   viewTarget → reviewer component
   } = useExtractedQueueTable();
+
+  const navigate = useNavigate();
+  const setViewTarget = (q: ExtractedDocumentQueue) =>
+    navigate(`/extracted-queues/${q.id}`);
 
   /** Select button: show the checkboxes, or hide them (which also clears the selection). */
   function toggleSelectionMode() {

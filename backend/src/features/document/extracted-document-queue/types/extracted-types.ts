@@ -1,10 +1,26 @@
 import { ExtractedField } from "../../extraction/providers/llm-extractor.interface";
 import { Decision } from "../extration-queue.constant";
 
+export interface ChunkBBox {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
+export interface ExtractedToken {
+  text: string;
+  bbox: ChunkBBox;
+  confidence?: number;
+}
+
 export interface ExtractedChunk {
   chunkId: string;
   text: string;
   sourceConfidence: number;
+  page: number;
+  bbox: ChunkBBox;
+  tokens?: ExtractedToken[];
 }
 
 export type ExtractedDocumentField = {

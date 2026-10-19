@@ -261,10 +261,6 @@ export function useExtraction(direction: DocumentDirection) {
           rows,
           decision,
           minEffective,
-          assignedDivision:
-            direction === "incoming" && decision === "ACCEPT"
-              ? "Planning and Design Division"
-              : null,
         });
 
         setPhase("done");

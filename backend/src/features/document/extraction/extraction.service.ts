@@ -1,4 +1,4 @@
-import { BadRequestException, Inject, Injectable, Logger } from "@nestjs/common";
+import { Inject, Injectable, Logger } from "@nestjs/common";
 import { DocumentDirection } from "./contants/document-direction";
 import { FIELDS_BY_DIRECTION, FieldKey } from "./contants/extraction-field";
 import { ExtractionRequestDto } from "./dto/extraction-request-dto";
@@ -46,9 +46,9 @@ export class ExtractionService {
     const untrustedCount = fields.filter((f) => f.aiConfidence === null && f.value !== null).length;
     if (untrustedCount > 0) {
       this.logger.warn(
-        `${untrustedCount} field(s) had values that could not be verified ` +
-          `against the document text (anti-hallucination). aiConfidence set to null; ` +
-          `the decision will be INVALID so a human can review.`,
+        `${untrustedCount} field(s) have null aiConfidence with a non-null value ` +
+          `(anti-hallucination or LLM-omitted confidence). The decision will be ` +
+          `INVALID so a human can review.`,
       );
     }
 
@@ -64,9 +64,13 @@ export class ExtractionService {
    * expected to be identical under the chunkId contract): rather than throw a
    * 400 — which would reject a legitimate multi-field-from-one-line document
    * whenever a client repeats a chunkId — we drop the duplicates and continue,
-   * logging a single warning. Duplicate FIELD keys are still rejected by
-   * `validateAndNormalizeFields`; only request-side chunkId duplicates are
-   * tolerated here.
+   * logging a single warning. Duplicate FIELD keys are still normalized by
+   * `validateAndNormalizeFields` (keeps first, warns); only request-side
+   * chunkId duplicates are deduped here.
+   *
+   * Note: the `ExtractedDocumentQueueUseCase` also dedupes before calling this
+   * service, so the deduplication here is a defensive second pass — both layers
+   * keep the first occurrence, ensuring consistency.
    */
   private validateChunks(
     chunks: ExtractionRequestDto["chunks"],
@@ -110,14 +114,12 @@ export class ExtractionService {
 
     for (const field of fields) {
       if (fieldsByName.has(field.field)) {
-        this.logger.error(
-          `Validation failed: duplicate field "${field.field}" returned by LLM.`,
+        /* Duplicate field key from the LLM — keep the first occurrence, warn. */
+        this.logger.warn(
+          `Duplicate field "${field.field}" returned by LLM; keeping first occurrence.`,
         );
 
-        throw new BadRequestException({
-          success: false,
-          error: `Duplicate extracted field: ${field.field}`,
-        });
+        continue;
       }
 
       fieldsByName.set(field.field, field);
@@ -155,12 +157,13 @@ export class ExtractionService {
 
       /*
        * `validateField` returns `false` when the LLM's value could not be
-       * verified against the document text (anti-hallucination). In that case
-       * we keep the value and chunkIds (so a human reviewer can see what the
-       * LLM returned) but null out `aiConfidence`. The decision logic in
-       * `ExtractedDocumentQueueUseCase.resolveDecision` treats a null
-       * `aiConfidence` as INVALID, routing the document for review instead of
-       * accepting an unverified extraction.
+       * verified against the document text (anti-hallucination), or when
+       * structural LLM mistakes were normalized (out-of-range confidence,
+       * unknown chunkIds, null value with chunkIds). In all those cases we
+       * null out `aiConfidence`, which the decision logic in
+       * `resolveExtraction` treats as INVALID, routing the document for
+       * human review. The untrusted value and chunkIds are still returned
+       * so the reviewer can see what the LLM produced.
        */
       const trusted = this.validateField(field, chunksById, documentText);
 
@@ -174,63 +177,59 @@ export class ExtractionService {
   }
 
   /**
-   * Validate a single extracted field.
+   * Validate a single extracted field against the document text.
    *
    * Returns `true` when the field is trusted (its value was confirmed against
    * the document text), `false` when the value could not be verified
-   * (anti-hallucination failure). Hard validation errors — invalid confidence
-   * bounds, null value with chunkIds, unknown chunkId, duplicate field — still
-   * throw `BadRequestException`, since those are structural problems with the
-   * request, not untrustworthy LLM output.
+   * (anti-hallucination failure).
+   *
+   * LLM output that is structurally inconsistent — out-of-range confidence,
+   * null value with chunkIds, unknown chunkId — is normalized rather than
+   * thrown as a 400, since these are model faults, not client faults. The
+   * caller nulls out `aiConfidence` for untrusted fields, which routes the
+   * document to INVALID via the decision logic.
    */
   private validateField(
     field: ExtractedField,
     chunksById: Map<string, string>,
     documentText: string,
   ): boolean {
-    /* Confidence must be 0-100. */
+    /* Confidence must be 0-100; null it if the LLM gave garbage. */
     if (
       field.aiConfidence !== null &&
       (field.aiConfidence < 0 || field.aiConfidence > 100)
     ) {
-      this.logger.error(
-        `Validation failed: field "${field.field}" aiConfidence ${field.aiConfidence} outside [0, 100].`,
+      this.logger.warn(
+        `Field "${field.field}" aiConfidence ${field.aiConfidence} outside [0, 100]; nulling.`,
       );
 
-      throw new BadRequestException({
-        success: false,
-        error: `Invalid confidence for field ${field.field}`,
-      });
+      field.aiConfidence = null;
+
+      return false;
     }
 
-    /* No value means there should be no cited chunks. */
+    /* No value means there should be no cited chunks — clear them. */
     if (field.value === null) {
       if (field.chunkIds.length > 0) {
-        this.logger.error(
-          `Validation failed: field "${field.field}" has chunkIds ${JSON.stringify(field.chunkIds)} but value is null.`,
+        this.logger.warn(
+          `Field "${field.field}" has chunkIds but value is null; clearing chunkIds.`,
         );
 
-        throw new BadRequestException({
-          success: false,
-          error: `Field ${field.field} has chunkIds but no value`,
-        });
+        field.chunkIds = [];
       }
 
       return true;
     }
 
-    /* Every cited chunkId must have been sent by the client. */
-    for (const chunkId of field.chunkIds) {
-      if (!chunksById.has(chunkId)) {
-        this.logger.error(
-          `Validation failed: field "${field.field}" cited chunkId "${chunkId}" not present in the request chunks.`,
-        );
+    /* Drop any cited chunkId the client never sent. */
+    const unknownChunkIds = field.chunkIds.filter((id) => !chunksById.has(id));
 
-        throw new BadRequestException({
-          success: false,
-          error: `Invalid chunkId "${chunkId}" returned for field "${field.field}"`,
-        });
-      }
+    if (unknownChunkIds.length > 0) {
+      this.logger.warn(
+        `Field "${field.field}" cited unknown chunkId(s) ${unknownChunkIds.join(", ")}; dropping them.`,
+      );
+
+      field.chunkIds = field.chunkIds.filter((id) => chunksById.has(id));
     }
 
     /*
@@ -271,8 +270,11 @@ export class ExtractionService {
     }
 
     /*
-     * A non-null value should cite at least one chunk. A value without a citation
-     * is not a safety problem, only a UX one (no highlight), so warn.
+     * A non-null value should cite at least one chunk. The value was verified
+     * against the document text, so it is trusted — but with no cited chunks the
+     * field has no source confidence, so effectiveConfidence will be null and the
+     * document will be INVALID via the decision logic. Warn so the reviewer
+     * knows why an otherwise-verified field was flagged.
      */
     if (field.chunkIds.length === 0) {
       this.logger.warn(`Field "${field.field}" value was found but cites no chunkIds.`);

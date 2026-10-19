@@ -3,23 +3,24 @@
  * (extraction.service.ts), covering `validateField` and
  * `validateAndNormalizeFields`:
  *
- *   1. aiConfidence bounds — values outside [0, 100] throw 400.
- *   2. null value + non-empty chunkIds — contradictory, throws 400.
- *   3. summary field bypass — anti-hallucination / citation checks are
+ *   1. aiConfidence bounds — values outside [0, 100] are normalized to null
+ *      (INVALID path), not 400.
+ *   2. null value + non-empty chunkIds — contradictory LLM output; chunkIds
+ *      are cleared, value stays null (INVALID path), not 400.
+ *   3. Unknown chunkIds cited by the LLM — dropped, not 400.
+ *   4. summary field bypass — anti-hallucination / citation checks are
  *      SKIPPED for "summary" because the LLM writes it (not copied from chunks).
- *   4. value present in document but NOT in cited chunks — warns, does NOT
+ *   5. value present in document but NOT in cited chunks — warns, does NOT
  *      throw (citation imprecision is a UX issue, not a safety issue).
  *      aiConfidence is preserved because the value was verified.
- *   5. value NOT present in document text at all — does NOT throw; returns the
+ *   6. value NOT present in document text at all — does NOT throw; returns the
  *      field with aiConfidence set to null (INVALID path), so a human reviewer
  *      can see the hallucinated value without the whole extraction being
  *      discarded.
- *   6. value present but no chunkIds cited — warns, does NOT throw.
- *   7. Outgoing document type validation (4 fields, not 5).
- *   8. ChunkId ordering preserved in the response.
+ *   7. value present but no chunkIds cited — warns, does NOT throw.
+ *   8. Outgoing document type validation (4 fields, not 5).
+ *   9. ChunkId ordering preserved in the response.
  */
-
-import { BadRequestException } from "@nestjs/common";
 import { Test } from "@nestjs/testing";
 import type { DocumentDirection } from "../contants/document-direction";
 import type { ExtractionRequestDto } from "../dto/extraction-request-dto";
@@ -76,52 +77,30 @@ async function buildService(
   };
 }
 
-async function expectBadRequest(
-  action: () => Promise<unknown>,
-  expectedError: string,
-): Promise<void> {
-  let thrown: unknown;
-
-  try {
-    await action();
-    throw new Error("expected action to reject with BadRequestException");
-  } catch (error) {
-    thrown = error;
-  }
-
-  expect(thrown).toBeInstanceOf(BadRequestException);
-  expect((thrown as BadRequestException).getResponse()).toMatchObject({
-    success: false,
-    error: expectedError,
-  });
-}
-
 describe("ExtractionService — validateField edge cases", () => {
   describe("aiConfidence bounds", () => {
-    it("throws 400 when aiConfidence > 100", async () => {
+    it("nulls aiConfidence when > 100 instead of throwing 400", async () => {
       const { service } = await buildService(() =>
         Promise.resolve([field("subject", "Foo", ["p1-o1"], 101)]),
       );
 
       const request = makeRequest("incoming", [chunk("p1-o1", "Subject: Foo")]);
 
-      await expectBadRequest(
-        () => service.extract(request),
-        "Invalid confidence for field subject",
-      );
+      const result = await service.extract(request);
+      const byField = Object.fromEntries(result.fields.map((f) => [f.field, f]));
+      expect(byField.subject.aiConfidence).toBeNull();
     });
 
-    it("throws 400 when aiConfidence < 0", async () => {
+    it("nulls aiConfidence when < 0 instead of throwing 400", async () => {
       const { service } = await buildService(() =>
         Promise.resolve([field("subject", "Foo", ["p1-o1"], -1)]),
       );
 
       const request = makeRequest("incoming", [chunk("p1-o1", "Subject: Foo")]);
 
-      await expectBadRequest(
-        () => service.extract(request),
-        "Invalid confidence for field subject",
-      );
+      const result = await service.extract(request);
+      const byField = Object.fromEntries(result.fields.map((f) => [f.field, f]));
+      expect(byField.subject.aiConfidence).toBeNull();
     });
 
     it("accepts aiConfidence of exactly 0", async () => {
@@ -160,13 +139,11 @@ describe("ExtractionService — validateField edge cases", () => {
       expect(byField.subject.aiConfidence).toBeNull();
     });
 
-    it("still checks confidence bounds even when value is null", async () => {
+    it("nulls aiConfidence when out of range even if value is null", async () => {
       /*
-       * The confidence-range check runs BEFORE the null-value early-return
-       * in validateField(). So a null-valued field with aiConfidence=150 is
-       * still rejected as a malformed LLM response. This pins that order-of-
-       * operations behavior so any future refactor doesn't silently accept
-       * out-of-range confidence on not-found fields.
+       * The confidence-range check runs BEFORE the null-value normalization.
+       * So a null-valued field with aiConfidence=150 has its confidence nulled
+       * and returns false (untrusted), rather than throwing a 400.
        */
       const { service } = await buildService(() =>
         Promise.resolve([field("subject", null, [], 150)]),
@@ -174,25 +151,26 @@ describe("ExtractionService — validateField edge cases", () => {
 
       const request = makeRequest("incoming", [chunk("p1-o1", "no subject here")]);
 
-      await expectBadRequest(
-        () => service.extract(request),
-        "Invalid confidence for field subject",
-      );
+      const result = await service.extract(request);
+      const byField = Object.fromEntries(result.fields.map((f) => [f.field, f]));
+      expect(byField.subject.value).toBeNull();
+      expect(byField.subject.aiConfidence).toBeNull();
     });
   });
 
-  describe("null value + non-empty chunkIds (contradictory)", () => {
-    it("throws 400 when value is null but chunkIds are present", async () => {
+  describe("null value + non-empty chunkIds (normalized, not 400)", () => {
+    it("clears chunkIds when value is null but chunkIds are present", async () => {
       const { service } = await buildService(() =>
         Promise.resolve([field("subject", null, ["p1-o1"], null)]),
       );
 
       const request = makeRequest("incoming", [chunk("p1-o1", "text")]);
 
-      await expectBadRequest(
-        () => service.extract(request),
-        "Field subject has chunkIds but no value",
-      );
+      const result = await service.extract(request);
+      const byField = Object.fromEntries(result.fields.map((f) => [f.field, f]));
+      expect(byField.subject.value).toBeNull();
+      expect(byField.subject.chunkIds).toEqual([]);
+      expect(byField.subject.aiConfidence).toBeNull();
     });
   });
 

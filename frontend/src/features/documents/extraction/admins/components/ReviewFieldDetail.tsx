@@ -211,6 +211,11 @@ export default function ReviewFieldDetail({
           Not found by the LLM. Use the pencil to enter it, or scroll the document to look
           for it.
         </p>
+      ) : row.aiConfidence === null ? (
+        <p className="text-theme-xs text-warning">
+          Value could not be verified against the document text. Use the pencil to correct it,
+          or scroll the document to check it.
+        </p>
       ) : (
         <>
           <p className="text-theme-xs text-gray-500 dark:text-gray-400">

@@ -22,5 +22,6 @@ import { ExtractedDocumentQueueUseCase } from "./use-cases/extracted-document-qu
     ExtractedDocumentQueueService,
     ExtractedDocumentQueueUseCase,
   ],
+  exports: [ExtractedDocumentQueueService],
 })
 export class ExtractedDocumentQueueModule {}

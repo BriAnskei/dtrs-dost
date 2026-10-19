@@ -2,13 +2,11 @@ import { Injectable, Logger } from "@nestjs/common";
 import { DataSource } from "typeorm";
 import { buildDocumentKey } from "../../../../storage/s3/buildDocumentKey";
 import { S3Service } from "../../../../storage/s3/s3.service";
-import { DocumentFileService } from "../../document-file/document-file.service";
+import { DocumentFileService } from "../../document-file/service/document-file.service";
 import { ExtractionService } from "../../extraction/extraction.service";
-import { ExtractedField } from "../../extraction/providers/llm-extractor.interface";
 import { resolveExtraction } from "../domain/resolve-extraction";
 import { CreateExtractedDocumentDto } from "../dto/create-extracted-document-dto";
 import { ExtractedDocumentQueueStatus } from "../entities/extracted-document-queue.entity";
-import { ACCEPT_CONFIDENCE_THRESHOLD, type Decision } from "../extration-queue.constant";
 import { ExtractedDocumentQueueService } from "../service/extracted-document-queue.service";
 import { ExtractedChunk, ReceiveDocumentResponse } from "../types/extracted-types";
 
@@ -37,10 +35,25 @@ export class ExtractedDocumentQueueUseCase {
     dto: CreateExtractedDocumentDto,
     user_id: string,
   ): Promise<ReceiveDocumentResponse> {
+    /*
+     * Dedupe chunks once up front (keep first occurrence per chunkId) so the
+     * same array reaches the LLM, the resolution logic, and the stored entity.
+     * The ExtractionService also dedupes internally, but the use-case needs the
+     * deduped list for resolveExtraction and for storing in extracted_chunks.
+     *
+     * NOTE: The server does NOT re-extract text from the PDF — it trusts the
+     * client-supplied chunk text and sourceConfidence. This is acceptable while
+     * ACCEPT is only a hint and final approval is human-reviewed (status PENDING).
+     * If auto-approval on ACCEPT is ever added, re-extract the PDF text server-side.
+     */
+    const chunks = this.dedupeChunks(dto.chunks);
+
     const extracted = await this.extractionService.extract({
       documentType: "incoming",
-      chunks: dto.chunks,
+      chunks: chunks.map(({ page, bbox, ...textOnly }) => textOnly),
     });
+
+    const resolved = resolveExtraction(extracted.fields, chunks);
 
     const objectKey = await this.saveDocumentFile(file);
 
@@ -59,14 +72,14 @@ export class ExtractedDocumentQueueUseCase {
           {
             document_file_id: documentFile.id,
             extracted_data: extracted.fields,
-            decision: this.resolveDecision(extracted.fields, dto.chunks),
+            decision: resolved.decision,
             status: ExtractedDocumentQueueStatus.PENDING,
-            extracted_chunks: dto.chunks,
+            extracted_chunks: chunks,
           },
           manager,
         );
 
-        return resolveExtraction(extracted.fields, dto.chunks);
+        return resolved;
       });
     } catch (error) {
       await this.cleanupUploadedFile(objectKey, error);
@@ -74,44 +87,22 @@ export class ExtractedDocumentQueueUseCase {
     }
   }
 
-  private resolveDecision(fields: ExtractedField[], chunks: ExtractedChunk[]): Decision {
-    if (fields.some((field) => field.value === null)) {
-      return "INVALID";
-    }
+  /** Dedupe chunks by chunkId, keeping the first occurrence's data. */
+  private dedupeChunks(chunks: ExtractedChunk[]): ExtractedChunk[] {
+    const seen = new Set<string>();
 
-    const chunkSourceConfidence = new Map(
-      chunks.map((chunk) => [chunk.chunkId, chunk.sourceConfidence]),
-    );
+    const deduped: ExtractedChunk[] = [];
 
-    const effectiveConfidences = fields.map((field) => {
-      if (field.aiConfidence === null) {
-        return null;
+    for (const chunk of chunks) {
+      if (seen.has(chunk.chunkId)) {
+        continue;
       }
 
-      const sourceConfidences = field.chunkIds
-        .map((chunkId) => chunkSourceConfidence.get(chunkId))
-        .filter((confidence): confidence is number => confidence != null);
-
-      if (sourceConfidences.length === 0) {
-        return null;
-      }
-
-      const sourceConfidence = Math.min(...sourceConfidences);
-
-      return Math.round((field.aiConfidence * sourceConfidence) / 100);
-    });
-
-    if (effectiveConfidences.some((confidence) => confidence === null)) {
-      return "INVALID";
+      seen.add(chunk.chunkId);
+      deduped.push(chunk);
     }
 
-    const minEffective = Math.min(
-      ...effectiveConfidences.filter(
-        (confidence): confidence is number => confidence !== null,
-      ),
-    );
-
-    return minEffective >= ACCEPT_CONFIDENCE_THRESHOLD ? "ACCEPT" : "REVIEW";
+    return deduped;
   }
 
   private async cleanupUploadedFile(objectKey: string, error: unknown): Promise<void> {

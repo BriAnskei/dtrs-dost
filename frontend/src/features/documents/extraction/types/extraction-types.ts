@@ -38,11 +38,18 @@ export interface BBox {
   h: number;
 }
 
+export interface ChunkToken {
+  text: string;
+  bbox: BBox;
+  confidence: number;
+}
+
 /** Where a source chunk lives in the PDF. Looked up by chunkId (never sent to the LLM). */
 export interface ChunkLocation {
   page: number; // 1-based
   bbox: BBox;
   text: string;
+  tokens?: ChunkToken[];
 }
 
 export interface ExtractionOutcome {
@@ -51,8 +58,6 @@ export interface ExtractionOutcome {
   rows: ResultRow[];
   decision: Decision;
   minEffective: number | null;
-  /** Incoming only, set after ACCEPT (RAG will fill this later) */
-  assignedDivision: string | null;
 }
 
 export interface FieldHighlight {

@@ -1,4 +1,8 @@
-import type { Decision } from "../../extraction/types/extraction-types";
+import type {
+  ChunkLocation,
+  Decision,
+  FieldKey,
+} from "../../extraction/types/extraction-types";
 
 export interface ExtractedDocumentQueue {
   id: string;
@@ -21,3 +25,24 @@ export interface FindExtractedDocumentQueuesParams {
 }
 
 export type ExtractedDocumentQueueSort = "newest" | "oldest";
+
+export interface ExtractedDetailField {
+  field: FieldKey;
+  value: string | null;
+  chunkIds: string[];
+  aiConfidence: number | null;
+  sourceConfidence: number | null;
+  effectiveConfidence: number | null;
+}
+
+export interface ExtractedDocumentQueueDetail {
+  id: string;
+  file_name: string;
+  uploader_name: string | null;
+  decision: Decision;
+  status: "PENDING" | "APPROVED" | "INVALIDATED";
+  created_at: string;
+  fields: ExtractedDetailField[];
+  /** chunkId -> location. Empty for rows uploaded before geometry was stored. */
+  chunk_locations: Record<string, ChunkLocation>;
+}
