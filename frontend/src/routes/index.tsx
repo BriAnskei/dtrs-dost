@@ -11,7 +11,7 @@ import RoleRoute from "../features/auth/authorization/RoleRoutes";
 import DisabledUsersPage from "../features/disabled-user-management/components/DisabledUsersPage";
 import DivisionManagementPage from "../features/divisions/components/DivisionManagementPage";
 import ExtractedQueuePage from "../features/documents/extracted-queue/components/ExtractedQueuePage";
-import ExtractedQueueReviewPage from "../features/documents/extracted-queue/components/ExtractedQueueReviewPage";
+import ExtractedQueueReviewPage from "../features/documents/extracted-queue/components/ExtraxtedQueueReviewPage";
 import MyUploadedDocumentsPage from "../features/documents/extracted-queue-receiver/components/MyUploadedDocumentsPage";
 import DirectUploadPage from "../features/documents/extraction/admins/components/DirectUploadPage";
 import ReceiverUploadPage from "../features/documents/extraction/receiver/components/ReceiverUploadPage";

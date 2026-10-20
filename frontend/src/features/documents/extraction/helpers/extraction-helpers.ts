@@ -13,7 +13,17 @@ export function decide(rows: ResultRow[]): {
   if (rows.some((r) => r.value === null || r.effectiveConfidence === null)) {
     return { decision: "INVALID", minEffective: null };
   }
-  const minEffective = Math.min(...rows.map((r) => r.effectiveConfidence!));
+
+  const confidences = rows.map((r) => r.effectiveConfidence);
+
+  if (confidences.some((confidence) => confidence === null)) {
+    return { decision: "INVALID", minEffective: null };
+  }
+
+  const minEffective = Math.min(
+    ...confidences.filter((confidence) => confidence !== null),
+  );
+
   return {
     decision: minEffective >= ACCEPT_THRESHOLD ? "ACCEPT" : "REVIEW",
     minEffective,

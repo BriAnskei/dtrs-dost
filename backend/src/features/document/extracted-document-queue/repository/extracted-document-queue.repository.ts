@@ -237,6 +237,9 @@ export class ExtractedDocumentQueueRepository {
   async findOneById(id: string): Promise<ExtractedDocumentQueueEntity | null> {
     return this.repository.findOne({
       where: { id },
+      relations: {
+        document_file: true,
+      },
     });
   }
 }

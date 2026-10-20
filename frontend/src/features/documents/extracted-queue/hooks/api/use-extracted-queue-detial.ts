@@ -1,6 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
-import { DocumentFileService } from "../../../document-files.service";
 import { toOutcome } from "../../helpers/to-outcome";
 import { ExtractedQueueService } from "../../service/extracted-queue.service";
 
@@ -13,7 +12,7 @@ export function useExtractedQueueDetail(id: string) {
 
   const fileQuery = useQuery({
     queryKey: ["extracted-document-queue", id, "file"],
-    queryFn: () => DocumentFileService.getFile(id),
+    queryFn: () => ExtractedQueueService.getFile(id),
     enabled: !!id,
     staleTime: 5 * 60_000,
   });

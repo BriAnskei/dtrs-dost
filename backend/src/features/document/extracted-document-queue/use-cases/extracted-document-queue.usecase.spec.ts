@@ -46,7 +46,7 @@ jest.mock("uuid", () => ({
   v4: jest.fn(() => `uuid-${Math.random().toString(36).slice(2)}`),
 }));
 
-import { ExtractedDocumentQueueUseCase } from "./extracted-document-queue.usecase";
+import { CreateExtractedDocumentQueueUseCase } from "./create-extracted-document-queue.usecase";
 import type {
   ExtractedChunk,
   ExtractedDocumentField,
@@ -169,7 +169,7 @@ async function buildUseCase(opts: {
 
   const moduleRef = await Test.createTestingModule({
     providers: [
-      ExtractedDocumentQueueUseCase,
+      CreateExtractedDocumentQueueUseCase,
       { provide: DataSource, useValue: mockDataSource },
       { provide: ExtractionService, useValue: mockExtractionService },
       { provide: DocumentFileService, useValue: mockDocumentFileService },
@@ -178,7 +178,7 @@ async function buildUseCase(opts: {
     ],
   }).compile();
 
-  const useCase = moduleRef.get(ExtractedDocumentQueueUseCase);
+  const useCase = moduleRef.get(CreateExtractedDocumentQueueUseCase);
 
   return {
     useCase,
@@ -209,7 +209,7 @@ describe("ExtractedDocumentQueueUseCase", () => {
       const file = makeMulterFile();
       const dto = makeDto();
 
-      const response = await useCase.receiveDocument(file, dto, "user-123");
+      const response = await useCase.execute(file, dto, "user-123");
 
       // 1. Extraction was called with "incoming" document type and text-only chunks (geometry stripped).
       expect(mockExtractionService.extract).toHaveBeenCalledTimes(1);
@@ -254,8 +254,8 @@ describe("ExtractedDocumentQueueUseCase", () => {
     it("generates a unique S3 object key per upload", async () => {
       const { useCase, mockS3Service } = await buildUseCase();
 
-      await useCase.receiveDocument(makeMulterFile(), makeDto(), "u1");
-      await useCase.receiveDocument(makeMulterFile(), makeDto(), "u2");
+      await useCase.execute(makeMulterFile(), makeDto(), "u1");
+      await useCase.execute(makeMulterFile(), makeDto(), "u2");
 
       const keys = mockS3Service.upload!.mock.calls.map((c) => c[0]);
       expect(keys[0]).not.toBe(keys[1]);
@@ -266,7 +266,7 @@ describe("ExtractedDocumentQueueUseCase", () => {
       const { useCase, mockDocumentFileService } = await buildUseCase();
 
       const file = makeMulterFile();
-      await useCase.receiveDocument(file, makeDto(), "user-123");
+      await useCase.execute(file, makeDto(), "user-123");
 
       expect(mockDocumentFileService.create).toHaveBeenCalledWith(
         expect.objectContaining({ file_name: file.originalname }),
@@ -278,7 +278,7 @@ describe("ExtractedDocumentQueueUseCase", () => {
       const { useCase, mockDocumentFileService, mockS3Service } = await buildUseCase();
 
       const file = makeMulterFile();
-      await useCase.receiveDocument(file, makeDto(), "user-123");
+      await useCase.execute(file, makeDto(), "user-123");
 
       const s3Key = mockS3Service.upload!.mock.calls[0][0];
       expect(mockDocumentFileService.create).toHaveBeenCalledWith(
@@ -315,7 +315,7 @@ describe("ExtractedDocumentQueueUseCase", () => {
 
       mockExtractionService.extract = jest.fn().mockResolvedValue({ fields });
 
-      const response = await useCase.receiveDocument(
+      const response = await useCase.execute(
         makeMulterFile(),
         makeDto([makeChunk("c1", "text", 95)]),
         "user-123",
@@ -348,7 +348,7 @@ describe("ExtractedDocumentQueueUseCase", () => {
         makeChunk("c2", "text", 80),
       ];
 
-      const response = await useCase.receiveDocument(
+      const response = await useCase.execute(
         makeMulterFile(),
         makeDto(chunks),
         "user-123",
@@ -376,7 +376,7 @@ describe("ExtractedDocumentQueueUseCase", () => {
 
       mockExtractionService.extract = jest.fn().mockResolvedValue({ fields });
 
-      const response = await useCase.receiveDocument(
+      const response = await useCase.execute(
         makeMulterFile(),
         makeDto([makeChunk("c1", "text", 95)]),
         "user-123",
@@ -403,7 +403,7 @@ describe("ExtractedDocumentQueueUseCase", () => {
 
       mockExtractionService.extract = jest.fn().mockResolvedValue({ fields });
 
-      const response = await useCase.receiveDocument(
+      const response = await useCase.execute(
         makeMulterFile(),
         makeDto([makeChunk("c1", "text", 96)]),
         "user-123",
@@ -441,7 +441,7 @@ describe("ExtractedDocumentQueueUseCase", () => {
 
       mockExtractionService.extract = jest.fn().mockResolvedValue({ fields });
 
-      const response = await useCase.receiveDocument(
+      const response = await useCase.execute(
         makeMulterFile(),
         makeDto([makeChunk("c1", "Subject: Foo From: Bar To: Baz Date: 10/03/2026", 95)]),
         "user-123",
@@ -464,7 +464,7 @@ describe("ExtractedDocumentQueueUseCase", () => {
 
       mockExtractionService.extract = jest.fn().mockResolvedValue({ fields });
 
-      const response = await useCase.receiveDocument(
+      const response = await useCase.execute(
         makeMulterFile(),
         makeDto([makeChunk("c1", "Subject: Foo From: Bar", 70)]),
         "user-123",
@@ -487,7 +487,7 @@ describe("ExtractedDocumentQueueUseCase", () => {
 
       mockExtractionService.extract = jest.fn().mockResolvedValue({ fields });
 
-      const response = await useCase.receiveDocument(
+      const response = await useCase.execute(
         makeMulterFile(),
         makeDto([makeChunk("c1", "text", 95)]),
         "user-123",
@@ -510,7 +510,7 @@ describe("ExtractedDocumentQueueUseCase", () => {
 
       mockExtractionService.extract = jest.fn().mockResolvedValue({ fields });
 
-      const response = await useCase.receiveDocument(
+      const response = await useCase.execute(
         makeMulterFile(),
         makeDto([makeChunk("c1", "text", 95)]),
         "user-123",
@@ -532,7 +532,7 @@ describe("ExtractedDocumentQueueUseCase", () => {
 
       mockExtractionService.extract = jest.fn().mockResolvedValue({ fields });
 
-      const response = await useCase.receiveDocument(
+      const response = await useCase.execute(
         makeMulterFile(),
         makeDto([makeChunk("c1", "text", 95)]),
         "user-123",
@@ -554,7 +554,7 @@ describe("ExtractedDocumentQueueUseCase", () => {
 
       mockExtractionService.extract = jest.fn().mockResolvedValue({ fields });
 
-      const response = await useCase.receiveDocument(
+      const response = await useCase.execute(
         makeMulterFile(),
         makeDto([makeChunk("c1", "Subject: Foo From: Bar", 70)]),
         "user-123",
@@ -579,7 +579,7 @@ describe("ExtractedDocumentQueueUseCase", () => {
 
       mockExtractionService.extract = jest.fn().mockResolvedValue({ fields });
 
-      const response = await useCase.receiveDocument(
+      const response = await useCase.execute(
         makeMulterFile(),
         makeDto([makeChunk("c1", "Subject: Foo From: Bar To: Baz Date: 10/03/2026", 95)]),
         "user-123",
@@ -618,7 +618,7 @@ describe("ExtractedDocumentQueueUseCase", () => {
         makeChunk("c2", "To: Baz Date: 10/03/2026", 95),
       ];
 
-      await useCase.receiveDocument(makeMulterFile(), makeDto(chunks), "user-123");
+      await useCase.execute(makeMulterFile(), makeDto(chunks), "user-123");
 
       // The LLM should receive deduped chunks (first occurrence wins).
       const extractArg = mockExtractionService.extract!.mock.calls[0][0];
@@ -645,7 +645,7 @@ describe("ExtractedDocumentQueueUseCase", () => {
       });
 
       await expect(
-        useCase.receiveDocument(makeMulterFile(), makeDto(), "user-123"),
+        useCase.execute(makeMulterFile(), makeDto(), "user-123"),
       ).rejects.toThrow("Transaction failed");
 
       // S3 upload still happened (before the transaction).
@@ -666,7 +666,7 @@ describe("ExtractedDocumentQueueUseCase", () => {
 
       // The original transaction error propagates, NOT the S3 delete error.
       await expect(
-        useCase.receiveDocument(makeMulterFile(), makeDto(), "user-123"),
+        useCase.execute(makeMulterFile(), makeDto(), "user-123"),
       ).rejects.toThrow("Transaction failed");
 
       // S3 delete was still attempted.
@@ -676,7 +676,7 @@ describe("ExtractedDocumentQueueUseCase", () => {
     it("does NOT attempt cleanup when the transaction succeeds", async () => {
       const { useCase, mockS3Service } = await buildUseCase();
 
-      await useCase.receiveDocument(makeMulterFile(), makeDto(), "user-123");
+      await useCase.execute(makeMulterFile(), makeDto(), "user-123");
 
       expect(mockS3Service.delete).not.toHaveBeenCalled();
     });

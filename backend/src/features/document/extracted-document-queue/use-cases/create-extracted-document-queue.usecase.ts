@@ -11,8 +11,8 @@ import { ExtractedDocumentQueueService } from "../service/extracted-document-que
 import { ExtractedChunk, ReceiveDocumentResponse } from "../types/extracted-types";
 
 @Injectable()
-export class ExtractedDocumentQueueUseCase {
-  private readonly logger = new Logger(ExtractedDocumentQueueUseCase.name);
+export class CreateExtractedDocumentQueueUseCase {
+  private readonly logger = new Logger(CreateExtractedDocumentQueueUseCase.name);
 
   constructor(
     private readonly dataSource: DataSource,
@@ -30,7 +30,7 @@ export class ExtractedDocumentQueueUseCase {
     return key;
   }
 
-  async receiveDocument(
+  async execute(
     file: Express.Multer.File,
     dto: CreateExtractedDocumentDto,
     user_id: string,

@@ -121,9 +121,6 @@ export default function ExtractedQueueTable({
     requestAction,
     requestBulkAccept,
     requestBulkInvalidate,
-    // TODO (modals, later):
-    //   pendingAction / closePendingAction / confirmPendingAction → confirm modal
-    //   viewTarget → reviewer component
   } = useExtractedQueueTable();
 
   const navigate = useNavigate();

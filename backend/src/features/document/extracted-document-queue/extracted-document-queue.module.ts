@@ -7,7 +7,8 @@ import { ExtractionQueueController } from "./controllers/extracted-document-queu
 import { ExtractedDocumentQueueEntity } from "./entities/extracted-document-queue.entity";
 import { ExtractedDocumentQueueRepository } from "./repository/extracted-document-queue.repository";
 import { ExtractedDocumentQueueService } from "./service/extracted-document-queue.service";
-import { ExtractedDocumentQueueUseCase } from "./use-cases/extracted-document-queue.usecase";
+import { CreateExtractedDocumentQueueUseCase } from "./use-cases/create-extracted-document-queue.usecase";
+import { GetDocumentFileStreamUseCase } from "./use-cases/get-document-file-stream.usecase";
 
 @Module({
   imports: [
@@ -20,7 +21,8 @@ import { ExtractedDocumentQueueUseCase } from "./use-cases/extracted-document-qu
   providers: [
     ExtractedDocumentQueueRepository,
     ExtractedDocumentQueueService,
-    ExtractedDocumentQueueUseCase,
+    CreateExtractedDocumentQueueUseCase,
+    GetDocumentFileStreamUseCase,
   ],
   exports: [ExtractedDocumentQueueService],
 })

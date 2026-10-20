@@ -29,4 +29,15 @@ export const ExtractedQueueService = {
 
     return response.data;
   },
+
+  async getFile(id: string): Promise<Blob> {
+    const res = await apiClient.get<Blob>(
+      `${EXTRACTED_DOCUMENT_QUEUES_ENDPOINT}/${id}/file`,
+      {
+        responseType: "blob",
+      },
+    );
+
+    return res.data;
+  },
 };
