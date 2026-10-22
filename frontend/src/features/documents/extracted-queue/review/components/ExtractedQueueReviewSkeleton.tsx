@@ -33,12 +33,14 @@ export function ReviewSplitViewSkeleton({ height = "40rem" }: { height?: string 
       {/* Extracted fields */}
       <div className="flex min-h-0 flex-col gap-5 overflow-hidden rounded-xl border border-gray-200 p-4 dark:border-gray-800">
         <Skeleton height={20} width={128} />
-        {Array.from({ length: 6 }).map((_, i) => (
-          <div key={i}>
-            <Skeleton height={14} width={112} />
-            <Skeleton height={40} borderRadius={8} />
-          </div>
-        ))}
+        {["subject", "document-from", "recipient", "date", "status", "summary"].map(
+          (field) => (
+            <div key={field}>
+              <Skeleton height={14} width={112} />
+              <Skeleton height={40} borderRadius={8} />
+            </div>
+          ),
+        )}
       </div>
     </div>
   );

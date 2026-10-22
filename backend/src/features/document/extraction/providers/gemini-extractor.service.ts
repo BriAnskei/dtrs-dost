@@ -35,6 +35,9 @@ export class GeminiExtractorService implements LlmExtractor {
   ): Promise<ExtractedField[]> {
     const prompt = buildExtractionPrompt(documentType, chunks);
 
+    // 10 sec of delay
+    await new Promise((r) => setTimeout(r, 10000));
+
     try {
       const response = await this.generateContentWithRetry(documentType, prompt);
 

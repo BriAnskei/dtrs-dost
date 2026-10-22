@@ -81,7 +81,7 @@ export class ExtractedDocumentQueueService {
 
     const chunk_locations: Record<
       string,
-      { page: number; bbox: ChunkBBox; text: string; tokens?: ExtractedToken[] }
+      { page: number; bbox: ChunkBBox; text: string; sourceConfidence: number; tokens?: ExtractedToken[] }
     > = {};
     for (const chunk of queue.extracted_chunks) {
       if (chunk.page && chunk.bbox) {
@@ -89,6 +89,7 @@ export class ExtractedDocumentQueueService {
           page: chunk.page,
           bbox: chunk.bbox,
           text: chunk.text,
+          sourceConfidence: chunk.sourceConfidence,
           tokens: chunk.tokens,
         };
       }
@@ -107,7 +108,7 @@ export class ExtractedDocumentQueueService {
   }
 
   async getOrThrow(id: string) {
-    const queue = await this.repository.findOneById(id);
+    const queue = await this.repository.findOneByIdWithJoin(id);
     if (!queue) throw new NotFoundException("Extracted document not found");
     return queue;
   }

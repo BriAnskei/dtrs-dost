@@ -1,6 +1,6 @@
 import { ChevronDown, Filter } from "lucide-react";
 import { useId } from "react";
-import type { Decision } from "../../extraction/types/extraction-types";
+import type { Decision } from "../../../extraction/types/extraction-types";
 import { DECISION_LABELS } from "./DicisionBadge";
 import Popover from "./PopOver";
 

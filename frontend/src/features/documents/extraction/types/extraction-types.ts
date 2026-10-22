@@ -49,6 +49,8 @@ export interface ChunkLocation {
   page: number; // 1-based
   bbox: BBox;
   text: string;
+  /** 0-100 source confidence from PDF extraction (absent for legacy chunks). */
+  sourceConfidence?: number;
   tokens?: ChunkToken[];
 }
 

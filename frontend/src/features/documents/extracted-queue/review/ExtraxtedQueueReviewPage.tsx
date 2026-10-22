@@ -1,7 +1,7 @@
 import { useParams } from "react-router";
 import ComponentCard from "../../../../components/common/ComponentCard";
 import PageMeta from "../../../../components/common/PageMeta";
-import ExtractedQueueReviewContent from "./ExtractedQueueReviewContent";
+import ExtractedQueueReviewContent from "./components/ExtractedQueueReviewContent";
 
 export default function ExtractedQueueReviewPage() {
   const { id = "" } = useParams();

@@ -8,7 +8,10 @@ import {
   ExtractedDocumentQueueSort,
   FindMyExtractedDocumentQueuesQueryDto,
 } from "../dto/find-my-extracted-document-queues-query.dto";
-import { ExtractedDocumentQueueEntity } from "../entities/extracted-document-queue.entity";
+import {
+  ExtractedDocumentQueueEntity,
+  ExtractedDocumentQueueStatus,
+} from "../entities/extracted-document-queue.entity";
 import { ExtractedDocumentQueueCursor } from "../types/extracted-document-queue.cursor";
 
 @Injectable()
@@ -45,7 +48,10 @@ export class ExtractedDocumentQueueRepository {
       .createQueryBuilder("queue")
       .leftJoinAndSelect("queue.document_file", "document_file")
       .leftJoin("document_file.uploader", "uploader")
-      .addSelect(["uploader.id", "uploader.full_name"]);
+      .addSelect(["uploader.id", "uploader.full_name"])
+      .where("queue.status = :status", {
+        status: ExtractedDocumentQueueStatus.PENDING,
+      });
 
     if (uploader_name) {
       queryBuilder.andWhere("uploader.full_name ILIKE :uploaderName", {
@@ -234,12 +240,47 @@ export class ExtractedDocumentQueueRepository {
     };
   }
 
-  async findOneById(id: string): Promise<ExtractedDocumentQueueEntity | null> {
-    return this.repository.findOne({
+  async findById(
+    id: string,
+    manager?: EntityManager,
+  ): Promise<ExtractedDocumentQueueEntity | null> {
+    const repository =
+      manager?.getRepository(ExtractedDocumentQueueEntity) ?? this.repository;
+
+    return repository.findOne({
+      where: { id },
+      ...(manager ? { lock: { mode: "pessimistic_write" as const } } : {}),
+    });
+  }
+
+  async findOneByIdWithJoin(
+    id: string,
+    manager?: EntityManager,
+  ): Promise<ExtractedDocumentQueueEntity | null> {
+    const repo = !manager
+      ? this.repository
+      : manager.getRepository(ExtractedDocumentQueueEntity);
+
+    return repo.findOne({
       where: { id },
       relations: {
-        document_file: true,
+        document_file: {
+          uploader: true,
+        },
       },
     });
+  }
+
+  async updateStatus(
+    id: string,
+    status: ExtractedDocumentQueueEntity["status"],
+    manager?: EntityManager,
+  ): Promise<boolean> {
+    const repository =
+      manager?.getRepository(ExtractedDocumentQueueEntity) ?? this.repository;
+
+    const result = await repository.update({ id }, { status });
+
+    return (result.affected ?? 0) > 0;
   }
 }

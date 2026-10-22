@@ -1,4 +1,5 @@
 import { Body, Controller, Post } from "@nestjs/common";
+import { Idempotent } from "@nestjs/idempotency";
 import { Roles } from "../../../../auth/authorization/decorator/roles.decorator";
 import { Role } from "../../../../auth/authorization/enum/roles.enum";
 import { ExtractionRequestDto } from "../dto/extraction-request-dto";
@@ -11,6 +12,11 @@ export class ExtractionController {
 
   @Post()
   @Roles(Role.SuperAdmin, Role.Admin)
+  @Idempotent({
+    required: true,
+    ttl: "24h",
+    lockTtl: "30s",
+  })
   extract(@Body() request: ExtractionRequestDto): Promise<ExtractionResponseDto> {
     return this.extractionService.extract(request);
   }

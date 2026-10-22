@@ -1,7 +1,7 @@
 import ComponentCard from "../../../../components/common/ComponentCard";
 import PageBreadcrumb from "../../../../components/common/PageBreadCrumb";
 import PageMeta from "../../../../components/common/PageMeta";
-import ExtractedQueueTable from "./ExtractedQueueTable";
+import ExtractedQueueTable from "./components/ExtractedQueueTable";
 
 export default function ExtractedQueuePage() {
   return (

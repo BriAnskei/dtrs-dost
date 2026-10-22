@@ -5,6 +5,7 @@ import type {
   ExtractedDocumentQueueDetail,
   FindExtractedDocumentQueuesParams,
 } from "../types/extracted-document-queue.types";
+import type { InvalidateExtractedQueuePayload } from "../types/invalidation-types";
 
 const EXTRACTED_DOCUMENT_QUEUES_ENDPOINT = "/extracted-document-queue";
 
@@ -39,5 +40,13 @@ export const ExtractedQueueService = {
     );
 
     return res.data;
+  },
+
+  async invalidate(payload: InvalidateExtractedQueuePayload): Promise<void> {
+    const { id, response } = payload;
+
+    await apiClient.patch(`${EXTRACTED_DOCUMENT_QUEUES_ENDPOINT}/${id}/invalidate`, {
+      response,
+    });
   },
 };

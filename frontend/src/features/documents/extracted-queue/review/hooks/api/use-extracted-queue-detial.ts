@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
-import { toOutcome } from "../../helpers/to-outcome";
-import { ExtractedQueueService } from "../../service/extracted-queue.service";
+import { toOutcome } from "../../../helpers/to-outcome";
+import { ExtractedQueueService } from "../../../service/extracted-queue.service";
 
 export function useExtractedQueueDetail(id: string) {
   const detailQuery = useQuery({

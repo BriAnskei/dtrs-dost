@@ -1,6 +1,6 @@
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { ExtractedQueueService } from "../../service/extracted-queue.service";
-import type { FindExtractedDocumentQueuesParams } from "../../types/extracted-document-queue.types";
+import { ExtractedQueueService } from "../../../service/extracted-queue.service";
+import type { FindExtractedDocumentQueuesParams } from "../../../types/extracted-document-queue.types";
 
 type ExtractedDocumentQueueFilters = Pick<
   FindExtractedDocumentQueuesParams,

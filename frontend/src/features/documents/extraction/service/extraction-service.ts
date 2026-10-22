@@ -20,8 +20,15 @@ export interface ExtractionResponse {
 }
 
 export const extractionService = {
-  async extractFields(request: ExtractionRequest): Promise<ExtractionResponse> {
-    const response = await apiClient.post<ExtractionResponse>("/extraction", request);
+  async extractFields(
+    request: ExtractionRequest,
+    idempotencyKey: string,
+  ): Promise<ExtractionResponse> {
+    const response = await apiClient.post<ExtractionResponse>("/extraction", request, {
+      headers: {
+        "Idempotency-Key": idempotencyKey,
+      },
+    });
     return response.data;
   },
 };

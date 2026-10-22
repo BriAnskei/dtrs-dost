@@ -1,35 +1,26 @@
 import { Ban, Check, Eye, Search } from "lucide-react";
 import { useNavigate } from "react-router";
-import Input from "../../../../components/form/input/InputField";
+import Input from "../../../../../components/form/input/InputField";
 import TableShell, {
   type TableShellColumn,
-} from "../../../../components/tables/TableShell";
-import KebabMenu from "../../../../components/ui/kebab-menu/KebabMenu";
-import type { TableShellProp } from "../../../../type/table-shell-prop";
+} from "../../../../../components/tables/TableShell";
+import KebabMenu from "../../../../../components/ui/kebab-menu/KebabMenu";
+import type { TableShellProp } from "../../../../../type/table-shell-prop";
+import { formatDateTime } from "../../../../../utils/dateFormatter";
+import type {
+  ExtractedDocumentQueue,
+  ExtractedDocumentQueueSort,
+} from "../../types/extracted-document-queue.types";
 import {
   type QueueAction,
   useExtractedQueueTable,
 } from "../hooks/use-extracted-queue-table";
-import type {
-  ExtractedDocumentQueue,
-  ExtractedDocumentQueueSort,
-} from "../types/extracted-document-queue.types";
 import ActiveFilterChips from "./ActiveFilterChips";
 import BulkActionBar from "./BulkActionBar";
 import DecisionBadge from "./DicisionBadge";
 import FilterPopover from "./FilterPopover";
 import SelectCheckbox from "./SelectBox";
 import SelectionMenu from "./SelectMenu";
-
-const dateFormatter = new Intl.DateTimeFormat("en-PH", {
-  dateStyle: "medium",
-  timeStyle: "short",
-});
-
-function formatDate(iso: string) {
-  const date = new Date(iso);
-  return Number.isNaN(date.getTime()) ? "—" : dateFormatter.format(date);
-}
 
 function UploaderName({ name }: { name: string | null }) {
   return name ? (
@@ -139,19 +130,11 @@ export default function ExtractedQueueTable({
     else setViewTarget(q);
   }
 
+  // TableShell renders `label` as a plain string header, so the "select all"
+  // checkbox lives in the toolbar instead (see renderToolbar below).
   const selectColumn: TableShellColumn<ExtractedDocumentQueue> = {
-    id: "select",
     label: "",
     width: "w-4",
-    renderHeader: () => (
-      <SelectCheckbox
-        ariaLabel="Select all loaded rows"
-        checked={allLoadedSelected}
-        indeterminate={someSelected}
-        disabled={queues.length === 0}
-        onChange={toggleAllLoaded}
-      />
-    ),
     render: (q) => (
       <SelectCheckbox
         ariaLabel={`Select ${q.file_name}`}
@@ -200,7 +183,7 @@ export default function ExtractedQueueTable({
       width: "w-32",
       render: (q) => (
         <span className="whitespace-nowrap text-gray-500 text-theme-sm dark:text-gray-400">
-          {formatDate(q.created_at)}
+          {formatDateTime(q.created_at)}
         </span>
       ),
     },
@@ -266,7 +249,7 @@ export default function ExtractedQueueTable({
                 value={sort}
                 onChange={(e) => setSort(e.target.value as ExtractedDocumentQueueSort)}
                 aria-label="Sort"
-                className="px-3 py-2 text-theme-sm rounded-lg border border-gray-200 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-secondary/40 focus:border-secondary dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-gray-200 transition"
+                className="px-3 py-2 text-theme-sm rounded-lg border border-gray-200 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-secondary/40 focus:border-secondary dark:border-white/8 dark:bg-white/3 dark:text-gray-200 transition"
               >
                 <option value="newest">Newest first</option>
                 <option value="oldest">Oldest first</option>
@@ -296,6 +279,21 @@ export default function ExtractedQueueTable({
           />
 
           {selectionMode && (
+            <div className="flex items-center gap-2">
+              <SelectCheckbox
+                ariaLabel="Select all loaded rows"
+                checked={allLoadedSelected}
+                indeterminate={someSelected}
+                disabled={queues.length === 0}
+                onChange={toggleAllLoaded}
+              />
+              <span className="text-theme-xs text-gray-500 dark:text-gray-400">
+                Select all loaded ({queues.length})
+              </span>
+            </div>
+          )}
+
+          {selectionMode && (
             <BulkActionBar
               selectedCount={selectedCount}
               acceptableCount={acceptableCount}
@@ -312,19 +310,16 @@ export default function ExtractedQueueTable({
       renderMobileCard={(q) => (
         <div
           key={q.id}
-          onClick={selectionMode ? () => toggleOne(q.id) : undefined}
-          className={`rounded-xl border p-4 space-y-3 ${
-            selectionMode ? "cursor-pointer" : ""
-          } ${
+          className={`relative rounded-xl border p-4 space-y-3 ${
             isSelected(q.id)
               ? "border-secondary/40 bg-secondary/5"
-              : "border-gray-200 bg-white dark:border-white/[0.08] dark:bg-white/[0.03]"
+              : "border-gray-200 bg-white dark:border-white/8 dark:bg-white/3"
           }`}
         >
           <div className="flex items-start gap-3">
             {selectionMode && (
-              // Stop the tap reaching the card, otherwise it would toggle twice.
-              <div className="pt-0.5" onClick={(e) => e.stopPropagation()}>
+              // Sits above the filename button's overlay so its own tap isn't swallowed.
+              <div className="relative z-10 pt-0.5">
                 <SelectCheckbox
                   ariaLabel={`Select ${q.file_name}`}
                   checked={isSelected(q.id)}
@@ -334,11 +329,14 @@ export default function ExtractedQueueTable({
             )}
 
             <div className="min-w-0 flex-1">
-              {/* In selection mode this has no handler of its own: the tap bubbles to the card. */}
+              {/* In selection mode the ::after overlay stretches this button over the
+                  whole card, so tapping anywhere toggles the row (keyboard-accessible). */}
               <button
                 type="button"
-                onClick={selectionMode ? undefined : () => setViewTarget(q)}
-                className="block w-full truncate text-start font-medium text-gray-800 text-theme-sm dark:text-white/90"
+                onClick={() => handlePrimaryClick(q)}
+                className={`block w-full truncate text-start font-medium text-gray-800 text-theme-sm dark:text-white/90 ${
+                  selectionMode ? "after:absolute after:inset-0 after:content-['']" : ""
+                }`}
               >
                 {q.file_name}
               </button>
@@ -359,7 +357,7 @@ export default function ExtractedQueueTable({
           <div className="flex items-center justify-between gap-3">
             <DecisionBadge decision={q.decision} />
             <span className="text-theme-xs text-gray-400 dark:text-gray-500">
-              {formatDate(q.created_at)}
+              {formatDateTime(q.created_at)}
             </span>
           </div>
         </div>

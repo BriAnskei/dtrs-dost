@@ -51,6 +51,7 @@ export function useExtraction(direction: DocumentDirection) {
    */
   const start = useCallback(
     async (file: File): Promise<ExtractionResult> => {
+      const idempotencyKey = crypto.randomUUID();
       reset();
 
       const log = (level: LogLevel, message: string) =>
@@ -180,7 +181,7 @@ export function useExtraction(direction: DocumentDirection) {
         let response: ExtractionResponse;
 
         try {
-          response = await extractionService.extractFields(request);
+          response = await extractionService.extractFields(request, idempotencyKey);
         } catch (err) {
           const message = getApiErrorMessage(
             err,

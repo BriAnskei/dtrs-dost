@@ -24,7 +24,16 @@ function buildChunksById(
       },
       confidence: t.confidence ?? 1.0,
     }));
-    map.set(id, { chunkId: id, text: loc.text, tokens });
+    map.set(id, {
+      chunkId: id,
+      text: loc.text,
+
+      // we do fixed text, source is not important in the review handler admins only
+      // needs to see the extracted text and EF confidence
+      source: "text",
+      confidence: loc.sourceConfidence != null ? loc.sourceConfidence / 100 : 1.0,
+      tokens,
+    });
   }
   return map;
 }

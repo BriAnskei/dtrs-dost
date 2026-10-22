@@ -1,4 +1,4 @@
-import type { Decision } from "../../extraction/types/extraction-types";
+import type { Decision } from "../../../extraction/types/extraction-types";
 
 const DECISION_STYLES: Record<Decision, { label: string; className: string }> = {
   ACCEPT: {

@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
-import { useInfiniteScrollSentinel } from "../../../../hooks/user-infinite-scroll-sentinel";
-import type { Decision } from "../../extraction/types/extraction-types";
+import { useInfiniteScrollSentinel } from "../../../../../hooks/user-infinite-scroll-sentinel";
+import type { Decision } from "../../../extraction/types/extraction-types";
+import { useExtractedDocumentQueues } from "./api/use-extracted-queue";
 import type {
   ExtractedDocumentQueue,
   ExtractedDocumentQueueSort,
-} from "../types/extracted-document-queue.types";
-import { useExtractedDocumentQueues } from "./api/use-extracted-queue";
+} from "../../types/extracted-document-queue.types";
 
 const DEFAULT_SORT: ExtractedDocumentQueueSort = "newest";
 
