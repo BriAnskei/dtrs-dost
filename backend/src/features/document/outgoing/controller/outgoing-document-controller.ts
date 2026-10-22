@@ -9,6 +9,7 @@ import {
   UseInterceptors,
 } from "@nestjs/common";
 import { CommandBus, QueryBus } from "@nestjs/cqrs";
+import { Idempotent } from "@nestjs/idempotency";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { memoryStorage } from "multer";
 import type { AuthenticatedRequest } from "../../../../auth/authentication/types/authenticated-request";
@@ -29,6 +30,11 @@ export class OutgoingDocumentController {
 
   @Post()
   @Roles(Role.Admin, Role.SuperAdmin)
+  @Idempotent({
+    required: true,
+    ttl: "24h",
+    lockTtl: "30s",
+  })
   @UseInterceptors(
     FileInterceptor("file", {
       storage: memoryStorage(),

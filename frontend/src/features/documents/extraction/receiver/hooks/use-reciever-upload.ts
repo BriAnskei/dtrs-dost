@@ -38,6 +38,8 @@ export function useReceiverUpload() {
   const mountedRef = useRef(true);
   // Kept so Retry re-sends without redoing OCR.
   const chunksRef = useRef<ReceiverChunk[] | null>(null);
+  // Persisted across retries so a retry reuses the same key.
+  const idempotencyKeyRef = useRef<string | null>(null);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -58,7 +60,9 @@ export function useReceiverUpload() {
       setShowResult(false);
       setStatus("queueing");
       try {
-        const data = await mutateAsync({ file: f, chunks });
+        const key = idempotencyKeyRef.current ?? crypto.randomUUID();
+        idempotencyKeyRef.current = key;
+        const data = await mutateAsync({ file: f, chunks, idempotencyKey: key });
         if (!mountedRef.current) return;
 
         setResult(data);
@@ -135,6 +139,7 @@ export function useReceiverUpload() {
 
   const startOver = useCallback(() => {
     chunksRef.current = null;
+    idempotencyKeyRef.current = null;
     resetMutation();
     setResult(null);
     setShowResult(false);

@@ -48,3 +48,12 @@ export function getErrorStatus(error: unknown): number | undefined {
 export function isNetworkError(error: unknown): boolean {
   return axios.isAxiosError(error) && !error.response;
 }
+
+export function getErrorMessage(err: unknown, fallback: string): string {
+  if (axios.isAxiosError(err)) {
+    const data = err.response?.data as { message?: string | string[] } | undefined;
+    if (Array.isArray(data?.message)) return data.message[0] ?? fallback;
+    if (typeof data?.message === "string") return data.message;
+  }
+  return fallback;
+}

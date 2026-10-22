@@ -12,7 +12,8 @@ export const AdminDocumentUploadService = {
   async createOutgoingDocument({
     file,
     dto,
-  }: CreateOutgoingDocumentInput): Promise<CreateOutgoingDocumentResponse> {
+    idempotencyKey,
+  }: CreateOutgoingDocumentInput & { idempotencyKey: string }): Promise<CreateOutgoingDocumentResponse> {
     const formData = new FormData();
 
     formData.append("file", file);
@@ -29,6 +30,7 @@ export const AdminDocumentUploadService = {
       {
         headers: {
           "Content-Type": "multipart/form-data",
+          "Idempotency-Key": idempotencyKey,
         },
       },
     );
@@ -39,7 +41,8 @@ export const AdminDocumentUploadService = {
   async createIncomingDocument({
     file,
     dto,
-  }: CreateIncomingDocumentInput): Promise<CreateIncomingDocumentResponse> {
+    idempotencyKey,
+  }: CreateIncomingDocumentInput & { idempotencyKey: string }): Promise<CreateIncomingDocumentResponse> {
     const formData = new FormData();
 
     formData.append("file", file);
@@ -55,6 +58,7 @@ export const AdminDocumentUploadService = {
       {
         headers: {
           "Content-Type": "multipart/form-data",
+          "Idempotency-Key": idempotencyKey,
         },
       },
     );

@@ -14,6 +14,7 @@ import {
   UploadedFile,
   UseInterceptors,
 } from "@nestjs/common";
+import { Idempotent } from "@nestjs/idempotency";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { create } from "content-disposition";
 import { memoryStorage } from "multer";
@@ -41,6 +42,11 @@ export class ExtractionQueueController {
 
   @Post()
   @Roles(Role.ReceiverOfficer)
+  @Idempotent({
+    required: true,
+    ttl: "24h",
+    lockTtl: "30s",
+  })
   @UseInterceptors(
     FileInterceptor("file", {
       storage: memoryStorage(),

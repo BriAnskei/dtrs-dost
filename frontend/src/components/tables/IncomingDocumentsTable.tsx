@@ -1,4 +1,5 @@
 import axios from "axios";
+import { getApiErrorMessage } from "../../lib/api-error";
 import { useEffect, useState } from "react";
 import QRCodeModal from "../receiver/QRCodeModal";
 import IncomingAuditModal from "../ui/modal/document/IncomingAuditModal";
@@ -266,7 +267,7 @@ export default function IncomingDocumentsTable() {
         if (!cancelled) {
           console.error("Failed to fetch incoming documents:", error);
           setFetchError(
-            error?.response?.data?.message || "Failed to load incoming documents.",
+            getApiErrorMessage(error, "Failed to load incoming documents."),
           );
         }
       } finally {

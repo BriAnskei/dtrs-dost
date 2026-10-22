@@ -5,7 +5,11 @@ import type {
 } from "../types/reciever-upload-api-types";
 
 export const receiverUploadService = {
-  async upload({ file, chunks }: ReceiverUploadRequest): Promise<ReceiverUploadResponse> {
+  async upload({
+    file,
+    chunks,
+    idempotencyKey,
+  }: ReceiverUploadRequest & { idempotencyKey: string }): Promise<ReceiverUploadResponse> {
     const form = new FormData();
 
     form.append("file", file);
@@ -17,6 +21,7 @@ export const receiverUploadService = {
       {
         headers: {
           "Content-Type": "multipart/form-data",
+          "Idempotency-Key": idempotencyKey,
         },
       },
     );

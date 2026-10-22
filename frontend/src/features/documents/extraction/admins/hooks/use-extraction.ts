@@ -33,6 +33,8 @@ export function useExtraction(direction: DocumentDirection) {
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [outcome, setOutcome] = useState<ExtractionOutcome | null>(null);
   const logId = useRef(0);
+  // Persisted across retries so a retry reuses the same key (same as useReceiverUpload).
+  const idempotencyKeyRef = useRef<string | null>(null);
 
   useExitConfirmation(phase === "source" || phase === "llm");
 
@@ -41,6 +43,7 @@ export function useExtraction(direction: DocumentDirection) {
     setLogs([]);
     setOutcome(null);
     logId.current = 0;
+    idempotencyKeyRef.current = null;
   }, []);
 
   /**
@@ -51,7 +54,8 @@ export function useExtraction(direction: DocumentDirection) {
    */
   const start = useCallback(
     async (file: File): Promise<ExtractionResult> => {
-      const idempotencyKey = crypto.randomUUID();
+      const idempotencyKey = idempotencyKeyRef.current ?? crypto.randomUUID();
+      idempotencyKeyRef.current = idempotencyKey;
       reset();
 
       const log = (level: LogLevel, message: string) =>
