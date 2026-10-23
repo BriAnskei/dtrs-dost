@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
@@ -76,10 +77,10 @@ export class ExtractionQueueController {
     return this.service.findAllByUploaderId(req.user.id, query);
   }
 
-  @Get(":id")
+  @Get(":id/review")
   @Roles(Role.SuperAdmin, Role.Admin)
   findOne(@Param("id", ParseUUIDPipe) id: string) {
-    return this.service.findOne(id);
+    return this.service.findOneForReview(id);
   }
 
   @Get(":id/file")
@@ -106,5 +107,12 @@ export class ExtractionQueueController {
       queueId: id,
       response: dto.response,
     });
+  }
+
+  @Delete(":id")
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Roles(Role.ReceiverOfficer)
+  async delete(@Param("id") id: string): Promise<void> {
+    await this.service.delete(id);
   }
 }

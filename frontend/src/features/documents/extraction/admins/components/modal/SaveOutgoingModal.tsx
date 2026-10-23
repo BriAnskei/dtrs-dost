@@ -1,3 +1,4 @@
+import { Check, Loader2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import DatePicker from "../../../../../../components/form/date-picker";
 import Label from "../../../../../../components/form/Label";
@@ -10,43 +11,6 @@ const secondaryBtn =
   "px-4 py-2 text-theme-sm rounded-lg border border-gray-200 bg-white text-gray-700 hover:border-secondary/40 transition disabled:opacity-50 disabled:cursor-not-allowed dark:border-white/8 dark:bg-white/3 dark:text-gray-200";
 const inputCls =
   "h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 disabled:opacity-60 disabled:cursor-not-allowed dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30";
-
-const Spinner = () => (
-  <svg
-    className="h-4 w-4 animate-spin"
-    viewBox="0 0 24 24"
-    fill="none"
-    aria-hidden="true"
-  >
-    <circle
-      cx="12"
-      cy="12"
-      r="10"
-      stroke="currentColor"
-      strokeWidth="4"
-      className="opacity-25"
-    />
-    <path
-      d="M4 12a8 8 0 018-8"
-      stroke="currentColor"
-      strokeWidth="4"
-      strokeLinecap="round"
-    />
-  </svg>
-);
-
-const CheckCircleIcon = () => (
-  <svg
-    className="h-6 w-6"
-    fill="none"
-    viewBox="0 0 24 24"
-    stroke="currentColor"
-    strokeWidth={2}
-    aria-hidden="true"
-  >
-    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-  </svg>
-);
 
 interface Props {
   draft: OutgoingDraft;
@@ -159,7 +123,7 @@ export default function SaveOutgoingModal({
             <>
               <div className="flex flex-col items-center text-center">
                 <span className="flex h-12 w-12 items-center justify-center rounded-full bg-success-50 text-success-600 dark:bg-success-500/10 dark:text-success-400">
-                  <CheckCircleIcon />
+                  <Check className="h-6 w-6" strokeWidth={2} aria-hidden="true" />
                 </span>
                 <p className="mt-3 text-theme-sm font-semibold text-gray-800 dark:text-white/90">
                   Saved successfully
@@ -257,7 +221,9 @@ export default function SaveOutgoingModal({
               Cancel
             </button>
             <button type="submit" className={primaryBtn} disabled={!valid || isSaving}>
-              {isSaving && <Spinner />}
+              {isSaving && (
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+              )}
               {isSaving ? "Saving..." : "Save"}
             </button>
           </>

@@ -18,7 +18,7 @@ export class InvalidateExtractedDocumentQueueUseCase {
 
   async execute(input: InvalidateExtractedDocumentQueueInput) {
     return this.dataSource.transaction(async (manager) => {
-      const queue = await this.queueRepository.findById(input.queueId, manager);
+      const queue = await this.queueRepository.findOneForUpdate(input.queueId, manager);
 
       if (!queue) {
         throw new NotFoundException(

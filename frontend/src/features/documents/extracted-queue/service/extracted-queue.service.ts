@@ -1,5 +1,7 @@
 import { apiClient } from "../../../../lib/api-client";
 import type { PaginatedResponse } from "../../../../type/paginated-response.type";
+import type { CreateIncomingDocumentDto } from "../../extraction/admins/types/create-incoming-document";
+import type { CreateIncomingFromQueueResponse } from "../types/create-incoming-from-queue.types";
 import type {
   ExtractedDocumentQueue,
   ExtractedDocumentQueueDetail,
@@ -10,6 +12,24 @@ import type { InvalidateExtractedQueuePayload } from "../types/invalidation-type
 const EXTRACTED_DOCUMENT_QUEUES_ENDPOINT = "/extracted-document-queue";
 
 export const ExtractedQueueService = {
+  async createIncomingFromQueue(
+    queueId: string,
+    payload: CreateIncomingDocumentDto,
+    idempotencyKey: string,
+  ): Promise<CreateIncomingFromQueueResponse> {
+    const response = await apiClient.post<CreateIncomingFromQueueResponse>(
+      `/incoming-documents/from-queue/${queueId}`,
+      payload,
+      {
+        headers: {
+          "Idempotency-Key": idempotencyKey,
+        },
+      },
+    );
+
+    return response.data;
+  },
+
   async findAll(
     params: FindExtractedDocumentQueuesParams,
   ): Promise<PaginatedResponse<ExtractedDocumentQueue>> {
@@ -23,9 +43,9 @@ export const ExtractedQueueService = {
     return response.data;
   },
 
-  async findOne(id: string): Promise<ExtractedDocumentQueueDetail> {
+  async findOneForReview(id: string): Promise<ExtractedDocumentQueueDetail> {
     const response = await apiClient.get<ExtractedDocumentQueueDetail>(
-      `${EXTRACTED_DOCUMENT_QUEUES_ENDPOINT}/${id}`,
+      `${EXTRACTED_DOCUMENT_QUEUES_ENDPOINT}/${id}/review`,
     );
 
     return response.data;

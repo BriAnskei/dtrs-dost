@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { ConflictException, Injectable, NotFoundException } from "@nestjs/common";
 import { EntityManager } from "typeorm";
 import { PaginatedResponse } from "../../../../common/pagination/paginated-response";
 import { resolveExtraction } from "../domain/resolve-extraction";
@@ -6,7 +6,10 @@ import { ExtractedDocumentQueueResponseDto } from "../dto/extracted-document-res
 import { FindExtractedDocumentQueuesQueryDto } from "../dto/find-extracted-document-queues-query.dto";
 import { FindMyExtractedDocumentQueuesQueryDto } from "../dto/find-my-extracted-document-queues-query.dto";
 import { MyExtractedDocumentQueueResponseDto } from "../dto/my-extracted-document-queue-response-dto";
-import { ExtractedDocumentQueueEntity } from "../entities/extracted-document-queue.entity";
+import {
+  ExtractedDocumentQueueEntity,
+  ExtractedDocumentQueueStatus,
+} from "../entities/extracted-document-queue.entity";
 import { ExtractedDocumentQueueRepository } from "../repository/extracted-document-queue.repository";
 import { ChunkBBox, ExtractedToken } from "../types/extracted-types";
 
@@ -75,13 +78,19 @@ export class ExtractedDocumentQueueService {
     };
   }
 
-  async findOne(id: string) {
+  async findOneForReview(id: string) {
     const queue = await this.getOrThrow(id);
     const resolved = resolveExtraction(queue.extracted_data, queue.extracted_chunks);
 
     const chunk_locations: Record<
       string,
-      { page: number; bbox: ChunkBBox; text: string; sourceConfidence: number; tokens?: ExtractedToken[] }
+      {
+        page: number;
+        bbox: ChunkBBox;
+        text: string;
+        sourceConfidence: number;
+        tokens?: ExtractedToken[];
+      }
     > = {};
     for (const chunk of queue.extracted_chunks) {
       if (chunk.page && chunk.bbox) {
@@ -109,7 +118,42 @@ export class ExtractedDocumentQueueService {
 
   async getOrThrow(id: string) {
     const queue = await this.repository.findOneByIdWithJoin(id);
-    if (!queue) throw new NotFoundException("Extracted document not found");
+    if (!queue) throw new NotFoundException("Document Queue not found");
     return queue;
+  }
+
+  async findOne(id: string): Promise<ExtractedDocumentQueueEntity> {
+    const queue = await this.repository.findOneById(id);
+
+    if (!queue) throw new NotFoundException("Queue record not found");
+
+    return queue;
+  }
+
+  async approveIfPending(
+    id: string,
+    manager: EntityManager,
+  ): Promise<ExtractedDocumentQueueEntity> {
+    const queue = await this.repository.findOneForUpdate(id, manager);
+
+    if (!queue) throw new NotFoundException("Queue record not found");
+
+    if (queue.status !== ExtractedDocumentQueueStatus.PENDING)
+      throw new ConflictException(
+        "Only pending extracted documents can be converted into incoming documents.",
+      );
+
+    await this.repository.updateStatus(
+      id,
+      ExtractedDocumentQueueStatus.APPROVED,
+      manager,
+    );
+    return queue;
+  }
+
+  async delete(id: string): Promise<void> {
+    const res = await this.repository.delete(id);
+
+    if (!res) throw new NotFoundException("Queue does not exist");
   }
 }

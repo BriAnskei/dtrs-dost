@@ -30,6 +30,6 @@ import { InvalidateExtractedDocumentQueueUseCase } from "./use-cases/invalidate-
     InvalidationResponseRepository,
     InvalidateExtractedDocumentQueueUseCase,
   ],
-  exports: [ExtractedDocumentQueueService],
+  exports: [ExtractedDocumentQueueService, InvalidationResponseRepository],
 })
 export class ExtractedDocumentQueueModule {}

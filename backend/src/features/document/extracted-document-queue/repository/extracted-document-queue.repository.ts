@@ -32,6 +32,16 @@ export class ExtractedDocumentQueueRepository {
     return repo.save(repo.create(data));
   }
 
+  async findOneForUpdate(
+    queueId: string,
+    manager: EntityManager,
+  ): Promise<ExtractedDocumentQueueEntity | null> {
+    return manager.getRepository(ExtractedDocumentQueueEntity).findOne({
+      where: { id: queueId },
+      lock: { mode: "pessimistic_write" },
+    });
+  }
+
   async findAll(
     query: FindExtractedDocumentQueuesQueryDto,
   ): Promise<PaginatedResponse<ExtractedDocumentQueueEntity>> {
@@ -249,7 +259,6 @@ export class ExtractedDocumentQueueRepository {
 
     return repository.findOne({
       where: { id },
-      ...(manager ? { lock: { mode: "pessimistic_write" as const } } : {}),
     });
   }
 
@@ -271,6 +280,19 @@ export class ExtractedDocumentQueueRepository {
     });
   }
 
+  async findOneById(
+    id: string,
+    manager?: EntityManager,
+  ): Promise<ExtractedDocumentQueueEntity | null> {
+    const repo = manager
+      ? manager.getRepository(ExtractedDocumentQueueEntity)
+      : this.repository;
+
+    return repo.findOne({
+      where: { id },
+    });
+  }
+
   async updateStatus(
     id: string,
     status: ExtractedDocumentQueueEntity["status"],
@@ -282,5 +304,11 @@ export class ExtractedDocumentQueueRepository {
     const result = await repository.update({ id }, { status });
 
     return (result.affected ?? 0) > 0;
+  }
+
+  async delete(id: string): Promise<boolean> {
+    const res = await this.repository.delete(id);
+
+    return (res.affected ?? 0) > 0;
   }
 }

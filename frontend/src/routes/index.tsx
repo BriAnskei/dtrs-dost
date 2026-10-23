@@ -12,7 +12,8 @@ import DisabledUsersPage from "../features/disabled-user-management/components/D
 import DivisionManagementPage from "../features/divisions/components/DivisionManagementPage";
 import ExtractedQueuePage from "../features/documents/extracted-queue/queue-list/ExtractedQueuePage";
 import ExtractedQueueReviewPage from "../features/documents/extracted-queue/review/ExtraxtedQueueReviewPage";
-import MyUploadedDocumentsPage from "../features/documents/extracted-queue-receiver/components/MyUploadedDocumentsPage";
+import MyUploadedDocumentsPage from "../features/documents/extracted-queue-receiver/list-components/MyUploadedDocumentsPage";
+import MyUploadedDocumentDetailsPage from "../features/documents/extracted-queue-receiver/view-components/MyUploadedDocumentDetailsPage";
 import DirectUploadPage from "../features/documents/extraction/admins/components/DirectUploadPage";
 import ReceiverUploadPage from "../features/documents/extraction/receiver/components/ReceiverUploadPage";
 import IncomingDocumentsPage from "../features/documents/incomming/components/IncomingDocumentsPage";
@@ -222,6 +223,11 @@ const RECEIVING_OFFICER_ROUTES: RouteType[] = [
   {
     path: "/my-uploads",
     element: <MyUploadedDocumentsPage />,
+  },
+
+  {
+    path: "/my-uploads/:id",
+    element: <MyUploadedDocumentDetailsPage />,
   },
   {
     path: "/invalid-documents",

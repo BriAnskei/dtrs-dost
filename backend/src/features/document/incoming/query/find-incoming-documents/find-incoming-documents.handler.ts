@@ -1,13 +1,9 @@
 import { IQueryHandler, QueryHandler } from "@nestjs/cqrs";
+import { PaginatedResponse } from "../../../../../common/pagination/paginated-response";
 import { IncomingDocumentResponseDto } from "../../dto/incoming-document-response.dto";
 import { IncomingDocumentEntity } from "../../entities/incoming-document-entity";
 import { IncomingDocumentsRepository } from "../../repository/incoming-document.repository";
 import { FindIncomingDocumentsQuery } from "./find-incoming-documents.query";
-
-interface PaginatedResponse<T> {
-  data: T[];
-  nextCursor: string | null;
-}
 
 @QueryHandler(FindIncomingDocumentsQuery)
 export class FindIncomingDocumentsHandler

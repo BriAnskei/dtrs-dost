@@ -1,5 +1,7 @@
+import SaveIncomingModal from "../../../extraction/admins/components/modal/SaveIncomingModel";
 import ReviewSplitView from "../../../extraction/admins/components/ReviewSplitView";
 import { useExtractedQueueReview } from "../hooks/use-extracted-queue-review";
+import { useQueueIncomingSaveModal } from "../hooks/use-queue-incoming-save-modal";
 import BackToQueueLink from "./BackToQueueLink";
 import ExtractedQueueReviewSkeleton from "./ExtractedQueueReviewSkeleton";
 import InvalidateDocumentModal from "./modal/InvalidateDocumentModal";
@@ -16,14 +18,18 @@ export default function ExtractedQueueReviewContent({ id }: { id: string }) {
     isLoading,
     isError,
     edits,
-    hasEdits,
     handleEdit,
     isInvalidateModalOpen,
-    openSaveModal,
     openInvalidateModal,
     closeModal,
     handleInvalidated,
   } = useExtractedQueueReview(id);
+
+  const {
+    issues,
+    open: openSaveModal,
+    modalProps: saveModalProps,
+  } = useQueueIncomingSaveModal({ queueId: id, outcome, edits });
 
   return (
     <div className="space-y-4">
@@ -60,10 +66,12 @@ export default function ExtractedQueueReviewContent({ id }: { id: string }) {
 
           <ReviewActionBar onSave={openSaveModal} onInvalidate={openInvalidateModal} />
 
-          {hasEdits && (
-            <p className="text-theme-xs text-gray-500 dark:text-gray-400">
-              Edits are kept on this page only. Saving is not available yet.
-            </p>
+          {issues.length > 0 && (
+            <ul role="alert" className="list-disc pl-5 text-theme-xs text-danger">
+              {issues.map((issue) => (
+                <li key={issue}>{issue}</li>
+              ))}
+            </ul>
           )}
 
           {isInvalidateModalOpen && (
@@ -75,8 +83,7 @@ export default function ExtractedQueueReviewContent({ id }: { id: string }) {
             />
           )}
 
-          {/* TODO: render SaveIncomingModal when `isSaveModalOpen` and
-              `handleSaveConfirm` from the hook once it exists. */}
+          {saveModalProps && <SaveIncomingModal {...saveModalProps} />}
         </>
       )}
     </div>

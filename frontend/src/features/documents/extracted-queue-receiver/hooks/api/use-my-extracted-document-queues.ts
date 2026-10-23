@@ -1,5 +1,5 @@
-import { useInfiniteQuery } from "@tanstack/react-query";
-import { ExtractedDocumentQueueReciverService } from "../../service/extracted-documents-queue-reciever-service";
+import { keepPreviousData, useInfiniteQuery } from "@tanstack/react-query";
+import { ExtractedDocumentQueueReceiverService } from "../../service/extracted-documents-queue-reciever-service";
 import type { FindMyExtractedDocumentQueuesParams } from "../../types/extracted-queue-receiver-types";
 
 type MyQueueFilters = Pick<
@@ -12,7 +12,7 @@ export function useMyExtractedDocumentQueues(filters: MyQueueFilters) {
     queryKey: ["my-extracted-document-queues", filters],
 
     queryFn: ({ pageParam }) =>
-      ExtractedDocumentQueueReciverService.findMy({
+      ExtractedDocumentQueueReceiverService.findMy({
         ...filters,
         cursor: pageParam,
         limit: 20,
@@ -21,5 +21,7 @@ export function useMyExtractedDocumentQueues(filters: MyQueueFilters) {
     initialPageParam: undefined as string | undefined,
 
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+
+    placeholderData: keepPreviousData,
   });
 }

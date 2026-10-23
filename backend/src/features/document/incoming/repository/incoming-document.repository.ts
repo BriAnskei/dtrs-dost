@@ -323,4 +323,16 @@ export class IncomingDocumentsRepository {
         return document.subject;
     }
   }
+
+  async findByDocumentFileId(
+    documentFileId: string,
+  ): Promise<IncomingDocumentEntity | null> {
+    return this.repository.findOne({
+      where: {
+        document_file: {
+          id: documentFileId,
+        },
+      },
+    });
+  }
 }

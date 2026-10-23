@@ -4,8 +4,9 @@ import type {
   FindMyExtractedDocumentQueuesParams,
   MyExtractedDocumentQueue,
 } from "../types/extracted-queue-receiver-types";
+import type { ReceiverQueueDetailsDto } from "../types/get-incoming-document-by-queue.dto";
 
-export const ExtractedDocumentQueueReciverService = {
+export const ExtractedDocumentQueueReceiverService = {
   async findMy(
     params: FindMyExtractedDocumentQueuesParams,
   ): Promise<PaginatedResponse<MyExtractedDocumentQueue>> {
@@ -17,5 +18,17 @@ export const ExtractedDocumentQueueReciverService = {
     );
 
     return response.data;
+  },
+
+  async findQueueDetails(queueId: string): Promise<ReceiverQueueDetailsDto> {
+    const response = await apiClient.get<ReceiverQueueDetailsDto>(
+      `/incoming-documents/receiver-queue/${queueId}`,
+    );
+
+    return response.data;
+  },
+
+  async delete(queueId: string): Promise<void> {
+    await apiClient.delete(`/extracted-document-queue/${queueId}`);
   },
 };

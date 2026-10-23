@@ -28,7 +28,7 @@ export function useMyExtractedQueueTable() {
     hasNextPage,
     isFetchingNextPage,
   } = useMyExtractedDocumentQueues({
-    file_name: debouncedSearch || undefined,
+    file_name: debouncedSearch.trim() || undefined,
     decision: filterDecision === "All" ? undefined : filterDecision,
     status: filterStatus === "All" ? undefined : filterStatus,
     sort,
@@ -40,7 +40,10 @@ export function useMyExtractedQueueTable() {
   );
 
   const hasFilters =
-    !!search || filterDecision !== "All" || filterStatus !== "All" || sort !== "newest";
+    !!search.trim() ||
+    filterDecision !== "All" ||
+    filterStatus !== "All" ||
+    sort !== "newest";
 
   const loadMore = useCallback(() => {
     if (hasNextPage && !isFetchingNextPage) fetchNextPage();
@@ -66,8 +69,8 @@ export function useMyExtractedQueueTable() {
     setSort((prev) => (prev === "newest" ? "oldest" : "newest"));
   }
 
-  // action targets (modals/handlers will be wired later)
-  const [viewTarget, setViewTarget] = useState<MyExtractedDocumentQueue | null>(null);
+  // TODO: wire the delete confirmation modal + mutation to this target.
+  // ("View" no longer needs state here: it navigates to /my-uploads/:id.)
   const [deleteTarget, setDeleteTarget] = useState<MyExtractedDocumentQueue | null>(null);
 
   return {
@@ -91,8 +94,6 @@ export function useMyExtractedQueueTable() {
     mobileSentinelRef: mobileScroll.sentinelRef,
     desktopScrollRef: desktopScroll.rootRef,
     desktopSentinelRef: desktopScroll.sentinelRef,
-    viewTarget,
-    setViewTarget,
     deleteTarget,
     setDeleteTarget,
   };

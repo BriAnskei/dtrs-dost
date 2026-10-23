@@ -5,7 +5,7 @@ import { useExtractedQueueDetail } from "./api/use-extracted-queue-detial";
 
 const QUEUE_PATH = "/extracted-queues";
 
-export type ReviewModal = "save" | "invalidate" | null;
+export type ReviewModal = "invalidate" | null;
 
 export function useExtractedQueueReview(id: string) {
   const navigate = useNavigate();
@@ -27,14 +27,8 @@ export function useExtractedQueueReview(id: string) {
 
   const hasEdits = Object.keys(edits).length > 0;
 
-  const openSaveModal = useCallback(() => setModal("save"), []);
   const openInvalidateModal = useCallback(() => setModal("invalidate"), []);
   const closeModal = useCallback(() => setModal(null), []);
-
-  const handleSaveConfirm = useCallback(() => {
-    // TODO: save the document (with `edits`) so it proceeds as an incoming document.
-    setModal(null);
-  }, []);
 
   // The document is no longer reviewable once invalidated, so leave the page.
   const handleInvalidated = useCallback(() => {
@@ -51,12 +45,9 @@ export function useExtractedQueueReview(id: string) {
     edits,
     hasEdits,
     handleEdit,
-    isSaveModalOpen: modal === "save",
     isInvalidateModalOpen: modal === "invalidate",
-    openSaveModal,
     openInvalidateModal,
     closeModal,
-    handleSaveConfirm,
     handleInvalidated,
   };
 }

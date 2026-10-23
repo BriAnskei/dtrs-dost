@@ -21,4 +21,12 @@ export class InvalidationResponseRepository {
 
     return repository.save(entity);
   }
+
+  async findByQueueId(queueId: string): Promise<InvalidationResponseEntity | null> {
+    return this.repository.findOne({
+      where: {
+        extracted_document_queue_id: queueId,
+      },
+    });
+  }
 }

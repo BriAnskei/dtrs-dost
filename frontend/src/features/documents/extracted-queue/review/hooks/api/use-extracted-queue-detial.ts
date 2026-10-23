@@ -6,7 +6,7 @@ import { ExtractedQueueService } from "../../../service/extracted-queue.service"
 export function useExtractedQueueDetail(id: string) {
   const detailQuery = useQuery({
     queryKey: ["extracted-document-queue", id],
-    queryFn: () => ExtractedQueueService.findOne(id),
+    queryFn: () => ExtractedQueueService.findOneForReview(id),
     enabled: !!id,
   });
 
