@@ -35,7 +35,7 @@ const COPY: Record<
   INVALIDATED: {
     title: "Delete this upload?",
     message: "An admin invalidated this upload, so it has no incoming record.",
-    note: "Deleting it permanently removes the upload and its PDF. This can't be undone.",
+    note: "This permanently deletes the remaining records associated with this upload. This can't be undone.",
     action: "Delete",
     pending: "Deleting...",
     destructive: true,
