@@ -64,8 +64,19 @@ export class S3Service {
       );
 
       return true;
-    } catch {
-      return false;
+    } catch (error) {
+      if (
+        error instanceof Error &&
+        "$metadata" in error &&
+        typeof error.$metadata === "object" &&
+        error.$metadata !== null &&
+        "httpStatusCode" in error.$metadata &&
+        error.$metadata.httpStatusCode === 404
+      ) {
+        return false;
+      }
+
+      throw error;
     }
   }
 

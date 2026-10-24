@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
@@ -34,6 +34,7 @@ export function useReceiverUpload() {
   const { mutateAsync, reset: resetMutation } = useMutation({
     mutationFn: receiverUploadService.upload,
   });
+  const queryClient = useQueryClient();
 
   const mountedRef = useRef(true);
   // Kept so Retry re-sends without redoing OCR.
@@ -67,6 +68,10 @@ export function useReceiverUpload() {
 
         setResult(data);
         setStatus("queued");
+
+        void queryClient.invalidateQueries({
+          queryKey: ["my-extracted-document-queues"],
+        });
       } catch (err) {
         if (!mountedRef.current) return;
         setStatus("queue_failed");
@@ -79,7 +84,7 @@ export function useReceiverUpload() {
         }
       }
     },
-    [mutateAsync],
+    [mutateAsync, queryClient],
   );
 
   const backToIdle = useCallback((title: string, description: string) => {

@@ -306,8 +306,10 @@ export class ExtractedDocumentQueueRepository {
     return (result.affected ?? 0) > 0;
   }
 
-  async delete(id: string): Promise<boolean> {
-    const res = await this.repository.delete(id);
+  async delete(id: string, manager?: EntityManager): Promise<boolean> {
+    const repo = manager?.getRepository(ExtractedDocumentQueueEntity) ?? this.repository;
+
+    const res = await repo.delete(id);
 
     return (res.affected ?? 0) > 0;
   }

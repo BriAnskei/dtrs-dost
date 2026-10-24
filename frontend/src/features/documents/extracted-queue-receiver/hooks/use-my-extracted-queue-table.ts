@@ -8,6 +8,7 @@ import type {
   MyExtractedDocumentQueue,
 } from "../types/extracted-queue-receiver-types";
 import { useMyExtractedDocumentQueues } from "./api/use-my-extracted-document-queues";
+import { useDeleteQueueModal } from "./use-delete-queue-modal";
 
 export function useMyExtractedQueueTable() {
   const [search, setSearch] = useState("");
@@ -69,9 +70,7 @@ export function useMyExtractedQueueTable() {
     setSort((prev) => (prev === "newest" ? "oldest" : "newest"));
   }
 
-  // TODO: wire the delete confirmation modal + mutation to this target.
-  // ("View" no longer needs state here: it navigates to /my-uploads/:id.)
-  const [deleteTarget, setDeleteTarget] = useState<MyExtractedDocumentQueue | null>(null);
+  const deleteModal = useDeleteQueueModal();
 
   return {
     isLoading,
@@ -94,7 +93,6 @@ export function useMyExtractedQueueTable() {
     mobileSentinelRef: mobileScroll.sentinelRef,
     desktopScrollRef: desktopScroll.rootRef,
     desktopSentinelRef: desktopScroll.sentinelRef,
-    deleteTarget,
-    setDeleteTarget,
+    deleteModal,
   };
 }

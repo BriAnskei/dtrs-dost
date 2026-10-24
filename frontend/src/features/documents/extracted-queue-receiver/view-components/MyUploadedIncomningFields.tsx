@@ -1,6 +1,6 @@
 import { ChevronDown } from "lucide-react";
 import { useId, useState } from "react";
-import { formatDateTime } from "../../../../utils/dateFormatter";
+import { formatDate } from "../../../../utils/dateFormatter";
 import { CONFIDENCE_THRESHOLDS } from "../../extraction/receiver/receiver-upload-constants";
 import type { ReceiverExtractedField } from "../../extraction/receiver/types/reciever-upload-api-types";
 import type { MyExtractedDocumentQueue } from "../types/extracted-queue-receiver-types";
@@ -130,7 +130,7 @@ export default function MyUploadedIncomingFields({ data, item }: Props) {
       <div className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
         {ROWS.map((row) => {
           const finalRaw = data[row.key];
-          const finalDisplay = row.kind === "date" ? formatDateTime(finalRaw) : finalRaw;
+          const finalDisplay = row.kind === "date" ? formatDate(finalRaw) : finalRaw;
 
           const extractedField = item.fields.find((f) => f.field === row.extractionKey);
           const extractedValue = extractedField?.value ?? null;

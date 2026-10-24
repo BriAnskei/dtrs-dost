@@ -151,8 +151,8 @@ export class ExtractedDocumentQueueService {
     return queue;
   }
 
-  async delete(id: string): Promise<void> {
-    const res = await this.repository.delete(id);
+  async delete(id: string, manager?: EntityManager): Promise<void> {
+    const res = await this.repository.delete(id, manager);
 
     if (!res) throw new NotFoundException("Queue does not exist");
   }

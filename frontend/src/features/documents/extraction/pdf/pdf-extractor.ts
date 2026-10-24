@@ -31,10 +31,18 @@ function getPageMode(
   return "ocr";
 }
 
+export interface ExtractionProgress {
+  /** Fires for every chunk as it is extracted (text only, no coordinates). */
+  onChunk?: (chunk: ExtractionChunk) => void;
+  /** Fires once per page after all its chunks are collected. */
+  onPage?: (page: number, chunkCount: number) => void;
+}
+
 async function processPage(
   pdf: PDFDocumentProxy,
   pageNumber: number,
   worker: Awaited<ReturnType<typeof getOcrWorker>>,
+  progress?: ExtractionProgress,
 ): Promise<PageExtractionResult> {
   const page = await pdf.getPage(pageNumber);
 
@@ -63,6 +71,10 @@ async function processPage(
       ? deduplicateMixedPage(allChunks)
       : allChunks;
 
+  for (const chunk of content) progress?.onChunk?.(chunk);
+
+  progress?.onPage?.(pageNumber, content.length);
+
   const extractionMode = getPageMode(
     nativeChunks.length > 0,
     nativeTextLength,
@@ -78,7 +90,10 @@ async function processPage(
   };
 }
 
-export async function extractPdf(file: File): Promise<PdfExtractionResult> {
+export async function extractPdf(
+  file: File,
+  progress?: ExtractionProgress,
+): Promise<PdfExtractionResult> {
   const arrayBuffer = await file.arrayBuffer();
 
   const loadingTask = getDocument({
@@ -93,7 +108,7 @@ export async function extractPdf(file: File): Promise<PdfExtractionResult> {
 
   try {
     for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber++) {
-      const page = await processPage(pdf, pageNumber, worker);
+      const page = await processPage(pdf, pageNumber, worker, progress);
 
       pages.push(page);
     }

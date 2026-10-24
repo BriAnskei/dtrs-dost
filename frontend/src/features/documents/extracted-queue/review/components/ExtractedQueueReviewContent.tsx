@@ -66,14 +66,6 @@ export default function ExtractedQueueReviewContent({ id }: { id: string }) {
 
           <ReviewActionBar onSave={openSaveModal} onInvalidate={openInvalidateModal} />
 
-          {issues.length > 0 && (
-            <ul role="alert" className="list-disc pl-5 text-theme-xs text-danger">
-              {issues.map((issue) => (
-                <li key={issue}>{issue}</li>
-              ))}
-            </ul>
-          )}
-
           {isInvalidateModalOpen && (
             <InvalidateDocumentModal
               id={id}

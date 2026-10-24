@@ -41,7 +41,3 @@ export function capitalize(value: string): string {
   return normalized.charAt(0).toUpperCase() + normalized.slice(1);
 }
 
-/** A receiver may delete/remove only when rejected by the rules or by the admin. */
-export function canDeleteQueueItem(item: MyExtractedDocumentQueue): boolean {
-  return item.status === "INVALIDATED" || item.decision === "INVALID";
-}

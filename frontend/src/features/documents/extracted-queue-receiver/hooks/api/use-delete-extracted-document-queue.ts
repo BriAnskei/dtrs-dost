@@ -12,7 +12,7 @@ export function useDeleteExtractedDocumentQueue() {
 
     onSuccess: async () => {
       await queryClient.invalidateQueries({
-        queryKey: ["extracted-document-queues"],
+        queryKey: ["my-extracted-document-queues"],
       });
 
       toast.success("Document queue deleted successfully");

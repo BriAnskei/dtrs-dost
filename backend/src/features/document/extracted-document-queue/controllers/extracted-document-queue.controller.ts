@@ -29,6 +29,7 @@ import { FindMyExtractedDocumentQueuesQueryDto } from "../dto/find-my-extracted-
 import { InvalidateExtractedDocumentQueueDto } from "../dto/invalidate-extracted-document-queue.dto";
 import { ExtractedDocumentQueueService } from "../service/extracted-document-queue.service";
 import { CreateExtractedDocumentQueueUseCase } from "../use-cases/create-extracted-document-queue.usecase";
+import { DeleteExtractedDocumentQueueUseCase } from "../use-cases/delete-extracted-document-queue.usecase";
 import { GetDocumentFileStreamUseCase } from "../use-cases/get-document-file-stream.usecase";
 import { InvalidateExtractedDocumentQueueUseCase } from "../use-cases/invalidate-extracted-document-queue.usecase";
 
@@ -38,6 +39,7 @@ export class ExtractionQueueController {
     private readonly invalidateQueue: InvalidateExtractedDocumentQueueUseCase,
     private readonly createExtractedDocumentQueue: CreateExtractedDocumentQueueUseCase,
     private readonly getFileSteam: GetDocumentFileStreamUseCase,
+    private readonly deleteExtractedDocumentQueue: DeleteExtractedDocumentQueueUseCase,
     private readonly service: ExtractedDocumentQueueService,
   ) {}
 
@@ -113,6 +115,6 @@ export class ExtractionQueueController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @Roles(Role.ReceiverOfficer)
   async delete(@Param("id") id: string): Promise<void> {
-    await this.service.delete(id);
+    await this.deleteExtractedDocumentQueue.execute(id);
   }
 }

@@ -10,6 +10,7 @@ import { ExtractedDocumentQueueRepository } from "./repository/extracted-documen
 import { InvalidationResponseRepository } from "./repository/invalidation-response.repository";
 import { ExtractedDocumentQueueService } from "./service/extracted-document-queue.service";
 import { CreateExtractedDocumentQueueUseCase } from "./use-cases/create-extracted-document-queue.usecase";
+import { DeleteExtractedDocumentQueueUseCase } from "./use-cases/delete-extracted-document-queue.usecase";
 import { GetDocumentFileStreamUseCase } from "./use-cases/get-document-file-stream.usecase";
 import { InvalidateExtractedDocumentQueueUseCase } from "./use-cases/invalidate-extracted-document-queue.usecase";
 
@@ -29,6 +30,8 @@ import { InvalidateExtractedDocumentQueueUseCase } from "./use-cases/invalidate-
 
     InvalidationResponseRepository,
     InvalidateExtractedDocumentQueueUseCase,
+
+    DeleteExtractedDocumentQueueUseCase,
   ],
   exports: [ExtractedDocumentQueueService, InvalidationResponseRepository],
 })

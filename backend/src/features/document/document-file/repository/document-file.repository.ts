@@ -27,9 +27,20 @@ export class DocumentFileRepository {
     return (result.affected ?? 0) > 0;
   }
 
-  async findById(id: string): Promise<DocumentFileEntity | null> {
-    return this.repository.findOne({
+  async findById(
+    id: string,
+    manager?: EntityManager,
+  ): Promise<DocumentFileEntity | null> {
+    const repo = manager?.getRepository(DocumentFileEntity) ?? this.repository;
+
+    return repo.findOne({
       where: { id },
     });
+  }
+
+  async delete(id: string, manager: EntityManager): Promise<boolean> {
+    const res = await manager.getRepository(DocumentFileEntity).delete(id);
+
+    return (res.affected ?? 0) > 0;
   }
 }

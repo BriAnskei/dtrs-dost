@@ -6,8 +6,10 @@ import PageMeta from "../../../../components/common/PageMeta";
 import Badge from "../../../../components/ui/badge/Badge";
 import { formatDateTime } from "../../../../utils/dateFormatter";
 import { useGetIncomingDocumentByQueue } from "../hooks/api/use-get-incoming-document-by-queue";
+import { useDeleteQueueModal } from "../hooks/use-delete-queue-modal";
 import { useMyQueueItem } from "../hooks/use-my-queue-item";
-import { canDeleteQueueItem, capitalize, getStatusBadgeColor } from "../my-queue-helpers";
+import DeleteQueueModal from "../modal/DeleteQueueModal";
+import { capitalize, getStatusBadgeColor } from "../my-queue-helpers";
 import type { ExtractedDocumentQueueStatus } from "../types/extracted-queue-receiver-types";
 import MyUploadedDocumentDisclosure from "./MyUploadedDocumentDisclosure";
 import MyUploadedDocumentOutcome from "./MyUploadedDocumentOutcome";
@@ -28,16 +30,13 @@ export default function MyUploadedDocumentDetailsPage() {
 
   const item = useMyQueueItem(id);
 
+  const deleteModal = useDeleteQueueModal({
+    onDeleted: () => navigate(LIST_PATH, { replace: true }),
+  });
+
   // PENDING queues have nothing to fetch (the backend returns null for them).
   const needsDetails = !!item && item.status !== "PENDING";
   const details = useGetIncomingDocumentByQueue(id, needsDetails);
-
-  // TODO: implement delete. Add a confirmation modal, a delete mutation that
-  // invalidates ["my-extracted-document-queues"], and navigate back to LIST_PATH
-  // on success. Keep the canDeleteQueueItem guard (the backend must enforce it too).
-  function handleDelete() {
-    // intentionally empty until the delete flow is implemented
-  }
 
   const backButton = (
     <button
@@ -70,8 +69,6 @@ export default function MyUploadedDocumentDetailsPage() {
     );
   }
 
-  const deletable = canDeleteQueueItem(item);
-
   return (
     <>
       <PageMeta
@@ -87,14 +84,8 @@ export default function MyUploadedDocumentDetailsPage() {
               {backButton}
               <button
                 type="button"
-                onClick={handleDelete}
-                disabled={!deletable}
-                title={
-                  deletable
-                    ? "Delete this document"
-                    : "Only invalid or invalidated documents can be deleted."
-                }
-                className="inline-flex items-center gap-1.5 px-3 py-2 text-theme-sm rounded-lg border border-gray-200 text-error-600 hover:border-error-500/40 dark:border-white/8 dark:text-error-400 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                onClick={() => deleteModal.open(item)}
+                className="inline-flex items-center gap-1.5 px-3 py-2 text-theme-sm rounded-lg border border-gray-200 text-error-600 hover:border-error-500/40 dark:border-white/8 dark:text-error-400 transition-colors"
               >
                 <Trash2 className="h-4 w-4" />
                 Delete
@@ -159,6 +150,12 @@ export default function MyUploadedDocumentDetailsPage() {
           </div>
         </ComponentCard>
       </div>
+      <DeleteQueueModal
+        item={deleteModal.target}
+        isDeleting={deleteModal.isDeleting}
+        onClose={deleteModal.close}
+        onConfirm={deleteModal.confirm}
+      />
     </>
   );
 }

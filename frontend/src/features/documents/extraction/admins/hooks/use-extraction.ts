@@ -84,12 +84,25 @@ export function useExtraction(direction: DocumentDirection) {
         /* ── PHASE 1: source extraction (client-side pdf.js + optional OCR) ── */
         setPhase("source");
         log("info", `Loading ${file.name}`);
-        log("info", "Parsing PDF with pdf.js…");
+        log("info", "Parsing PDF…");
 
         let result: PdfExtractionResult;
 
         try {
-          result = await extractPdf(file);
+          result = await extractPdf(file, {
+            onChunk: (chunk) => {
+              const page = chunk.chunkId.split("-")[0].slice(1);
+
+              const sourceLabel = chunk.source === "ocr" ? "OCR" : "text";
+
+              log(
+                "info",
+                `Page ${page} • ${sourceLabel} • confidence ${Math.round(chunk.confidence * 100)}%`,
+              );
+            },
+            onPage: (page, count) =>
+              log("info", `Page ${page} done: ${count} chunk(s) collected`),
+          });
         } catch (err) {
           return fail(`Source extraction failed: ${errMsg(err)}`, {
             ok: false,
@@ -155,6 +168,13 @@ export function useExtraction(direction: DocumentDirection) {
                   allSourceConfidences.length,
               )
             : 0;
+
+        const stats = result.statistics;
+
+        log(
+          "info",
+          `Pages: ${stats.textPages} text, ${stats.ocrPages} OCR, ${stats.mixedPages} mixed, ${stats.emptyPages} empty`,
+        );
 
         log(
           "success",
