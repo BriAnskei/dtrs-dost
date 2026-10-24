@@ -1,12 +1,11 @@
 import Input from "../../../components/form/input/InputField";
 import TableShell, { type TableShellColumn } from "../../../components/tables/TableShell";
-import Badge from "../../../components/ui/badge/Badge";
+import StatusBadge, { ROLE_BADGE } from "../../../components/ui/badge/StatusBadge";
 import KebabMenu from "../../../components/ui/kebab-menu/KebabMenu";
 import { CheckCircle, Search, Trash } from "lucide-react";
 import type { TableShellProp } from "../../../type/table-shell-prop";
 import { noPermission } from "../../auth/authorization/helpers/no-permission-message"; // NEW
 import { ALL_ROLES } from "../../user-management/constants";
-import { getRoleBadgeColor } from "../../user-management/helpers";
 import { useUserManagementPermissionsHelper } from "../../user-management/hooks/permission/use-user-management-permissions-helper";
 import type { SystemUser, UserRole } from "../../user-management/types/user.type";
 import { useDisabledUserTable } from "../hooks/use-disabled-users-table";
@@ -98,9 +97,7 @@ export default function DisabledUserTable({
       pill: true,
       render: (user) => (
         <>
-          <Badge size="sm" color={getRoleBadgeColor(user.role)}>
-            {user.role}
-          </Badge>
+          <StatusBadge config={ROLE_BADGE[user.role]} />
           {user.role === "Division" && user.divisionName && (
             <span className="block text-gray-400 text-theme-xs dark:text-gray-500 mt-0.5">
               {user.divisionName}
@@ -250,9 +247,7 @@ export default function DisabledUserTable({
                   Role
                 </p>
                 <div className="mt-1">
-                  <Badge size="sm" color={getRoleBadgeColor(user.role)}>
-                    {user.role}
-                  </Badge>
+                  <StatusBadge config={ROLE_BADGE[user.role]} />
                 </div>
                 {user.role === "Division" && user.divisionName && (
                   <p className="text-theme-xs text-gray-400 dark:text-gray-500 mt-1">

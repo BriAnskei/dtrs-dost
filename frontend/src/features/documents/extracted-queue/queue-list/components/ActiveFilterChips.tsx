@@ -10,7 +10,7 @@ interface ActiveFilterChipsProps {
   onClearAll: () => void;
 }
 
-/** Shows what the Filter popover is currently applying. Renders nothing when no filter is active. */
+/** Shows active filters. Renders nothing when no filter is active. */
 export default function ActiveFilterChips({
   decision,
   unknownUploader,
@@ -27,6 +27,7 @@ export default function ActiveFilterChips({
       onRemove: onClearDecision,
     });
   }
+
   if (unknownUploader) {
     chips.push({
       key: "unknown-uploader",
@@ -38,11 +39,7 @@ export default function ActiveFilterChips({
   if (chips.length === 0) return null;
 
   return (
-    <div
-      role="group"
-      aria-label="Active filters"
-      className="flex flex-wrap items-center gap-2"
-    >
+    <div className="flex flex-wrap items-center gap-2">
       {chips.map((chip) => (
         <span
           key={chip.key}
@@ -55,7 +52,7 @@ export default function ActiveFilterChips({
             aria-label={`Remove filter: ${chip.label}`}
             className="rounded-full p-0.5 transition-colors hover:bg-secondary/20"
           >
-            <X className="h-3 w-3" />
+            <X aria-hidden="true" className="h-3 w-3" />
           </button>
         </span>
       ))}

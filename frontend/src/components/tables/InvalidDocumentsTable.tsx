@@ -24,6 +24,8 @@ export interface InvalidDocument {
 
 // ─── Helpers ──────────────────────────────────────────────────────────
 
+// ─── Helpers ──────────────────────────────────────────────────────────
+
 function formatDateTime(iso: string) {
   return new Date(iso).toLocaleString("en-PH", {
     year: "numeric",

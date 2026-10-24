@@ -25,11 +25,11 @@ export default function ExtractedQueueReviewContent({ id }: { id: string }) {
     handleInvalidated,
   } = useExtractedQueueReview(id);
 
-  const {
-    issues,
-    open: openSaveModal,
-    modalProps: saveModalProps,
-  } = useQueueIncomingSaveModal({ queueId: id, outcome, edits });
+  const { open: openSaveModal, modalProps: saveModalProps } = useQueueIncomingSaveModal({
+    queueId: id,
+    outcome,
+    edits,
+  });
 
   return (
     <div className="space-y-4">

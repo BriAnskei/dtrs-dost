@@ -20,7 +20,7 @@ export function useCreateIncomingFromQueue() {
           queryKey: ["incoming-documents"],
         }),
         queryClient.invalidateQueries({
-          queryKey: ["extracted-document-queue"],
+          queryKey: ["extracted-document-queues"],
         }),
       ]);
     },

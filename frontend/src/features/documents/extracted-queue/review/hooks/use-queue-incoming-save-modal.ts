@@ -35,9 +35,6 @@ export function useQueueIncomingSaveModal({ queueId, outcome, edits }: Options) 
     [outcome, edits],
   );
 
-  /** Reasons Save is blocked (empty = ready). */
-  const issues = draft?.issues ?? [];
-
   const open = useCallback(() => {
     if (draft && draft.issues.length === 0) setIsOpen(true);
   }, [draft]);
@@ -98,5 +95,5 @@ export function useQueueIncomingSaveModal({ queueId, outcome, edits }: Options) 
         }
       : null;
 
-  return { issues, open, modalProps };
+  return { open, modalProps };
 }

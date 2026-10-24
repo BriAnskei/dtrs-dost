@@ -1,12 +1,11 @@
 import { Key, Pencil, Search, XCircle } from "lucide-react";
 import Input from "../../../components/form/input/InputField";
 import TableShell, { type TableShellColumn } from "../../../components/tables/TableShell";
-import Badge from "../../../components/ui/badge/Badge";
+import StatusBadge, { ROLE_BADGE } from "../../../components/ui/badge/StatusBadge";
 import KebabMenu from "../../../components/ui/kebab-menu/KebabMenu";
 import type { TableShellProp } from "../../../type/table-shell-prop";
 import { noPermission } from "../../auth/authorization/helpers/no-permission-message";
 import { ALL_ROLES } from "../constants";
-import { getRoleBadgeColor } from "../helpers";
 import { useUserManagementPermissionsHelper } from "../hooks/permission/use-user-management-permissions-helper";
 import { useUserManagementTable } from "../hooks/use-user-management-table";
 import { EMPTY_FORM } from "../types/create-user.type";
@@ -109,9 +108,7 @@ export default function UserManagementTable({
       pill: true,
       render: (user) => (
         <>
-          <Badge size="sm" color={getRoleBadgeColor(user.role)}>
-            {user.role}
-          </Badge>
+          <StatusBadge config={ROLE_BADGE[user.role]} />
           {user.role === "Division" && user.divisionName && (
             <span className="block text-gray-400 text-theme-xs dark:text-gray-500 mt-0.5">
               {user.divisionName}
@@ -296,9 +293,7 @@ export default function UserManagementTable({
                   Role
                 </p>
                 <div className="mt-1">
-                  <Badge size="sm" color={getRoleBadgeColor(user.role)}>
-                    {user.role}
-                  </Badge>
+                  <StatusBadge config={ROLE_BADGE[user.role]} />
                 </div>
                 {user.role === "Division" && user.divisionName && (
                   <p className="text-theme-xs text-gray-400 dark:text-gray-500 mt-1">

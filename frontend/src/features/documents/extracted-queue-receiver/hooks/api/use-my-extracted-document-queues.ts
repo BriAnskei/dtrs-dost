@@ -1,4 +1,4 @@
-import { keepPreviousData, useInfiniteQuery } from "@tanstack/react-query";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { ExtractedDocumentQueueReceiverService } from "../../service/extracted-documents-queue-reciever-service";
 import type { FindMyExtractedDocumentQueuesParams } from "../../types/extracted-queue-receiver-types";
 
@@ -21,7 +21,5 @@ export function useMyExtractedDocumentQueues(filters: MyQueueFilters) {
     initialPageParam: undefined as string | undefined,
 
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
-
-    placeholderData: keepPreviousData,
   });
 }

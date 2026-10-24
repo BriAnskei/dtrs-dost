@@ -2,28 +2,13 @@ import { ChevronRight } from "lucide-react";
 import TableShell, {
   type TableShellColumn,
 } from "../../../../components/tables/TableShell";
+import StatusBadge, {
+  INCOMING_STATUS_BADGE,
+} from "../../../../components/ui/badge/StatusBadge";
 import type { TableShellProp } from "../../../../type/table-shell-prop";
-import { STATUS_BADGE_CLASSES, STATUS_LABELS } from "../constants";
 import { useIncomingDocumentsTable } from "../hooks/use-incoming-document-table";
-import type { IncomingDocumentStatus } from "../types/incoming-document.type";
 import type { IncomingDocumentRow } from "../types/incoming-document-row.type";
 import IncomingDocumentsFilters from "./IncomingDocumentFilters";
-
-function StatusBadge({ status }: { status: IncomingDocumentStatus }) {
-  // Drop any bg-* classes (including dark:bg-*) so only the text color remains
-  const textOnly = STATUS_BADGE_CLASSES[status]
-    .split(" ")
-    .filter((cls) => !/(^|:)bg-/.test(cls))
-    .join(" ");
-
-  return (
-    <span
-      className={`inline-flex items-center text-theme-xs font-medium whitespace-nowrap ${textOnly}`}
-    >
-      {STATUS_LABELS[status]}
-    </span>
-  );
-}
 
 export default function IncomingDocumentsTable({
   maxTableHeight = "560px",
@@ -55,9 +40,6 @@ export default function IncomingDocumentsTable({
     setDetailTarget,
   } = useIncomingDocumentsTable();
 
-  // TODO: Master-Detail slide-over. For now this only records the selected row;
-  // once the slide-over exists, render it below from `detailTarget` and close it
-  // with `setDetailTarget(null)`.
   const handleViewDetails = (row: IncomingDocumentRow) => setDetailTarget(row);
 
   const columns: TableShellColumn<IncomingDocumentRow>[] = [
@@ -103,7 +85,7 @@ export default function IncomingDocumentsTable({
     {
       label: "Status",
       width: "w-24",
-      render: (row) => <StatusBadge status={row.status} />,
+      render: (row) => <StatusBadge config={INCOMING_STATUS_BADGE[row.status]} />,
     },
     {
       label: "",
@@ -177,7 +159,7 @@ export default function IncomingDocumentsTable({
               </p>
             </div>
             <div className="flex shrink-0 items-center gap-2 mt-1">
-              <StatusBadge status={row.status} />
+              <StatusBadge config={INCOMING_STATUS_BADGE[row.status]} />
               <ChevronRight
                 className="h-4 w-4 text-gray-400 dark:text-gray-500"
                 aria-hidden="true"

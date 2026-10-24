@@ -4,20 +4,17 @@ import Input from "../../../../components/form/input/InputField";
 import TableShell, {
   type TableShellColumn,
 } from "../../../../components/tables/TableShell";
-import Badge from "../../../../components/ui/badge/Badge";
+import StatusBadge, {
+  DECISION_BADGE,
+  QUEUE_STATUS_BADGE,
+} from "../../../../components/ui/badge/StatusBadge";
 import KebabMenu from "../../../../components/ui/kebab-menu/KebabMenu";
 import type { TableShellProp } from "../../../../type/table-shell-prop";
 import { formatDateTime } from "../../../../utils/dateFormatter";
 import type { Decision } from "../../extraction/types/extraction-types";
 import { useMyExtractedQueueTable } from "../hooks/use-my-extracted-queue-table";
 import DeleteQueueModal from "../modal/DeleteQueueModal";
-import {
-  capitalize,
-  DECISION_OPTIONS,
-  getDecisionBadgeColor,
-  getStatusBadgeColor,
-  STATUS_OPTIONS,
-} from "../my-queue-helpers";
+import { capitalize, DECISION_OPTIONS, STATUS_OPTIONS } from "../my-queue-helpers";
 import type {
   ExtractedDocumentQueueStatus,
   MyExtractedDocumentQueue,
@@ -85,7 +82,7 @@ export default function MyUploadedDocumentsTable({
       width: "w-64",
       render: (item) => (
         <div className="flex items-center gap-2">
-          <FileText className="h-4 w-4 shrink-0 text-gray-400" />
+          <FileText className="h-3 w-4 shrink-0 text-gray-400" />
           <span
             className="block truncate max-w-56 font-medium text-gray-800 text-theme-sm dark:text-white/90"
             title={item.file_name}
@@ -99,21 +96,13 @@ export default function MyUploadedDocumentsTable({
       label: "Decision",
       width: "w-24",
       pill: true,
-      render: (item) => (
-        <Badge size="sm" color={getDecisionBadgeColor(item.decision)}>
-          {capitalize(item.decision)}
-        </Badge>
-      ),
+      render: (item) => <StatusBadge config={DECISION_BADGE[item.decision]} />,
     },
     {
       label: "Status",
       width: "w-24",
       pill: true,
-      render: (item) => (
-        <Badge size="sm" color={getStatusBadgeColor(item.status)}>
-          {capitalize(item.status)}
-        </Badge>
-      ),
+      render: (item) => <StatusBadge config={QUEUE_STATUS_BADGE[item.status]} />,
     },
     {
       label: "Uploaded At",
@@ -264,9 +253,7 @@ export default function MyUploadedDocumentsTable({
                   Decision
                 </p>
                 <div className="mt-1">
-                  <Badge size="sm" color={getDecisionBadgeColor(item.decision)}>
-                    {capitalize(item.decision)}
-                  </Badge>
+                  <StatusBadge config={DECISION_BADGE[item.decision]} />
                 </div>
               </div>
               <div>
@@ -274,9 +261,7 @@ export default function MyUploadedDocumentsTable({
                   Status
                 </p>
                 <div className="mt-1">
-                  <Badge size="sm" color={getStatusBadgeColor(item.status)}>
-                    {capitalize(item.status)}
-                  </Badge>
+                  <StatusBadge config={QUEUE_STATUS_BADGE[item.status]} />
                 </div>
               </div>
             </div>

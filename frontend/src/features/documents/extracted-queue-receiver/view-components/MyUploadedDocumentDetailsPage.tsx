@@ -3,13 +3,14 @@ import { useNavigate, useParams } from "react-router";
 import ComponentCard from "../../../../components/common/ComponentCard";
 import PageBreadcrumb from "../../../../components/common/PageBreadCrumb";
 import PageMeta from "../../../../components/common/PageMeta";
-import Badge from "../../../../components/ui/badge/Badge";
+import StatusBadge, {
+  QUEUE_STATUS_BADGE,
+} from "../../../../components/ui/badge/StatusBadge";
 import { formatDateTime } from "../../../../utils/dateFormatter";
 import { useGetIncomingDocumentByQueue } from "../hooks/api/use-get-incoming-document-by-queue";
 import { useDeleteQueueModal } from "../hooks/use-delete-queue-modal";
 import { useMyQueueItem } from "../hooks/use-my-queue-item";
 import DeleteQueueModal from "../modal/DeleteQueueModal";
-import { capitalize, getStatusBadgeColor } from "../my-queue-helpers";
 import type { ExtractedDocumentQueueStatus } from "../types/extracted-queue-receiver-types";
 import MyUploadedDocumentDisclosure from "./MyUploadedDocumentDisclosure";
 import MyUploadedDocumentOutcome from "./MyUploadedDocumentOutcome";
@@ -106,9 +107,7 @@ export default function MyUploadedDocumentDetailsPage() {
                     Uploaded {formatDateTime(item.created_at)}
                   </p>
                 </div>
-                <Badge size="sm" color={getStatusBadgeColor(item.status)}>
-                  {capitalize(item.status)}
-                </Badge>
+                <StatusBadge config={QUEUE_STATUS_BADGE[item.status]} />
               </div>
               <p className="text-theme-sm text-gray-500 dark:text-gray-400">
                 {STATUS_SUMMARY[item.status]}

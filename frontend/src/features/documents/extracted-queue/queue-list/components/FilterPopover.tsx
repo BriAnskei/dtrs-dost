@@ -33,6 +33,7 @@ export default function FilterPopover({
 
   return (
     <Popover
+      align="right"
       panelClassName="w-72"
       renderTrigger={({ open, toggle, triggerProps }) => (
         <button
