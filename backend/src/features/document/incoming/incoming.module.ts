@@ -11,6 +11,7 @@ import { IncomingDocumentEntity } from "./entities/incoming-document-entity";
 import { IncomingDocumentRoutingEntity } from "./entities/incoming-document-routing.entity";
 import { IncomingDocumentStatusHistoryEntity } from "./entities/incoming-document-status-history-entity";
 import { FindIncomingDocumentsHandler } from "./query/find-incoming-documents/find-incoming-documents.handler";
+import { GetIncomingDocumentFileStreamHandler } from "./query/get-incoming-file-stream/get-incoming-document-file-stream.handler";
 import { GetReceiverQueueDetailsHandler } from "./query/get-receiver-queue-details/get-incoming-document-by-queue.handler";
 import { IncomingDocumentsRepository } from "./repository/incoming-document.repository";
 
@@ -33,7 +34,10 @@ import { IncomingDocumentsRepository } from "./repository/incoming-document.repo
     FindIncomingDocumentsHandler,
     CreateIncomingFromQueueHandler,
 
+    // for receiver
     GetReceiverQueueDetailsHandler,
+
+    GetIncomingDocumentFileStreamHandler,
   ],
 })
 export class IncomingDocumentModule {}

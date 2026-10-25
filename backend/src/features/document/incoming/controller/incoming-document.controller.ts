@@ -7,12 +7,14 @@ import {
   Post,
   Query,
   Req,
+  StreamableFile,
   UploadedFile,
   UseInterceptors,
 } from "@nestjs/common";
 import { CommandBus, QueryBus } from "@nestjs/cqrs";
 import { Idempotent } from "@nestjs/idempotency";
 import { FileInterceptor } from "@nestjs/platform-express";
+import { create } from "content-disposition";
 import { memoryStorage } from "multer";
 import type { AuthenticatedRequest } from "../../../../auth/authentication/types/authenticated-request";
 import { Roles } from "../../../../auth/authorization/decorator/roles.decorator";
@@ -23,6 +25,7 @@ import { CreateIncomingDocumentCommand } from "../command/create-incoming-docume
 import { CreateIncomingDocumentDto } from "../dto/create-incoming-document.dto";
 import { FindIncomingDocumentsQueryDto } from "../dto/find-incoming-documents-query.dto";
 import { FindIncomingDocumentsQuery } from "../query/find-incoming-documents/find-incoming-documents.query";
+import { GetIncomingDocumentFileStreamQuery } from "../query/get-incoming-file-stream/get-incoming-document-file-stream.query";
 import { GetReceiverQueueDetailsQuery } from "../query/get-receiver-queue-details/get-receiver-queue-details.query";
 
 @Controller("incoming-documents")
@@ -84,5 +87,18 @@ export class IncomingDocumentController {
   @Get("receiver-queue/:queueId")
   getReceiverQueueDetails(@Param("queueId", ParseUUIDPipe) queueId: string) {
     return this.queryBus.execute(new GetReceiverQueueDetailsQuery(queueId));
+  }
+
+  @Get(":id/file")
+  @Roles(Role.SuperAdmin, Role.Admin)
+  async file(@Param("id", ParseUUIDPipe) id: string) {
+    const { stream, filename } = await this.queryBus.execute(
+      new GetIncomingDocumentFileStreamQuery(id),
+    );
+
+    return new StreamableFile(stream, {
+      type: "application/pdf",
+      disposition: create(filename, { type: "inline" }),
+    });
   }
 }

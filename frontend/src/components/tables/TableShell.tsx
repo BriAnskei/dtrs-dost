@@ -1,4 +1,4 @@
-import type { ReactNode, RefObject } from "react";
+import type { KeyboardEvent, ReactNode, RefObject } from "react";
 import { THIN_SCROLLBAR } from "../../contant/ThinScrollBar";
 import { Table, TableBody, TableCell, TableHeader, TableRow } from "../ui/table";
 import MobileCardSkeleton from "./Skeleton/MobileCardSkeleton";
@@ -36,6 +36,11 @@ export interface TableShellProps<T> {
   getRowKey: (item: T, index: number) => string | number;
   /** Optional row-level classes (e.g. hover state, conditional tint). */
   getRowClassName?: (item: T) => string;
+  /**
+   * Makes desktop rows clickable and keyboard-activatable (Enter / Space).
+   * Mobile cards are rendered by the caller, so they wire their own click.
+   */
+  onRowClick?: (item: T) => void;
   renderToolbar: () => ReactNode;
   renderMobileCard: (item: T, index: number) => ReactNode;
 }
@@ -47,6 +52,9 @@ function resolveCellClassName<T>(
   if (!cellClassName) return "";
   return typeof cellClassName === "function" ? cellClassName(item) : cellClassName;
 }
+
+const CLICKABLE_ROW =
+  "cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-500/40";
 
 export default function TableShell<T>({
   columns,
@@ -69,9 +77,26 @@ export default function TableShell<T>({
   showMobileCount = true,
   getRowKey,
   getRowClassName,
+  onRowClick,
   renderToolbar,
   renderMobileCard,
 }: TableShellProps<T>) {
+  const getRowInteractionProps = (item: T) =>
+    onRowClick
+      ? {
+          tabIndex: 0,
+          onClick: () => onRowClick(item),
+          onKeyDown: (e: KeyboardEvent<HTMLTableRowElement>) => {
+            // Ignore keys pressed on nested controls (links, buttons, inputs).
+            if (e.target !== e.currentTarget) return;
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              onRowClick(item);
+            }
+          },
+        }
+      : {};
+
   return (
     <div className="space-y-4">
       {/* ── Toolbar ── */}
@@ -181,8 +206,9 @@ export default function TableShell<T>({
                         <TableRow
                           key={getRowKey(item, index)}
                           className={`hover:bg-gray-50/60 dark:hover:bg-white/[0.02] transition-colors ${
-                            getRowClassName?.(item) ?? ""
-                          }`}
+                            onRowClick ? CLICKABLE_ROW : ""
+                          } ${getRowClassName?.(item) ?? ""}`}
+                          {...getRowInteractionProps(item)}
                         >
                           {columns.map((col) => (
                             <TableCell

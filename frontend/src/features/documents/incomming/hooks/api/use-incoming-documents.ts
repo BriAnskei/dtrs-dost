@@ -1,5 +1,5 @@
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { incomingDocumentService } from "../../service/incoming-document-service";
+import { IncomingDocumentService } from "../../service/incoming-document-service";
 import type { FindIncomingDocumentsParams } from "../../types/incoming-document.type";
 
 type IncomingDocumentFilters = Pick<
@@ -14,7 +14,7 @@ export function useIncomingDocuments(filters: IncomingDocumentFilters) {
     initialPageParam: undefined as string | undefined,
 
     queryFn: ({ pageParam }) =>
-      incomingDocumentService.findAll({
+      IncomingDocumentService.findAll({
         ...filters,
         cursor: pageParam,
       }),

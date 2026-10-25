@@ -15,6 +15,8 @@ export function useExtractedQueueDetail(id: string) {
     queryFn: () => ExtractedQueueService.getFile(id),
     enabled: !!id,
     staleTime: 5 * 60_000,
+    gcTime: 5 * 60 * 1000,
+    retry: 1,
   });
 
   const detail = detailQuery.data;

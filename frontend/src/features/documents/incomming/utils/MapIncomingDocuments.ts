@@ -14,5 +14,8 @@ export function mapIncomingDocumentsResponse(
     dateReceived: item.date_received ? formatDate(item.date_received) : "—",
     dateUploaded: formatDateTime(item.created_at),
     status: item.status,
+    summary: item.summary,
+    uploaderName: item.uploader_name ?? "—",
+    fileName: item.file_name,
   }));
 }

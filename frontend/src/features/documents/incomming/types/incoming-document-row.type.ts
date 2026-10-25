@@ -9,4 +9,7 @@ export interface IncomingDocumentRow {
   dateReceived: string;
   dateUploaded: string;
   status: IncomingDocumentStatus;
+  summary: string;
+  uploaderName: string;
+  fileName: string;
 }

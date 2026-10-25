@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { ComponentPropsWithoutRef, ReactNode } from "react";
 
 /**
  * Joins class name fragments, dropping any that are falsy.
@@ -43,7 +43,7 @@ const TableBody: React.FC<TableBodyProps> = ({ children, className }) => {
 
 // ── TableRow ────────────────────────────────────────────────────────────────
 
-interface TableRowProps {
+interface TableRowProps extends ComponentPropsWithoutRef<"tr"> {
   children: ReactNode;
   className?: string;
   /**
@@ -54,8 +54,12 @@ interface TableRowProps {
   bgColor?: string;
 }
 
-const TableRow: React.FC<TableRowProps> = ({ children, className, bgColor }) => {
-  return <tr className={cx(bgColor, className)}>{children}</tr>;
+const TableRow: React.FC<TableRowProps> = ({ children, className, bgColor, ...rest }) => {
+  return (
+    <tr className={cx(bgColor, className)} {...rest}>
+      {children}
+    </tr>
+  );
 };
 
 // ── TableCell ───────────────────────────────────────────────────────────────
