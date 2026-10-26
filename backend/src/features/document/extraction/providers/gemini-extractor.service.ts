@@ -18,7 +18,7 @@ export class GeminiExtractorService implements LlmExtractor {
   private readonly initialRetryDelayMs = 1_000;
 
   constructor(private readonly configService: ConfigService) {
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = this.configService.get<string>("GEMINI_API_KEY");
 
     if (!apiKey) {
       throw new Error("GEMINI_API_KEY is not configured");
@@ -34,9 +34,6 @@ export class GeminiExtractorService implements LlmExtractor {
     chunks: ExtractionChunk[],
   ): Promise<ExtractedField[]> {
     const prompt = buildExtractionPrompt(documentType, chunks);
-
-    // 10 sec of delay
-    await new Promise((r) => setTimeout(r, 10000));
 
     try {
       const response = await this.generateContentWithRetry(documentType, prompt);
