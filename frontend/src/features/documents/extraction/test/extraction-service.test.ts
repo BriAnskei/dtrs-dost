@@ -48,16 +48,25 @@ describe("extractionService", () => {
         documentType: "incoming",
         chunks: [{ chunkId: "p1-o1", text: "Subject: Foo" }],
       };
+      const idempotencyKey = "test-key-123";
 
       mockPost.mockResolvedValueOnce({
         data: { fields: [] },
         status: 201,
       });
 
-      await extractionService.extractFields(request);
+      await extractionService.extractFields(request, idempotencyKey);
 
       expect(mockPost).toHaveBeenCalledTimes(1);
-      expect(mockPost).toHaveBeenCalledWith("/extraction", request);
+      expect(mockPost).toHaveBeenCalledWith(
+        "/extraction",
+        request,
+        {
+          headers: {
+            "Idempotency-Key": idempotencyKey,
+          },
+        },
+      );
     });
 
     it("returns response.data verbatim (unwrapped)", async () => {
@@ -75,7 +84,7 @@ describe("extractionService", () => {
         chunks: [{ chunkId: "p1-o1", text: "Subject: Foo" }],
       };
 
-      const result = await extractionService.extractFields(request);
+      const result = await extractionService.extractFields(request, "test-key");
 
       // The wrapper should return just .data, not the full axios response.
       expect(result).toEqual(response);
@@ -93,7 +102,7 @@ describe("extractionService", () => {
         chunks: [{ chunkId: "p1-o1", text: "Subject: Foo" }],
       };
 
-      await expect(extractionService.extractFields(request)).rejects.toThrow(
+      await expect(extractionService.extractFields(request, "test-key")).rejects.toThrow(
         "Request failed with status 400",
       );
     });
@@ -106,7 +115,7 @@ describe("extractionService", () => {
 
       mockPost.mockResolvedValueOnce({ data: { fields: [] }, status: 201 });
 
-      await extractionService.extractFields(request);
+      await extractionService.extractFields(request, "test-key");
 
       const [, body] = mockPost.mock.calls[0];
       expect((body as ExtractionRequest).documentType).toBe("outgoing");
@@ -124,7 +133,7 @@ describe("extractionService", () => {
 
       mockPost.mockResolvedValueOnce({ data: { fields: [] }, status: 201 });
 
-      await extractionService.extractFields(request);
+      await extractionService.extractFields(request, "test-key");
 
       expect(mockPost.mock.calls[0][1]).toEqual(request);
     });

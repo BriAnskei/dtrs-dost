@@ -65,24 +65,24 @@ describe("DocumentTypeSelektor", () => {
   });
 
   describe("selection state", () => {
-    it("marks the incoming button as aria-checked='true' when value='incoming'", () => {
+    it("marks the incoming button as checked when value='incoming'", () => {
       render(
         <DocumentTypeSelector value="incoming" onChange={() => {}} />,
       );
 
       const radios = screen.getAllByRole("radio");
-      expect(radios[0]).toHaveAttribute("aria-checked", "true");
-      expect(radios[1]).toHaveAttribute("aria-checked", "false");
+      expect(radios[0]).toBeChecked();
+      expect(radios[1]).not.toBeChecked();
     });
 
-    it("marks the outgoing button as aria-checked='true' when value='outgoing'", () => {
+    it("marks the outgoing button as checked when value='outgoing'", () => {
       render(
         <DocumentTypeSelector value="outgoing" onChange={() => {}} />,
       );
 
       const radios = screen.getAllByRole("radio");
-      expect(radios[0]).toHaveAttribute("aria-checked", "false");
-      expect(radios[1]).toHaveAttribute("aria-checked", "true");
+      expect(radios[0]).not.toBeChecked();
+      expect(radios[1]).toBeChecked();
     });
   });
 
@@ -111,7 +111,7 @@ describe("DocumentTypeSelektor", () => {
       expect(onChange).toHaveBeenCalledWith("outgoing");
     });
 
-    it("does NOT call onChange when clicking an already-selected button (click still fires but value unchanged)", () => {
+    it("does NOT call onChange when clicking an already-selected button (native radio suppresses change event)", () => {
       const onChange = vi.fn();
       render(
         <DocumentTypeSelector value="incoming" onChange={onChange} />,
@@ -120,8 +120,8 @@ describe("DocumentTypeSelektor", () => {
       const radios = screen.getAllByRole("radio");
       fireEvent.click(radios[0]);
 
-      // onChange is still called (button onClick fires), but with the same value.
-      expect(onChange).toHaveBeenCalledWith("incoming");
+      // Native radio inputs do not fire a change event when already checked.
+      expect(onChange).not.toHaveBeenCalled();
     });
   });
 

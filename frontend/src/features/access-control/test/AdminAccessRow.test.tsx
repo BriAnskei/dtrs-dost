@@ -46,10 +46,10 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import React from "react";
 import { describe, expect, it, vi } from "vitest";
-import { USER_MANAGEMENT_PERMISSIONS } from "../contants";
-import type { AdminAccount, AdminPermissions } from "../types/access-controll-types";
 import AdminAccessRow from "../components/AdminAccessRow";
 import Toggle from "../components/Toggle";
+import { USER_MANAGEMENT_PERMISSIONS } from "../contants";
+import type { AdminAccount, AdminPermissions } from "../types/access-controll-types";
 
 // ─── Fixtures ────────────────────────────────────────────────────────────────────
 
@@ -350,9 +350,7 @@ describe("AdminAccessRow — Save bar status text", () => {
     const toggles = screen.getAllByRole("switch");
     fireEvent.click(toggles[1]); // create a change
 
-    expect(
-      screen.getByText(/You have unsaved changes/i),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/You have unsaved changes/i)).toBeInTheDocument();
   });
 
   it("shows 'Saving your changes…' when isSaving is true", () => {
