@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { IncomingDocumentService } from "../../service/incoming-document-service";
+import { IncomingDocumentService } from "../../../service/incoming-document-service";
 
 interface UseIncomingDocumentFileOptions {
   id: string | undefined;

@@ -25,6 +25,7 @@ import { CreateIncomingDocumentCommand } from "../command/create-incoming-docume
 import { CreateIncomingDocumentDto } from "../dto/create-incoming-document.dto";
 import { FindIncomingDocumentsQueryDto } from "../dto/find-incoming-documents-query.dto";
 import { FindIncomingDocumentsQuery } from "../query/find-incoming-documents/find-incoming-documents.query";
+import { GetAssignedDivisionNoticeCountsQuery } from "../query/get-assigned-division-notice-counts/get-assigned-division-notice-counts.query";
 import { GetIncomingDocumentFileStreamQuery } from "../query/get-incoming-file-stream/get-incoming-document-file-stream.query";
 import { GetReceiverQueueDetailsQuery } from "../query/get-receiver-queue-details/get-receiver-queue-details.query";
 
@@ -100,5 +101,15 @@ export class IncomingDocumentController {
       type: "application/pdf",
       disposition: create(filename, { type: "inline" }),
     });
+  }
+
+  @Roles(Role.Admin, Role.SuperAdmin)
+  @Get(":incomingDocumentId/assigned-division-notice-counts")
+  async getAssignedDivisionNoticeCounts(
+    @Param("incomingDocumentId", ParseUUIDPipe) incomingDocumentId: string,
+  ) {
+    return this.queryBus.execute(
+      new GetAssignedDivisionNoticeCountsQuery(incomingDocumentId),
+    );
   }
 }

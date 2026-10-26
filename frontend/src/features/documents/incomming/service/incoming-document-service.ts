@@ -1,5 +1,6 @@
 import { apiClient } from "../../../../lib/api-client";
 import type { PaginatedResponse } from "../../../../type/paginated-response.type";
+import type { AssignedDivisionNoticeCount } from "../types/assigned-division-notice-count-response";
 import type {
   FindIncomingDocumentsParams,
   IncomingDocumentResponse,
@@ -31,5 +32,15 @@ export const IncomingDocumentService = {
     );
 
     return response.data;
+  },
+
+  async getAssignedDivisionNoticeCounts(
+    incomingDocumentId: string,
+  ): Promise<AssignedDivisionNoticeCount[]> {
+    const { data } = await apiClient.get<AssignedDivisionNoticeCount[]>(
+      `${INCOMING_DOCUMENTS_ENDPOINT}/${incomingDocumentId}/assigned-division-notice-counts`,
+    );
+
+    return data;
   },
 };

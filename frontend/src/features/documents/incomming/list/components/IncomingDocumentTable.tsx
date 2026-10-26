@@ -1,14 +1,14 @@
 import { ChevronRight } from "lucide-react";
 import TableShell, {
   type TableShellColumn,
-} from "../../../../components/tables/TableShell";
+} from "../../../../../components/tables/TableShell";
 import StatusBadge, {
   INCOMING_STATUS_BADGE,
-} from "../../../../components/ui/badge/StatusBadge";
-import type { TableShellProp } from "../../../../type/table-shell-prop";
+} from "../../../../../components/ui/badge/StatusBadge";
+import type { TableShellProp } from "../../../../../type/table-shell-prop";
+import type { IncomingDocumentRow } from "../../types/incoming-document-row.type";
+import IncomingDocumentDetailPanel from "../../view/components/IncomingDocumentDetailPanel";
 import { useIncomingDocumentsTable } from "../hooks/use-incoming-document-table";
-import type { IncomingDocumentRow } from "../types/incoming-document-row.type";
-import IncomingDocumentDetailPanel from "./IncomingDocumentDetailPanel";
 import IncomingDocumentsFilters from "./IncomingDocumentFilters";
 
 export default function IncomingDocumentsTable({
@@ -142,65 +142,58 @@ export default function IncomingDocumentsTable({
           />
         )}
         renderMobileCard={(row) => (
-          <div
+          <button
             key={row.id}
-            role="button"
-            tabIndex={0}
+            type="button"
             onClick={() => handleViewDetails(row)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                handleViewDetails(row);
-              }
-            }}
             aria-label={`View details for ${row.subject}`}
-            className={`cursor-pointer rounded-xl border bg-white dark:bg-white/[0.03] p-4 space-y-3 transition-colors hover:bg-gray-50 dark:hover:bg-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 ${
+            className={`block w-full cursor-pointer rounded-xl border bg-white dark:bg-white/[0.03] p-4 text-left space-y-3 transition-colors hover:bg-gray-50 dark:hover:bg-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 ${
               row.id === detailTarget?.id
                 ? "border-secondary/50 dark:border-secondary/50"
                 : "border-gray-200 dark:border-white/[0.08]"
             }`}
           >
-            <div className="flex items-start justify-between gap-2">
-              <div className="min-w-0">
-                <p className="text-theme-xs font-medium text-primary dark:text-secondary">
+            <span className="flex items-start justify-between gap-2">
+              <span className="block min-w-0">
+                <span className="block text-theme-xs font-medium text-primary dark:text-secondary">
                   {row.trackingNo}
-                </p>
-                <p className="text-theme-sm font-semibold text-gray-800 dark:text-white/90 leading-snug mt-0.5 wrap-break-word">
+                </span>
+                <span className="mt-0.5 block text-theme-sm font-semibold text-gray-800 dark:text-white/90 leading-snug wrap-break-word">
                   {row.subject}
-                </p>
-              </div>
-              <div className="flex shrink-0 items-center gap-2 mt-1">
+                </span>
+              </span>
+              <span className="mt-1 flex shrink-0 items-center gap-2">
                 <StatusBadge config={INCOMING_STATUS_BADGE[row.status]} />
                 <ChevronRight
                   className="h-4 w-4 text-gray-400 dark:text-gray-500"
                   aria-hidden="true"
                 />
-              </div>
-            </div>
+              </span>
+            </span>
 
-            <p className="text-theme-xs text-gray-700 dark:text-gray-300 wrap-break-word">
+            <span className="block text-theme-xs text-gray-700 dark:text-gray-300 wrap-break-word">
               {row.documentFrom}
-            </p>
+            </span>
 
-            <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-              <div>
-                <p className="text-theme-xs text-gray-400 dark:text-gray-500 font-medium uppercase tracking-wide">
+            <span className="grid grid-cols-2 gap-x-4 gap-y-2">
+              <span className="block">
+                <span className="block text-theme-xs text-gray-400 dark:text-gray-500 font-medium uppercase tracking-wide">
                   Date Received
-                </p>
-                <p className="text-theme-xs text-gray-700 dark:text-gray-300 mt-0.5">
+                </span>
+                <span className="mt-0.5 block text-theme-xs text-gray-700 dark:text-gray-300">
                   {row.dateReceived}
-                </p>
-              </div>
-              <div>
-                <p className="text-theme-xs text-gray-400 dark:text-gray-500 font-medium uppercase tracking-wide">
+                </span>
+              </span>
+              <span className="block">
+                <span className="block text-theme-xs text-gray-400 dark:text-gray-500 font-medium uppercase tracking-wide">
                   Date Uploaded
-                </p>
-                <p className="text-theme-xs text-gray-700 dark:text-gray-300 mt-0.5">
+                </span>
+                <span className="mt-0.5 block text-theme-xs text-gray-700 dark:text-gray-300">
                   {row.dateUploaded}
-                </p>
-              </div>
-            </div>
-          </div>
+                </span>
+              </span>
+            </span>
+          </button>
         )}
       />
 

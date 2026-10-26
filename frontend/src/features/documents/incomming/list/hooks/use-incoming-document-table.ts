@@ -4,20 +4,20 @@ import {
   type DateRange,
   EMPTY_RANGE,
   hasRange,
-} from "../../../../components/ui/date/date-constants";
-import { useInfiniteScrollSentinel } from "../../../../hooks/user-infinite-scroll-sentinel";
+} from "../../../../../components/ui/date/date-constants";
+import { useInfiniteScrollSentinel } from "../../../../../hooks/user-infinite-scroll-sentinel";
 import {
   DEFAULT_DATE_FIELD,
   DEFAULT_SORT,
   DEFAULT_STATUS,
   type StatusFilter,
-} from "../constants";
+} from "../../constants";
 import type {
   IncomingDocumentDateField,
   IncomingDocumentSortOrder,
-} from "../types/incoming-document.type";
-import type { IncomingDocumentRow } from "../types/incoming-document-row.type";
-import { mapIncomingDocumentsResponse } from "../utils/MapIncomingDocuments";
+} from "../../types/incoming-document.type";
+import type { IncomingDocumentRow } from "../../types/incoming-document-row.type";
+import { mapIncomingDocumentsResponse } from "../../utils/MapIncomingDocuments";
 import { useIncomingDocuments } from "./api/use-incoming-documents";
 
 export function useIncomingDocumentsTable() {

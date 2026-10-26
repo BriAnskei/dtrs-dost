@@ -8,7 +8,7 @@ import {
   useState,
 } from "react";
 import { createPortal } from "react-dom";
-import { THIN_SCROLLBAR } from "../contant/ThinScrollBar";
+import { THIN_SCROLLBAR } from "../../contant/ThinScrollBar";
 
 /* -------------------------------------------------------------------------- */
 /*  DetailPanel — reusable Master-Detail slide-over                           */
@@ -161,7 +161,7 @@ export default function DetailPanel({
           visible ? "translate-x-0" : "translate-x-full"
         }`}
       >
-        <header className="flex items-start justify-between gap-4 border-b border-gray-100 px-5 py-4 dark:border-white/8 sm:px-6">
+        <header className="flex items-start justify-between gap-4 border-b border-gray-100 px-5 py-3 dark:border-white/8 sm:px-6">
           <div className="min-w-0">
             {eyebrow && (
               <p className="text-theme-xs font-semibold uppercase tracking-wider text-primary dark:text-secondary">
@@ -180,7 +180,7 @@ export default function DetailPanel({
             onClick={onClose}
             disabled={closeDisabled}
             aria-label="Close details"
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition hover:bg-gray-50 hover:text-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-secondary/40 disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/8 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-200"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-gray-500 transition hover:text-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-secondary/40 disabled:cursor-not-allowed disabled:opacity-50 dark:text-gray-400 dark:hover:text-gray-200"
           >
             <X className="h-4 w-4" aria-hidden="true" />
           </button>

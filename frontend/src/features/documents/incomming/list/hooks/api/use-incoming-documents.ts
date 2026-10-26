@@ -1,6 +1,6 @@
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { IncomingDocumentService } from "../../service/incoming-document-service";
-import type { FindIncomingDocumentsParams } from "../../types/incoming-document.type";
+import { IncomingDocumentService } from "../../../service/incoming-document-service";
+import type { FindIncomingDocumentsParams } from "../../../types/incoming-document.type";
 
 type IncomingDocumentFilters = Pick<
   FindIncomingDocumentsParams,

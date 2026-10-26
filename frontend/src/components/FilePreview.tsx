@@ -11,12 +11,6 @@ if (!pdfjs.GlobalWorkerOptions.workerSrc) {
   ).toString();
 }
 
-/* -------------------------------------------------------------------------- */
-/*  FilePreview — view-only preview + open/download for a fetched Blob        */
-/*  PDFs render page-by-page to <canvas> (lazy, fit-to-width, HiDPI-aware).   */
-/*  Images render inline. Anything else falls back to download only.          */
-/* -------------------------------------------------------------------------- */
-
 interface FilePreviewProps {
   blob: Blob | undefined;
   fileName?: string;

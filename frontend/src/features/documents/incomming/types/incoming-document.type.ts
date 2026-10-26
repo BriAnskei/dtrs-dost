@@ -42,8 +42,3 @@ export interface IncomingDocumentResponse {
   uploader_id: string | null;
   uploader_name: string | null;
 }
-
-export interface IncomingDocumentsPage {
-  data: IncomingDocumentResponse[];
-  nextCursor: string | null;
-}

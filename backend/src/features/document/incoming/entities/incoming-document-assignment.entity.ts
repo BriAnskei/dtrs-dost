@@ -1,6 +1,7 @@
 import {
   Check,
   Column,
+  CreateDateColumn,
   Entity,
   Index,
   JoinColumn,
@@ -8,6 +9,7 @@ import {
   PrimaryGeneratedColumn,
 } from "typeorm";
 import { DivisionEntity } from "../../../user/entities/division.entity";
+import { UserEntity } from "../../../user/entities/user.entity";
 import { IncomingDocumentEntity } from "./incoming-document-entity";
 
 export enum OfficeType {
@@ -68,12 +70,46 @@ export class IncomingDocumentAssignmentEntity {
   })
   division!: DivisionEntity | null;
 
+  @Column({ type: "text" })
+  notice_of_action!: string;
+
   @Column({ type: "text", nullable: true })
-  notice_of_action!: string | null;
+  notice_description!: string | null;
+
+  @Column({ type: "uuid", nullable: true })
+  created_by_id!: string | null;
+
+  @ManyToOne(() => UserEntity, {
+    nullable: true,
+    onDelete: "SET NULL",
+    onUpdate: "CASCADE",
+  })
+  @JoinColumn({
+    name: "created_by_id",
+    foreignKeyConstraintName: "incoming_document_assignments_created_by_id_fkey",
+  })
+  created_by!: UserEntity | null;
 
   @Column({ type: "text", nullable: true })
   action_taken!: string | null;
 
   @Column({ type: "timestamptz", nullable: true })
   action_taken_at!: Date | null;
+
+  @Column({ type: "uuid", nullable: true })
+  action_taken_by_id!: string | null;
+
+  @ManyToOne(() => UserEntity, {
+    nullable: true,
+    onDelete: "SET NULL",
+    onUpdate: "CASCADE",
+  })
+  @JoinColumn({
+    name: "action_taken_by_id",
+    foreignKeyConstraintName: "incoming_document_assignments_action_taken_by_id_fkey",
+  })
+  action_taken_by!: UserEntity | null;
+
+  @CreateDateColumn({ type: "timestamptz" })
+  created_at!: Date;
 }
