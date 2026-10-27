@@ -328,13 +328,15 @@ describe("MyUploadedDocumentsTable", () => {
   });
 
   describe("row actions", () => {
-    it("navigates to the details route with router state when 'View' is clicked", async () => {
+    it("navigates to the details route with router state when 'View' is clicked", () => {
       const row = makeRow({ id: "queue-abc", file_name: "invoice.pdf" });
       vi.mocked(useMyExtractedQueueTable).mockReturnValue(makeHookReturn({ items: [row] }));
 
-      render(<MyUploadedDocumentsTable />);
+      const { container } = render(<MyUploadedDocumentsTable />);
 
-      const kebab = screen.getByTitle("More actions");
+      // Each row renders a kebab in both desktop + mobile layouts; target the
+      // first one (desktop header row).
+      const kebab = container.querySelector('[title="More actions"]')!;
       fireEvent.click(kebab);
 
       const viewButton = screen.getByRole("button", { name: "View" });
@@ -350,11 +352,12 @@ describe("MyUploadedDocumentsTable", () => {
         makeHookReturn({ items: [row], deleteModal: { ...makeHookReturn().deleteModal, open } }),
       );
 
-      render(<MyUploadedDocumentsTable />);
+      const { container } = render(<MyUploadedDocumentsTable />);
 
-      const kebab = screen.getByTitle("More actions");
+      const kebab = container.querySelector('[title="More actions"]')!;
       fireEvent.click(kebab);
 
+      // The kebab menu lists a "Delete" action; clicking it opens the modal.
       const deleteButton = screen.getByRole("button", { name: "Delete" });
       fireEvent.click(deleteButton);
 
