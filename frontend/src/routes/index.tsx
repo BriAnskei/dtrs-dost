@@ -8,25 +8,27 @@ import PermissionRoute from "../features/auth/authorization/PermissionRoute";
 import PublicRoute from "../features/auth/authorization/PublicRoute";
 import ProtectedRoute from "../features/auth/authorization/protectedRoute";
 import RoleRoute from "../features/auth/authorization/RoleRoutes";
-import DeactivatedUsersPage from "../features/deactivated-user-management/components/DeactivatedUsersPage";
+import DisabledUsersPage from "../features/disabled-user-management/components/DisabledUsersPage";
 import DivisionManagementPage from "../features/divisions/components/DivisionManagementPage";
-import DirectUploadPage from "../features/documents/extraction/components/DirectUploadPage";
+import ExtractedQueuePage from "../features/documents/extracted-queue/queue-list/ExtractedQueuePage";
+import ExtractedQueueReviewPage from "../features/documents/extracted-queue/review/ExtraxtedQueueReviewPage";
+import MyUploadedDocumentsPage from "../features/documents/extracted-queue-receiver/list-components/MyUploadedDocumentsPage";
+import MyUploadedDocumentDetailsPage from "../features/documents/extracted-queue-receiver/view-components/MyUploadedDocumentDetailsPage";
+import DirectUploadPage from "../features/documents/extraction/admins/components/DirectUploadPage";
+import ReceiverUploadPage from "../features/documents/extraction/receiver/components/ReceiverUploadPage";
+import IncomingDocumentsPage from "../features/documents/incomming/components/IncomingDocumentsPage";
+import OutgoingDocumentsPage from "../features/documents/outgoing/components/OutgoingDocumentPage";
 import UserManagementPage from "../features/user-management/components/UserManagementPage";
-import UserManagementTable from "../features/user-management/components/UserManagementTable";
 import AppLayout from "../layout/AppLayout";
 import AdminDashboard from "../pages/Dashboard/AdminDashboard";
-import Home from "../pages/Dashboard/Home";
 import ReceiverDashboard from "../pages/Dashboard/ReceiverDashboard";
 import StaleDocumentsPage from "../pages/Dashboard/StaleDocumentsPage";
 import SuperAdminDashboard from "../pages/Dashboard/SuperAdminDashboard";
 import AssignedDocumentPage from "../pages/Division/AssignedDocumentPage";
-import DocumentUploadPage from "../pages/document/DocumentUploadPage";
 import IncomingDocPage from "../pages/document/IncomingDocPage";
-import IncomingDocumentUploadPage from "../pages/document/IncomingDocumentUploadPage";
 import InvalidDocumentPage from "../pages/document/InvalidDocumentPage";
 import InvalidDocumentsPage from "../pages/document/InvalidDocumentsPage";
 import OutgoingDocPage from "../pages/document/OutgoingDocPage";
-import UploadedIncomingDoc from "../pages/document/UploadedIncomingDocPage";
 import UploadedIncomingDocPage from "../pages/document/UploadedIncomingDocPage";
 import ValudationQueue from "../pages/document/UploadQueue";
 import SystemLogsPage from "../pages/Logs/SystemLogsPage";
@@ -57,7 +59,7 @@ const ADMINISTRATION_ROUTES: RouteType[] = [
     path: "/incoming",
     element: (
       <RoleRoute allowedRoles={[1, 2]}>
-        <IncomingDocPage />
+        <IncomingDocumentsPage />
       </RoleRoute>
     ),
   },
@@ -66,7 +68,7 @@ const ADMINISTRATION_ROUTES: RouteType[] = [
     path: "/outgoing",
     element: (
       <RoleRoute allowedRoles={[1, 2]}>
-        <OutgoingDocPage />
+        <OutgoingDocumentsPage />
       </RoleRoute>
     ),
   },
@@ -82,10 +84,18 @@ const ADMINISTRATION_ROUTES: RouteType[] = [
   },
 
   {
-    path: "/upload-queue",
+    path: "/extracted-queues",
     element: (
       <RoleRoute allowedRoles={[1, 2]}>
-        <ValudationQueue />
+        <ExtractedQueuePage />
+      </RoleRoute>
+    ),
+  },
+  {
+    path: "/extracted-queues/:id",
+    element: (
+      <RoleRoute allowedRoles={[1, 2]}>
+        <ExtractedQueueReviewPage />
       </RoleRoute>
     ),
   },
@@ -141,17 +151,17 @@ const SUPER_ADMIN_ROUTES: RouteType[] = [
   },
 
   {
-    path: "/deactive",
+    path: "/disable",
     element: (
       <PermissionRoute
         hasPermission={(user) =>
           hasPermission(
             user.permissions.user_management_permissions,
-            UserManagementPermissionEnum.Deactivate,
+            UserManagementPermissionEnum.Disable,
           )
         }
       >
-        <DeactivatedUsersPage />
+        <DisabledUsersPage />
       </PermissionRoute>
     ),
   },
@@ -208,11 +218,16 @@ const RECEIVING_OFFICER_ROUTES: RouteType[] = [
   },
   {
     path: "/incoming-upload",
-    element: <IncomingDocumentUploadPage />,
+    element: <ReceiverUploadPage />,
   },
   {
-    path: "/uploads",
-    element: <UploadedIncomingDocPage />,
+    path: "/my-uploads",
+    element: <MyUploadedDocumentsPage />,
+  },
+
+  {
+    path: "/my-uploads/:id",
+    element: <MyUploadedDocumentDetailsPage />,
   },
   {
     path: "/invalid-documents",

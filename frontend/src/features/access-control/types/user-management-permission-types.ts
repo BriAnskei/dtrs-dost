@@ -2,7 +2,7 @@ export interface ManagementPermissions {
   add: boolean;
   edit: boolean;
   reset_password: boolean;
-  deactivate: boolean;
+  disable: boolean;
   reactivate: boolean;
   delete: boolean;
 }
@@ -26,7 +26,7 @@ export const MANAGEMENT_PERMISSION_FIELDS = [
   "add",
   "edit",
   "reset_password",
-  "deactivate",
+  "disable",
   "reactivate",
   "delete",
 ] as const satisfies readonly (keyof ManagementPermissions)[];

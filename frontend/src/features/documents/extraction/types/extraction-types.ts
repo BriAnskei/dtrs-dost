@@ -6,7 +6,7 @@ export type FieldKey =
   | "from"
   | "to"
   | "dateReceived"
-  | "dateReleased"
+  | "datePrepared"
   | "summary";
 export type Decision = "ACCEPT" | "REVIEW" | "INVALID";
 export type LogLevel = "info" | "success" | "warn" | "error";
@@ -38,11 +38,20 @@ export interface BBox {
   h: number;
 }
 
+export interface ChunkToken {
+  text: string;
+  bbox: BBox;
+  confidence: number;
+}
+
 /** Where a source chunk lives in the PDF. Looked up by chunkId (never sent to the LLM). */
 export interface ChunkLocation {
   page: number; // 1-based
   bbox: BBox;
   text: string;
+  /** 0-100 source confidence from PDF extraction (absent for legacy chunks). */
+  sourceConfidence?: number;
+  tokens?: ChunkToken[];
 }
 
 export interface ExtractionOutcome {
@@ -51,8 +60,6 @@ export interface ExtractionOutcome {
   rows: ResultRow[];
   decision: Decision;
   minEffective: number | null;
-  /** Incoming only, set after ACCEPT (RAG will fill this later) */
-  assignedDivision: string | null;
 }
 
 export interface FieldHighlight {

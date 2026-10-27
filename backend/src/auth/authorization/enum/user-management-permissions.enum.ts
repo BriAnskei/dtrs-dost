@@ -3,7 +3,7 @@ export enum UserManagementPermission {
   Add = "add",
   Edit = "edit",
   ResetPassword = "reset_password",
-  Deactivate = "deactivate",
+  Disable = "disable",
   Reactivate = "reactivate",
   Delete = "delete",
 }

@@ -1,8 +1,8 @@
 import { ConflictException, Injectable, NotFoundException } from "@nestjs/common";
 import { PaginatedResponse } from "../../../common/pagination/paginated-response";
 import { capitalizeWords } from "../../../util/capitalizer";
-import { DivisionResponseDto } from "../dto/response/divisionWithUsers-response-dto";
 import { FindDivisionsQueryDto } from "../dto/queries/find-divisions-query-dto";
+import { DivisionResponseDto } from "../dto/response/divisionWithUsers-response-dto";
 import { UpdateDivisionDto } from "../dto/updates/update-division-dto";
 import { DivisionEntity } from "../entities/division.entity";
 import { DivisionRepository } from "../repository/division.repository";

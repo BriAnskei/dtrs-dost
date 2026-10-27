@@ -2,7 +2,7 @@ import type { ExtractionChunk } from "./types";
 
 function normalizeText(value: string): string {
   return value
-    .toLocaleLowerCase()
+    .toLowerCase()
     .normalize("NFKC")
     .replace(/[^\p{L}\p{N}]+/gu, " ")
     .replace(/\s+/g, " ")

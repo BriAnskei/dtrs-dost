@@ -24,9 +24,7 @@ jest.mock("crypto", () => {
   return {
     ...actual,
     randomBytes: jest.fn().mockReturnValue({
-      toString: jest
-        .fn()
-        .mockReturnValue("mock-reset-token-string"),
+      toString: jest.fn().mockReturnValue("mock-reset-token-string"),
     }),
   };
 });
@@ -91,10 +89,11 @@ describe("PasswordResetService", () => {
     mockEntityManager = {} as EntityManager;
 
     dataSource = {
-      transaction: jest.fn().mockImplementation(
-        async (cb: (manager: EntityManager) => unknown) =>
+      transaction: jest
+        .fn()
+        .mockImplementation(async (cb: (manager: EntityManager) => unknown) =>
           cb(mockEntityManager),
-      ),
+        ),
       manager: mockEntityManager,
     };
 
@@ -151,9 +150,7 @@ describe("PasswordResetService", () => {
 
       const result = await service.createResetRequest(mockUserId);
 
-      expect(passwordResetRepository.findByUserId).toHaveBeenCalledWith(
-        mockUserId,
-      );
+      expect(passwordResetRepository.findByUserId).toHaveBeenCalledWith(mockUserId);
       expect(randomBytes).toHaveBeenCalledWith(32);
       expect(passwordResetRepository.createToken).toHaveBeenCalledWith(
         mockUserId,
@@ -171,10 +168,7 @@ describe("PasswordResetService", () => {
       expect(result.id).toBe("created-token-id");
       expect(result.token).toBe("mock-reset-token-string");
       expect(result.expires_at).toBeInstanceOf(Date);
-      expect(result.expires_at.getTime()).toBeCloseTo(
-        Date.now() + TOKEN_TTL_MS,
-        -2,
-      );
+      expect(result.expires_at.getTime()).toBeCloseTo(Date.now() + TOKEN_TTL_MS, -2);
     });
 
     /**
@@ -225,9 +219,7 @@ describe("PasswordResetService", () => {
 
       const result = await service.findByUserId(mockUserId);
 
-      expect(passwordResetRepository.findByUserId).toHaveBeenCalledWith(
-        mockUserId,
-      );
+      expect(passwordResetRepository.findByUserId).toHaveBeenCalledWith(mockUserId);
       expect(result).toBe(mockToken);
     });
 
@@ -282,9 +274,9 @@ describe("PasswordResetService", () => {
       await expect(service.findByToken("nonexistent-token")).rejects.toThrow(
         BadRequestException,
       );
-      await expect(
-        service.findByToken("nonexistent-token"),
-      ).rejects.toThrow("Invalid or expired reset token");
+      await expect(service.findByToken("nonexistent-token")).rejects.toThrow(
+        "Invalid or expired reset token",
+      );
     });
 
     /**
@@ -303,12 +295,12 @@ describe("PasswordResetService", () => {
       };
       passwordResetRepository.findByTokenHash.mockResolvedValue(expiredToken);
 
-      await expect(
-        service.findByToken("mock-reset-token-string"),
-      ).rejects.toThrow(BadRequestException);
-      await expect(
-        service.findByToken("mock-reset-token-string"),
-      ).rejects.toThrow("Expired password reset link");
+      await expect(service.findByToken("mock-reset-token-string")).rejects.toThrow(
+        BadRequestException,
+      );
+      await expect(service.findByToken("mock-reset-token-string")).rejects.toThrow(
+        "Expired password reset link",
+      );
     });
   });
 
@@ -337,9 +329,7 @@ describe("PasswordResetService", () => {
         expires_at: new Date(Date.now() + 600_000),
         created_at: new Date(),
       };
-      passwordResetRepository.findByTokenHashForUpdate.mockResolvedValue(
-        resetToken,
-      );
+      passwordResetRepository.findByTokenHashForUpdate.mockResolvedValue(resetToken);
       userRepository.updatePassword.mockResolvedValue(true);
       refreshTokenRepository.deleteByUserId.mockResolvedValue(undefined);
       passwordResetRepository.delete.mockResolvedValue(true);
@@ -352,9 +342,10 @@ describe("PasswordResetService", () => {
       await service.resetPassword(dto);
 
       expect(dataSource.transaction).toHaveBeenCalledTimes(1);
-      expect(
-        passwordResetRepository.findByTokenHashForUpdate,
-      ).toHaveBeenCalledWith(fixedTokenHash, mockEntityManager);
+      expect(passwordResetRepository.findByTokenHashForUpdate).toHaveBeenCalledWith(
+        fixedTokenHash,
+        mockEntityManager,
+      );
       expect(userRepository.updatePassword).toHaveBeenCalledWith(
         mockUserId,
         "mock-hashed-password",
@@ -409,9 +400,7 @@ describe("PasswordResetService", () => {
         expires_at: new Date(Date.now() - 5000),
         created_at: new Date(),
       };
-      passwordResetRepository.findByTokenHashForUpdate.mockResolvedValue(
-        expiredToken,
-      );
+      passwordResetRepository.findByTokenHashForUpdate.mockResolvedValue(expiredToken);
       passwordResetRepository.delete.mockResolvedValue(true);
 
       await expect(
@@ -429,9 +418,7 @@ describe("PasswordResetService", () => {
 
       // The expired token should be cleaned up — the service calls delete
       // with just the id (no manager) in this code path
-      expect(passwordResetRepository.delete).toHaveBeenCalledWith(
-        "expired-token-id",
-      );
+      expect(passwordResetRepository.delete).toHaveBeenCalledWith("expired-token-id");
 
       expect(userRepository.updatePassword).not.toHaveBeenCalled();
       expect(refreshTokenRepository.deleteByUserId).not.toHaveBeenCalled();
@@ -450,9 +437,7 @@ describe("PasswordResetService", () => {
         expires_at: new Date(Date.now() + 600_000),
         created_at: new Date(),
       };
-      passwordResetRepository.findByTokenHashForUpdate.mockResolvedValue(
-        resetToken,
-      );
+      passwordResetRepository.findByTokenHashForUpdate.mockResolvedValue(resetToken);
       userRepository.updatePassword.mockResolvedValue(false);
 
       await expect(
@@ -513,9 +498,7 @@ describe("PasswordResetService", () => {
 
       await service.delete("token-to-delete");
 
-      expect(passwordResetRepository.delete).toHaveBeenCalledWith(
-        "token-to-delete",
-      );
+      expect(passwordResetRepository.delete).toHaveBeenCalledWith("token-to-delete");
     });
 
     /**

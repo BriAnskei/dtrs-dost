@@ -3,7 +3,7 @@ export interface UserCursor {
   id: string;
 }
 
-export interface DeactivatedUserCursor {
-  deactivatedAt: string;
+export interface DisabledUserCursor {
+  disabledAt: string;
   id: string;
 }

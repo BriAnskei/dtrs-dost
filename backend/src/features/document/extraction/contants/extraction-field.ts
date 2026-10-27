@@ -3,7 +3,7 @@ export const FIELD_KEYS = [
   "from",
   "to",
   "dateReceived",
-  "dateReleased",
+  "datePrepared",
   "summary",
 ] as const;
 
@@ -12,5 +12,5 @@ export type FieldKey = (typeof FIELD_KEYS)[number];
 export const FIELDS_BY_DIRECTION = {
   incoming: ["subject", "from", "to", "dateReceived", "summary"],
 
-  outgoing: ["to", "subject", "dateReleased", "summary"],
+  outgoing: ["to", "subject", "datePrepared", "summary"],
 } as const satisfies Record<"incoming" | "outgoing", readonly FieldKey[]>;

@@ -61,7 +61,7 @@ function makeUser(
         add: false,
         edit: false,
         reset_password: false,
-        deactivate: false,
+        disable: false,
         reactivate: false,
         delete: false,
       },

@@ -1,6 +1,7 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
+import { Search } from "lucide-react";
 import { Table, TableBody, TableCell, TableHeader, TableRow } from "../ui/table";
 
 // ─── Types ────────────────────────────────────────────────────────────
@@ -91,19 +92,7 @@ export default function UploadQueueTable() {
           {/* Search */}
           <div className="relative w-full sm:min-w-[200px] sm:flex-1">
             <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-gray-400">
-              <svg
-                className="h-4 w-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z"
-                />
-              </svg>
+              <Search className="h-4 w-4" />
             </span>
             <input
               type="text"

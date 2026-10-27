@@ -30,7 +30,7 @@ export class ExtractionRequestDto {
 
   @IsArray()
   @ArrayNotEmpty()
-  @ArrayMaxSize(500)
+  @ArrayMaxSize(2000)
   @ValidateNested({ each: true })
   @Type(() => ExtractionChunkDto)
   chunks!: ExtractionChunkDto[];

@@ -35,23 +35,21 @@ jest.mock("passport-jwt", () => ({
  * against the Role enum.
  *
  * `managementPermissions` is the UserManagementPermissionsEntity — it
- * has add/edit/reset_password/deactivate/reactivate/delete booleans
+ * has add/edit/reset_password/disable/reactivate/delete booleans
  * but no `view` field (view is synthesized as always-true in the
  * strategy when the Admin+permissions branch is taken).
  */
 function buildMockUser(
   roleId: Role,
   isActive = true,
-  managementPermissions:
-    | {
-        add: boolean;
-        edit: boolean;
-        reset_password: boolean;
-        deactivate: boolean;
-        reactivate: boolean;
-        delete: boolean;
-      }
-    | null = null,
+  managementPermissions: {
+    add: boolean;
+    edit: boolean;
+    reset_password: boolean;
+    disable: boolean;
+    reactivate: boolean;
+    delete: boolean;
+  } | null = null,
 ) {
   return {
     id: "user-uuid-123",
@@ -106,7 +104,7 @@ describe("JwtStrategy", () => {
         add: true,
         edit: false,
         reset_password: true,
-        deactivate: false,
+        disable: false,
         reactivate: true,
         delete: false,
       });
@@ -125,7 +123,7 @@ describe("JwtStrategy", () => {
             add: true,
             edit: false,
             reset_password: true,
-            deactivate: false,
+            disable: false,
             reactivate: true,
             delete: false,
           },
@@ -146,7 +144,7 @@ describe("JwtStrategy", () => {
         add: true,
         edit: true,
         reset_password: true,
-        deactivate: true,
+        disable: true,
         reactivate: true,
         delete: true,
       });
@@ -212,7 +210,9 @@ describe("JwtStrategy", () => {
      */
     it("should throw UnauthorizedException when payload.sub is empty string", async () => {
       await expect(strategy.validate({ sub: "" })).rejects.toThrow(UnauthorizedException);
-      await expect(strategy.validate({ sub: "" })).rejects.toThrow("Invalid token payload");
+      await expect(strategy.validate({ sub: "" })).rejects.toThrow(
+        "Invalid token payload",
+      );
 
       expect(userService.findByIdForAuth).not.toHaveBeenCalled();
     });

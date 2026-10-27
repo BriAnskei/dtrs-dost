@@ -16,7 +16,9 @@ import { Role } from "../enum/roles.enum";
  * When `user` is null we simulate an unauthenticated request
  * (no user property on the request object).
  */
-function createMockContext(user: { id: string; email: string; role_id: number } | null): ExecutionContext {
+function createMockContext(
+  user: { id: string; email: string; role_id: number } | null,
+): ExecutionContext {
   const request = user === null ? {} : { user };
 
   return {
@@ -38,10 +40,7 @@ describe("RolesGuard", () => {
     };
 
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        RolesGuard,
-        { provide: Reflector, useValue: reflector },
-      ],
+      providers: [RolesGuard, { provide: Reflector, useValue: reflector }],
     }).compile();
 
     guard = module.get<RolesGuard>(RolesGuard);
@@ -59,15 +58,19 @@ describe("RolesGuard", () => {
     it("should return true when no roles metadata is set", () => {
       reflector.getAllAndOverride.mockReturnValue(undefined);
 
-      const user = { id: "user-1", email: "user@example.com", role_id: Role.ReceiverOfficer };
+      const user = {
+        id: "user-1",
+        email: "user@example.com",
+        role_id: Role.ReceiverOfficer,
+      };
       const context = createMockContext(user);
 
       expect(guard.canActivate(context)).toBe(true);
 
-      expect(reflector.getAllAndOverride).toHaveBeenCalledWith(
-        ROLES_KEY,
-        [expect.any(Function), expect.any(Function)],
-      );
+      expect(reflector.getAllAndOverride).toHaveBeenCalledWith(ROLES_KEY, [
+        expect.any(Function),
+        expect.any(Function),
+      ]);
     });
   });
 
@@ -80,7 +83,11 @@ describe("RolesGuard", () => {
     it("should return true when user has one of the required roles", () => {
       reflector.getAllAndOverride.mockReturnValue([Role.Admin]);
 
-      const adminUser = { id: "admin-1", email: "admin@example.com", role_id: Role.Admin };
+      const adminUser = {
+        id: "admin-1",
+        email: "admin@example.com",
+        role_id: Role.Admin,
+      };
       const context = createMockContext(adminUser);
 
       expect(guard.canActivate(context)).toBe(true);
@@ -93,7 +100,11 @@ describe("RolesGuard", () => {
     it("should return true when multiple roles are required and user has one of them", () => {
       reflector.getAllAndOverride.mockReturnValue([Role.Admin, Role.SuperAdmin]);
 
-      const adminUser = { id: "admin-1", email: "admin@example.com", role_id: Role.Admin };
+      const adminUser = {
+        id: "admin-1",
+        email: "admin@example.com",
+        role_id: Role.Admin,
+      };
       const context = createMockContext(adminUser);
 
       expect(guard.canActivate(context)).toBe(true);

@@ -7,7 +7,7 @@
  *   It is the glue layer: it calls `useUsers` with the right filter params,
  *   debounces the search box (400ms), decides whether "Load more" should fire
  *   (hasNextPage && !isFetchingNextPage), and exposes modal open/close state
- *   for Add/Edit/Deactivate/ResetPassword modals.
+ *   for Add/Edit/Disable/ResetPassword modals.
  *
  * WHAT WE MOCK:
  *   - `./use-users` — fully mocked so we control isLoading, hasNextPage,
@@ -137,7 +137,7 @@ describe("useUserManagementTable", () => {
 
       expect(result.current.addModal).toBe(false);
       expect(result.current.editTarget).toBeNull();
-      expect(result.current.deactivateTarget).toBeNull();
+      expect(result.current.disableTarget).toBeNull();
       expect(result.current.resetTarget).toBeNull();
     });
 
@@ -574,7 +574,7 @@ describe("useUserManagementTable", () => {
       expect(result.current.editTarget).toEqual(target);
     });
 
-    it("setDeactivateTarget stores the user to deactivate", () => {
+    it("setDisableTarget stores the user to disable", () => {
       const { result } = renderHook(() => useUserManagementTable());
 
       const user = {
@@ -587,8 +587,8 @@ describe("useUserManagementTable", () => {
         createtAt: "Mar 2025",
       };
 
-      act(() => result.current.setDeactivateTarget(user));
-      expect(result.current.deactivateTarget).toEqual(user);
+      act(() => result.current.setDisableTarget(user));
+      expect(result.current.disableTarget).toEqual(user);
     });
 
     it("setResetTarget stores the user whose password is being reset", () => {

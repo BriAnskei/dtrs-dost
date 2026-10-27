@@ -76,10 +76,10 @@ export class UserPermissionService {
   }
 
   private validateManagementPermissions(dto: SetUserManagementPermissionDto): void {
-    if (dto.deactivate === false) {
+    if (dto.disable === false) {
       if (dto.reactivate === true || dto.delete === true) {
         throw new BadRequestException(
-          "reactivate and delete cannot be granted when deactivate is not granted",
+          "reactivate and delete cannot be granted when disable is not granted",
         );
       }
     }
@@ -101,7 +101,7 @@ export class UserPermissionService {
             add: managementPermissions.add,
             edit: managementPermissions.edit,
             reset_password: managementPermissions.reset_password,
-            deactivate: managementPermissions.deactivate,
+            disable: managementPermissions.disable,
             reactivate: managementPermissions.reactivate,
             delete: managementPermissions.delete,
           }

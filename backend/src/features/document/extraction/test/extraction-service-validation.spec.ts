@@ -1,32 +1,36 @@
 /**
  * Unit tests for the **validation edge cases** in `ExtractionService`
- * (extraction.service.ts), complementing the main flow tests in
- * `extraction.service.spec.ts`.
+ * (extraction.service.ts), covering `validateField` and
+ * `validateAndNormalizeFields`:
  *
- * This suite focuses on `validateField` and `validateAndNormalizeFields`:
- *
- *   1. aiConfidence bounds — values outside [0, 100] throw 400.
- *   2. null value + non-empty chunkIds — contradictory, throws 400.
- *   3. summary field bypass — anti-hallucination / citation checks are
+ *   1. aiConfidence bounds — values outside [0, 100] are normalized to null
+ *      (INVALID path), not 400.
+ *   2. null value + non-empty chunkIds — contradictory LLM output; chunkIds
+ *      are cleared, value stays null (INVALID path), not 400.
+ *   3. Unknown chunkIds cited by the LLM — dropped, not 400.
+ *   4. summary field bypass — anti-hallucination / citation checks are
  *      SKIPPED for "summary" because the LLM writes it (not copied from chunks).
- *   4. value present in document but NOT in cited chunks — warns, does NOT
+ *   5. value present in document but NOT in cited chunks — warns, does NOT
  *      throw (citation imprecision is a UX issue, not a safety issue).
- *   5. value present but no chunkIds cited — warns, does NOT throw.
- *   6. Outgoing document type validation (4 fields, not 5).
- *   7. ChunkId ordering preserved in the response.
+ *      aiConfidence is preserved because the value was verified.
+ *   6. value NOT present in document text at all — does NOT throw; returns the
+ *      field with aiConfidence set to null (INVALID path), so a human reviewer
+ *      can see the hallucinated value without the whole extraction being
+ *      discarded.
+ *   7. value present but no chunkIds cited — warns, does NOT throw.
+ *   8. Outgoing document type validation (4 fields, not 5).
+ *   9. ChunkId ordering preserved in the response.
  */
-
 import { Test } from "@nestjs/testing";
+import type { DocumentDirection } from "../contants/document-direction";
+import type { ExtractionRequestDto } from "../dto/extraction-request-dto";
+import { ExtractionService } from "../extraction.service";
 import type {
   ExtractedField,
   ExtractionChunk,
   LlmExtractor,
 } from "../providers/llm-extractor.interface";
 import { LLM_EXTRACTOR } from "../providers/llm-extractor.interface";
-import { ExtractionService } from "../extraction.service";
-import type { ExtractionRequestDto } from "../dto/extraction-request-dto";
-import type { DocumentDirection } from "../contants/document-direction";
-import { BadRequestException } from "@nestjs/common";
 
 function chunk(chunkId: string, text: string): ExtractionChunk {
   return { chunkId, text };
@@ -64,10 +68,7 @@ async function buildService(
   };
 
   const moduleRef = await Test.createTestingModule({
-    providers: [
-      ExtractionService,
-      { provide: LLM_EXTRACTOR, useValue: mock },
-    ],
+    providers: [ExtractionService, { provide: LLM_EXTRACTOR, useValue: mock }],
   }).compile();
 
   return {
@@ -76,52 +77,30 @@ async function buildService(
   };
 }
 
-async function expectBadRequest(
-  action: () => Promise<unknown>,
-  expectedError: string,
-): Promise<void> {
-  let thrown: unknown;
-
-  try {
-    await action();
-    throw new Error("expected action to reject with BadRequestException");
-  } catch (error) {
-    thrown = error;
-  }
-
-  expect(thrown).toBeInstanceOf(BadRequestException);
-  expect((thrown as BadRequestException).getResponse()).toMatchObject({
-    success: false,
-    error: expectedError,
-  });
-}
-
 describe("ExtractionService — validateField edge cases", () => {
   describe("aiConfidence bounds", () => {
-    it("throws 400 when aiConfidence > 100", async () => {
+    it("nulls aiConfidence when > 100 instead of throwing 400", async () => {
       const { service } = await buildService(() =>
         Promise.resolve([field("subject", "Foo", ["p1-o1"], 101)]),
       );
 
       const request = makeRequest("incoming", [chunk("p1-o1", "Subject: Foo")]);
 
-      await expectBadRequest(
-        () => service.extract(request),
-        'Invalid confidence for field subject',
-      );
+      const result = await service.extract(request);
+      const byField = Object.fromEntries(result.fields.map((f) => [f.field, f]));
+      expect(byField.subject.aiConfidence).toBeNull();
     });
 
-    it("throws 400 when aiConfidence < 0", async () => {
+    it("nulls aiConfidence when < 0 instead of throwing 400", async () => {
       const { service } = await buildService(() =>
         Promise.resolve([field("subject", "Foo", ["p1-o1"], -1)]),
       );
 
       const request = makeRequest("incoming", [chunk("p1-o1", "Subject: Foo")]);
 
-      await expectBadRequest(
-        () => service.extract(request),
-        'Invalid confidence for field subject',
-      );
+      const result = await service.extract(request);
+      const byField = Object.fromEntries(result.fields.map((f) => [f.field, f]));
+      expect(byField.subject.aiConfidence).toBeNull();
     });
 
     it("accepts aiConfidence of exactly 0", async () => {
@@ -160,13 +139,11 @@ describe("ExtractionService — validateField edge cases", () => {
       expect(byField.subject.aiConfidence).toBeNull();
     });
 
-    it("still checks confidence bounds even when value is null", async () => {
+    it("nulls aiConfidence when out of range even if value is null", async () => {
       /*
-       * The confidence-range check runs BEFORE the null-value early-return
-       * in validateField(). So a null-valued field with aiConfidence=150 is
-       * still rejected as a malformed LLM response. This pins that order-of-
-       * operations behavior so any future refactor doesn't silently accept
-       * out-of-range confidence on not-found fields.
+       * The confidence-range check runs BEFORE the null-value normalization.
+       * So a null-valued field with aiConfidence=150 has its confidence nulled
+       * and returns false (untrusted), rather than throwing a 400.
        */
       const { service } = await buildService(() =>
         Promise.resolve([field("subject", null, [], 150)]),
@@ -174,25 +151,26 @@ describe("ExtractionService — validateField edge cases", () => {
 
       const request = makeRequest("incoming", [chunk("p1-o1", "no subject here")]);
 
-      await expectBadRequest(
-        () => service.extract(request),
-        "Invalid confidence for field subject",
-      );
+      const result = await service.extract(request);
+      const byField = Object.fromEntries(result.fields.map((f) => [f.field, f]));
+      expect(byField.subject.value).toBeNull();
+      expect(byField.subject.aiConfidence).toBeNull();
     });
   });
 
-  describe("null value + non-empty chunkIds (contradictory)", () => {
-    it("throws 400 when value is null but chunkIds are present", async () => {
+  describe("null value + non-empty chunkIds (normalized, not 400)", () => {
+    it("clears chunkIds when value is null but chunkIds are present", async () => {
       const { service } = await buildService(() =>
         Promise.resolve([field("subject", null, ["p1-o1"], null)]),
       );
 
       const request = makeRequest("incoming", [chunk("p1-o1", "text")]);
 
-      await expectBadRequest(
-        () => service.extract(request),
-        'Field subject has chunkIds but no value',
-      );
+      const result = await service.extract(request);
+      const byField = Object.fromEntries(result.fields.map((f) => [f.field, f]));
+      expect(byField.subject.value).toBeNull();
+      expect(byField.subject.chunkIds).toEqual([]);
+      expect(byField.subject.aiConfidence).toBeNull();
     });
   });
 
@@ -238,7 +216,8 @@ describe("ExtractionService — validateField edge cases", () => {
        * The value exists somewhere in the document text (union of all chunks),
        * but the cited chunk does not contain it. This is an imprecise citation
        * — a UX problem (wrong highlight), not a safety problem. The server
-       * logs a warning and continues.
+       * logs a warning and continues. aiConfidence is preserved because the
+       * value WAS verified against the document text.
        */
       const { service } = await buildService(() =>
         Promise.resolve([field("subject", "Foo", ["p1-o2"], 90)]),
@@ -253,6 +232,62 @@ describe("ExtractionService — validateField edge cases", () => {
       const byField = Object.fromEntries(result.fields.map((f) => [f.field, f]));
       expect(byField.subject.value).toBe("Foo");
       expect(byField.subject.chunkIds).toEqual(["p1-o2"]);
+      expect(byField.subject.aiConfidence).toBe(90);
+    });
+  });
+
+  describe("value NOT in document text (anti-hallucination)", () => {
+    it("does NOT throw; returns field with null aiConfidence (INVALID path)", async () => {
+      /*
+       * The LLM returned a value ("Bar") that does not appear anywhere in the
+       * document text. Previously this threw a 400 BadRequestException,
+       * discarding every field — including ones that were extracted correctly.
+       *
+       * New behavior: the value is returned (so a human reviewer can see what
+       * the LLM hallucinated), but aiConfidence is set to null. The decision
+       * logic treats null aiConfidence as INVALID, routing the document for
+       * manual review instead of accepting an unverified extraction.
+       */
+      const { service } = await buildService(() =>
+        Promise.resolve([field("subject", "Bar", ["p1-o1"], 90)]),
+      );
+
+      const request = makeRequest("incoming", [
+        chunk("p1-o1", "Subject: Foo"), // "Bar" is NOT in this chunk
+      ]);
+
+      const result = await service.extract(request);
+      const byField = Object.fromEntries(result.fields.map((f) => [f.field, f]));
+
+      expect(byField.subject.value).toBe("Bar");
+      expect(byField.subject.chunkIds).toEqual(["p1-o1"]);
+      expect(byField.subject.aiConfidence).toBeNull();
+    });
+
+    it("preserves correctly extracted fields when a sibling field is untrusted", async () => {
+      /*
+       * If field A passes anti-hallucination but field B does not, A should
+       * keep its aiConfidence while B gets null. The whole extraction must
+       * not be discarded for a single hallucinated value.
+       */
+      const { service } = await buildService(() =>
+        Promise.resolve([
+          field("subject", "Foo", ["p1-o1"], 90), // in document — trusted
+          field("from", "Bar", ["p1-o1"], 95), // NOT in document — untrusted
+        ]),
+      );
+
+      const request = makeRequest("incoming", [
+        chunk("p1-o1", "Subject: Foo"), // "Foo" here, "Bar" not
+      ]);
+
+      const result = await service.extract(request);
+      const byField = Object.fromEntries(result.fields.map((f) => [f.field, f]));
+
+      expect(byField.subject.value).toBe("Foo");
+      expect(byField.subject.aiConfidence).toBe(90);
+      expect(byField.from.value).toBe("Bar");
+      expect(byField.from.aiConfidence).toBeNull();
     });
   });
 
@@ -273,14 +308,14 @@ describe("ExtractionService — validateField edge cases", () => {
 });
 
 describe("ExtractionService — outgoing document type", () => {
-  it("returns 4 fields for outgoing documents (to, subject, dateReleased, summary)", async () => {
+  it("returns 4 fields for outgoing documents (to, subject, datePrepared, summary)", async () => {
     // Chunk text must contain all field values so anti-hallucination passes.
     const docText = "To: Recipient Corp Subject: Foo Date: 10/03/2026 Summary text";
     const { service, mock } = await buildService((_dt, _chunks) =>
       Promise.resolve([
         field("to", "Recipient Corp", ["p1-o1"], 90),
         field("subject", "Foo", ["p1-o1"], 88),
-        field("dateReleased", "10/03/2026", ["p1-o1"], 95),
+        field("datePrepared", "10/03/2026", ["p1-o1"], 95),
         field("summary", "Summary text", ["p1-o1"], 85),
       ]),
     );
@@ -293,14 +328,14 @@ describe("ExtractionService — outgoing document type", () => {
     expect(result.fields.map((f) => f.field)).toEqual([
       "to",
       "subject",
-      "dateReleased",
+      "datePrepared",
       "summary",
     ]);
   });
 
   it("silently drops stray incoming-only fields when processing outgoing documents", async () => {
     /*
-     * "from" is not in the outgoing field set (to, subject, dateReleased,
+     * "from" is not in the outgoing field set (to, subject, datePrepared,
      * summary). The service builds a fieldsByName map of ALL LLM-returned
      * fields, but only iterates over expectedFields when producing the
      * response. So a stray "from" is silently dropped — not thrown, not
@@ -312,7 +347,7 @@ describe("ExtractionService — outgoing document type", () => {
         field("from", "Someone", ["p1-o1"], 90), // stray — should be dropped
         field("to", "Recipient Corp", ["p1-o1"], 90),
         field("subject", "Foo", ["p1-o1"], 88),
-        field("dateReleased", "10/03/2026", ["p1-o1"], 95),
+        field("datePrepared", "10/03/2026", ["p1-o1"], 95),
         field("summary", "Summary", ["p1-o1"], 85),
       ]),
     );
@@ -361,9 +396,7 @@ describe("ExtractionService — field ordering & chunk preservation", () => {
 
   it("preserves the LLM's chunkId list order in the response (does not sort)", async () => {
     const { service } = await buildService(() =>
-      Promise.resolve([
-        field("subject", "Foo Bar Baz", ["p1-o3", "p1-o1", "p1-o2"], 95),
-      ]),
+      Promise.resolve([field("subject", "Foo Bar Baz", ["p1-o3", "p1-o1", "p1-o2"], 95)]),
     );
 
     const request = makeRequest("incoming", [

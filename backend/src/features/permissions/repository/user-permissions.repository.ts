@@ -4,7 +4,6 @@ import { EntityManager, Repository } from "typeorm";
 import { Role } from "../../../auth/authorization/enum/roles.enum";
 import { decodeCursor, encodeCursor } from "../../../common/pagination/cursor";
 import { PaginatedResponse } from "../../../common/pagination/paginated-response";
-import { UserSortOrder } from "../../user/enums/user-sort-order-enum";
 import { UserCursor } from "../../user/types/user-cursor";
 import { FindUserManagementPermissionsQueryDto } from "../dto/client/find-user-management-permission-dto";
 import { UserPermissionsEntity } from "../entities/user-permissions-entity";

@@ -48,7 +48,7 @@ describe("buildExtractionPrompt", () => {
 
       expect(prompt).toContain("- to");
       expect(prompt).toContain("- subject");
-      expect(prompt).toContain("- dateReleased");
+      expect(prompt).toContain("- datePrepared");
       expect(prompt).toContain("- summary");
     });
 
@@ -66,7 +66,7 @@ describe("buildExtractionPrompt", () => {
         makeChunk("p1-o1", "Subject: Foo"),
       ]);
 
-      expect(prompt).not.toContain("- dateReleased");
+      expect(prompt).not.toContain("- datePrepared");
     });
 
     it("mentions the document type in the preamble", () => {
@@ -104,10 +104,8 @@ describe("buildExtractionPrompt", () => {
     });
 
     it("includes chunk text verbatim — no escaping or truncation", () => {
-      const text = "Subject: <Request> & Co. — \"Quoted\" value";
-      const prompt = buildExtractionPrompt("incoming", [
-        makeChunk("p1-o1", text),
-      ]);
+      const text = 'Subject: <Request> & Co. — "Quoted" value';
+      const prompt = buildExtractionPrompt("incoming", [makeChunk("p1-o1", text)]);
 
       expect(prompt).toContain(text);
     });

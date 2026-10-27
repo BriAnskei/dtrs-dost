@@ -1,21 +1,17 @@
+import { Key, Pencil, Search, XCircle } from "lucide-react";
 import Input from "../../../components/form/input/InputField";
 import TableShell, { type TableShellColumn } from "../../../components/tables/TableShell";
-import Badge from "../../../components/ui/badge/Badge";
-import KebabMenu, {
-  DisableIcon,
-  EditIcon,
-  KeyIcon,
-} from "../../../components/ui/kebab-menu/KebabMenu";
+import StatusBadge, { ROLE_BADGE } from "../../../components/ui/badge/StatusBadge";
+import KebabMenu from "../../../components/ui/kebab-menu/KebabMenu";
 import type { TableShellProp } from "../../../type/table-shell-prop";
 import { noPermission } from "../../auth/authorization/helpers/no-permission-message";
 import { ALL_ROLES } from "../constants";
-import { getRoleBadgeColor } from "../helpers";
 import { useUserManagementPermissionsHelper } from "../hooks/permission/use-user-management-permissions-helper";
 import { useUserManagementTable } from "../hooks/use-user-management-table";
 import { EMPTY_FORM } from "../types/create-user.type";
 import type { SystemUser, UserRole } from "../types/user.type";
 import AddUserModal from "./modal/AddUserModal";
-import DeactivateUserModal from "./modal/DeactivateUserModal";
+import DisableUserModal from "./modal/DisableUserModal";
 import EditUserModal from "./modal/EditUserModal";
 import ResetPasswordModal from "./modal/reset/ResetPasswordModal";
 
@@ -23,7 +19,7 @@ export default function UserManagementTable({
   maxTableHeight = "560px",
   maxMobileHeight = "520px",
 }: TableShellProp = {}) {
-  const { canAdd, canEdit, canResetPassword, canDeactivate, hasAnyRowAction } =
+  const { canAdd, canEdit, canResetPassword, canDisable, hasAnyRowAction } =
     useUserManagementPermissionsHelper();
 
   const {
@@ -50,8 +46,8 @@ export default function UserManagementTable({
     setAddModal,
     editTarget,
     setEditTarget,
-    deactivateTarget,
-    setDeactivateTarget,
+    disableTarget,
+    setDisableTarget,
     resetTarget,
     setResetTarget,
   } = useUserManagementTable();
@@ -59,25 +55,25 @@ export default function UserManagementTable({
   const userActions = (user: SystemUser) => [
     {
       label: "Edit",
-      icon: <EditIcon />,
+      icon: <Pencil className="h-4 w-4" />,
       handler: () => setEditTarget(user),
       disabled: !canEdit,
       disabledReason: noPermission("edit users"),
     },
     {
       label: "Reset Password",
-      icon: <KeyIcon />,
+      icon: <Key className="h-4 w-4" />,
       handler: () => setResetTarget(user),
       disabled: !canResetPassword,
       disabledReason: noPermission("reset passwords"),
     },
     {
-      label: "Deactivate",
-      icon: <DisableIcon />,
-      handler: () => setDeactivateTarget(user),
+      label: "Disable",
+      icon: <XCircle className="h-4 w-4" />,
+      handler: () => setDisableTarget(user),
       danger: true,
-      disabled: !canDeactivate,
-      disabledReason: noPermission("deactivate users"),
+      disabled: !canDisable,
+      disabledReason: noPermission("disable users"),
     },
   ];
 
@@ -112,9 +108,7 @@ export default function UserManagementTable({
       pill: true,
       render: (user) => (
         <>
-          <Badge size="sm" color={getRoleBadgeColor(user.role)}>
-            {user.role}
-          </Badge>
+          <StatusBadge config={ROLE_BADGE[user.role]} />
           {user.role === "Division" && user.divisionName && (
             <span className="block text-gray-400 text-theme-xs dark:text-gray-500 mt-0.5">
               {user.divisionName}
@@ -185,22 +179,7 @@ export default function UserManagementTable({
               <Input
                 type="text"
                 size="sm"
-                leadingIcon={
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                    aria-hidden="true"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M21 21l-4.35-4.35M17 11A6 6 0 1 15 11a6 6 0 0112 0z"
-                    />
-                  </svg>
-                }
+                leadingIcon={<Search className="w-4 h-4" />}
                 value={search}
                 name="user-search-no-autofill"
                 data-form-type="other"
@@ -314,9 +293,7 @@ export default function UserManagementTable({
                   Role
                 </p>
                 <div className="mt-1">
-                  <Badge size="sm" color={getRoleBadgeColor(user.role)}>
-                    {user.role}
-                  </Badge>
+                  <StatusBadge config={ROLE_BADGE[user.role]} />
                 </div>
                 {user.role === "Division" && user.divisionName && (
                   <p className="text-theme-xs text-gray-400 dark:text-gray-500 mt-1">
@@ -371,10 +348,10 @@ export default function UserManagementTable({
         <ResetPasswordModal user={resetTarget} onClose={() => setResetTarget(null)} />
       )}
 
-      {deactivateTarget && canDeactivate && (
-        <DeactivateUserModal
-          user={deactivateTarget}
-          onClose={() => setDeactivateTarget(null)}
+      {disableTarget && canDisable && (
+        <DisableUserModal
+          user={disableTarget}
+          onClose={() => setDisableTarget(null)}
         />
       )}
     </>

@@ -51,7 +51,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
                 edit: user.user_permissions.managementPermissions.edit,
                 reset_password:
                   user.user_permissions.managementPermissions.reset_password,
-                deactivate: user.user_permissions.managementPermissions.deactivate,
+                disable: user.user_permissions.managementPermissions.disable,
                 reactivate: user.user_permissions.managementPermissions.reactivate,
                 delete: user.user_permissions.managementPermissions.delete,
               }

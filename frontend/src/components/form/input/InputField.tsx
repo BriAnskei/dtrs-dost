@@ -143,7 +143,7 @@ interface MaskStyle extends CSSProperties {
  *
  * Replaces the duplicated eye-toggle blocks across SignInForm,
  * ResetPasswordForm, AddUserModal, VerifyPasswordStep, DirectResetStep and
- * DeactivateUserModal with one component. All of those previously inlined their
+ * DisableUserModal with one component. All of those previously inlined their
  * own `<EyeIcon>`/`<EyeCloseIcon>` or hand-rolled SVG paths; this component
  * normalises them to the shared icons from `src/icons`.
  *

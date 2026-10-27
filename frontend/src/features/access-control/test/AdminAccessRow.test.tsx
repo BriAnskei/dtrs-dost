@@ -3,7 +3,7 @@
  *
  * This component renders one admin's permission matrix: master toggle
  * ("Access User Management") plus per-function toggles (Add, Edit, Reset
- * Password, Deactivate, Reactivate, Delete). Each toggle can be in one of
+ * Password, Disable, Reactivate, Delete). Each toggle can be in one of
  * three states:
  *
  *   - enabled: user can click to change the draft.
@@ -46,10 +46,10 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import React from "react";
 import { describe, expect, it, vi } from "vitest";
-import { USER_MANAGEMENT_PERMISSIONS } from "../contants";
-import type { AdminAccount, AdminPermissions } from "../types/access-controll-types";
 import AdminAccessRow from "../components/AdminAccessRow";
 import Toggle from "../components/Toggle";
+import { USER_MANAGEMENT_PERMISSIONS } from "../contants";
+import type { AdminAccount, AdminPermissions } from "../types/access-controll-types";
 
 // ─── Fixtures ────────────────────────────────────────────────────────────────────
 
@@ -66,7 +66,7 @@ const ALL_GRANTED: AdminPermissions = {
   "user_management.add": true,
   "user_management.edit": true,
   "user_management.reset_password": true,
-  "user_management.deactivate": true,
+  "user_management.disable": true,
   "user_management.reactivate": true,
   "user_management.delete": true,
 };
@@ -77,7 +77,7 @@ const NONE_GRANTED: AdminPermissions = {
   "user_management.add": false,
   "user_management.edit": false,
   "user_management.reset_password": false,
-  "user_management.deactivate": false,
+  "user_management.disable": false,
   "user_management.reactivate": false,
   "user_management.delete": false,
 };
@@ -88,7 +88,7 @@ const MASTER_ONLY: AdminPermissions = {
   "user_management.add": false,
   "user_management.edit": false,
   "user_management.reset_password": false,
-  "user_management.deactivate": false,
+  "user_management.disable": false,
   "user_management.reactivate": false,
   "user_management.delete": false,
 };
@@ -205,17 +205,17 @@ describe("AdminAccessRow — Toggle disabled when locked", () => {
     });
   });
 
-  it("locks Reactivate and Delete when Deactivate is off", () => {
+  it("locks Reactivate and Delete when Disable is off", () => {
     /*
-     * Reactivate and Delete both `dependOn: "user_management.deactivate"`.
-     * If deactivate is off, they're locked even if master is on.
+     * Reactivate and Delete both `dependOn: "user_management.disable"`.
+     * If disable is off, they're locked even if master is on.
      */
     const savedValues: AdminPermissions = {
       "user_management.access": true,
       "user_management.add": true,
       "user_management.edit": true,
       "user_management.reset_password": true,
-      "user_management.deactivate": false, // ← off
+      "user_management.disable": false, // ← off
       "user_management.reactivate": true,
       "user_management.delete": true,
     };
@@ -228,9 +228,9 @@ describe("AdminAccessRow — Toggle disabled when locked", () => {
     const toggles = screen.getAllByRole("switch");
 
     // Master and Add, Edit, ResetPassword are unlocked.
-    // Reactivate and Delete are locked (depend on deactivate).
+    // Reactivate and Delete are locked (depend on disable).
     // The toggles array order matches permission order:
-    // [master, add, edit, reset_password, deactivate, reactivate, delete]
+    // [master, add, edit, reset_password, disable, reactivate, delete]
     expect(toggles[5]).toBeDisabled(); // reactivate
     expect(toggles[6]).toBeDisabled(); // delete
   });
@@ -350,9 +350,7 @@ describe("AdminAccessRow — Save bar status text", () => {
     const toggles = screen.getAllByRole("switch");
     fireEvent.click(toggles[1]); // create a change
 
-    expect(
-      screen.getByText(/You have unsaved changes/i),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/You have unsaved changes/i)).toBeInTheDocument();
   });
 
   it("shows 'Saving your changes…' when isSaving is true", () => {
@@ -543,17 +541,17 @@ describe("AdminAccessRow — Expand / collapse", () => {
 
 describe("AdminAccessRow — High-risk permission indicator", () => {
   /*
-   * Permissions with `risk: "high"` (Deactivate, Delete) render a "High risk"
+   * Permissions with `risk: "high"` (Disable, Delete) render a "High risk"
    * badge next to their label. This is a visual cue for admins granting
    * destructive capabilities.
    */
 
-  it("renders 'High risk' badge for Deactivate permission", () => {
+  it("renders 'High risk' badge for Disable permission", () => {
     renderRow(MASTER_ONLY, { isSaving: false });
 
     fireEvent.click(screen.getByText(ADMIN.name));
 
-    // "High risk" appears for deactivate (and delete).
+    // "High risk" appears for disable (and delete).
     expect(screen.getAllByText("High risk").length).toBeGreaterThanOrEqual(2);
   });
 
@@ -623,7 +621,7 @@ describe("AdminAccessRow — onSave callback", () => {
         "user_management.add": true,
         "user_management.edit": false,
         "user_management.reset_password": false,
-        "user_management.deactivate": false,
+        "user_management.disable": false,
         "user_management.reactivate": false,
         "user_management.delete": false,
       }),
@@ -651,7 +649,7 @@ describe("AdminAccessRow — onSave callback", () => {
         "user_management.add": false,
         "user_management.edit": false,
         "user_management.reset_password": false,
-        "user_management.deactivate": false,
+        "user_management.disable": false,
         "user_management.reactivate": false,
         "user_management.delete": false,
       }),

@@ -104,7 +104,7 @@ export class AuthenticationService {
       throw new UnauthorizedException("Invalid credentials");
     }
 
-    if (!user.is_active) throw new UnauthorizedException("Account has been deactivated");
+    if (!user.is_active) throw new UnauthorizedException("Account has been disabled");
 
     await this.verifyPassword(user.id, password, user);
 

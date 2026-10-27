@@ -32,14 +32,14 @@ const PERMISSION_META: Record<
     description: "Reset a user's password on their behalf.",
     risk: "low",
   },
-  deactivate: {
-    label: "Deactivate users",
+  disable: {
+    label: "Disable users",
     description: "Suspend a user's access to the system.",
     risk: "high",
   },
   reactivate: {
     label: "Reactivate users",
-    description: "Restore access for a previously deactivated user.",
+    description: "Restore access for a previously disabled user.",
     risk: "low",
   },
   delete: {
@@ -60,7 +60,7 @@ export const USER_MANAGEMENT_PERMISSIONS: UserManagementPermission[] = [
     key: `user_management.${field}`,
     ...PERMISSION_META[field],
     ...(field === "reactivate" || field === "delete"
-      ? { dependsOn: "user_management.deactivate" }
+      ? { dependsOn: "user_management.disable" }
       : {}),
   })),
 ];

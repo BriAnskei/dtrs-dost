@@ -10,12 +10,12 @@ export function useUserManagementPermissionsHelper() {
       canAdd: can(P.Add),
       canEdit: can(P.Edit),
       canResetPassword: can(P.ResetPassword),
-      canDeactivate: can(P.Deactivate),
+      canDisable: can(P.Disable),
       canReactivate: can(P.Reactivate),
-      hasAnyRowAction: canAny(P.Edit, P.ResetPassword, P.Deactivate),
+      hasAnyRowAction: canAny(P.Edit, P.ResetPassword, P.Disable),
       canDelete: can(P.Delete),
 
-      hasAnyDeactivatedRowAction: canAny(P.Reactivate, P.Delete),
+      hasAnyDisabledRowAction: canAny(P.Reactivate, P.Delete),
     }),
     [can, canAny],
   );

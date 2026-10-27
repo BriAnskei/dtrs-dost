@@ -4,6 +4,7 @@ export interface ApiErrorResponse {
   message: string | string[];
   error?: string;
   statusCode: number;
+  code?: string;
 }
 
 export function getApiErrorMessage(
@@ -15,12 +16,23 @@ export function getApiErrorMessage(
   }
 
   const status = error.response?.status;
+  const data = error.response?.data;
 
-  if (status === 429) {
-    return "Too many login attempts. Please try again later.";
+  if (status === 409 && data?.code === "IDEMPOTENCY_KEY_IN_USE") {
+    return "This request is still processing. Please wait a moment before trying again.";
   }
 
-  const data = error.response?.data;
+  if (status === 422 && data?.code === "IDEMPOTENCY_KEY_REUSED") {
+    return "This request key was already used for different data. Please refresh and try again.";
+  }
+
+  if (status === 400 && data?.code === "IDEMPOTENCY_KEY_REQUIRED") {
+    return "A required request identifier is missing. Please refresh and try again.";
+  }
+
+  if (status === 429) {
+    return "Too many requests. Please wait a moment before trying again.";
+  }
 
   if (Array.isArray(data?.message)) {
     return data.message.join(", ");
@@ -33,18 +45,10 @@ export function getErrorStatus(error: unknown): number | undefined {
   return axios.isAxiosError(error) ? error.response?.status : undefined;
 }
 
-/**
- * Transport-level failure: the request was sent but no response was ever
- * received (server down, network offline, DNS failure, timeout, or an empty
- * response). These are connectivity problems, NOT authentication problems, so
- * they must never be treated like a 401 (no token refresh, no session-expiry
- * redirect — just surface the error).
- */
 export function isNetworkError(error: unknown): boolean {
   return axios.isAxiosError(error) && !error.response;
 }
 
-// used in password resets
 export function getErrorMessage(err: unknown, fallback: string): string {
   if (axios.isAxiosError(err)) {
     const data = err.response?.data as { message?: string | string[] } | undefined;

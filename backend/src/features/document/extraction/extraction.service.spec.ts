@@ -1,15 +1,13 @@
-import { BadRequestException } from "@nestjs/common";
 import { Test } from "@nestjs/testing";
-
-import type { ExtractionRequestDto } from "./dto/extraction-request-dto";
 import type { DocumentDirection } from "./contants/document-direction";
+import type { ExtractionRequestDto } from "./dto/extraction-request-dto";
+import { ExtractionService } from "./extraction.service";
 import type {
   ExtractedField,
   ExtractionChunk,
   LlmExtractor,
 } from "./providers/llm-extractor.interface";
 import { LLM_EXTRACTOR } from "./providers/llm-extractor.interface";
-import { ExtractionService } from "./extraction.service";
 
 function chunk(chunkId: string, text: string): ExtractionChunk {
   return { chunkId, text };
@@ -47,37 +45,13 @@ async function buildService(
   };
 
   const moduleRef = await Test.createTestingModule({
-    providers: [
-      ExtractionService,
-      { provide: LLM_EXTRACTOR, useValue: mock },
-    ],
+    providers: [ExtractionService, { provide: LLM_EXTRACTOR, useValue: mock }],
   }).compile();
 
   return {
     service: moduleRef.get(ExtractionService),
     mock,
   };
-}
-
-/* NestJS HttpException stores the body on getResponse(), not on .message. */
-async function expectBadRequest(
-  action: () => Promise<unknown>,
-  expectedError: string,
-): Promise<void> {
-  let thrown: unknown;
-
-  try {
-    await action();
-    throw new Error("expected action to reject with BadRequestException");
-  } catch (error) {
-    thrown = error;
-  }
-
-  expect(thrown).toBeInstanceOf(BadRequestException);
-  expect((thrown as BadRequestException).getResponse()).toMatchObject({
-    success: false,
-    error: expectedError,
-  });
 }
 
 describe("ExtractionService", () => {
@@ -119,9 +93,7 @@ describe("ExtractionService", () => {
       ]),
     );
 
-    const request = makeRequest("incoming", [
-      chunk("p1-o1", "Subject: Foo From: Bar"),
-    ]);
+    const request = makeRequest("incoming", [chunk("p1-o1", "Subject: Foo From: Bar")]);
 
     const result = await service.extract(request);
 
@@ -132,11 +104,11 @@ describe("ExtractionService", () => {
     expect(byField.from.value).toBe("Bar");
   });
 
-  it("throws 400 when the LLM returns a duplicate field key", async () => {
+  it("keeps the first occurrence and warns when the LLM returns a duplicate field key", async () => {
     const { service } = await buildService(() =>
       Promise.resolve([
         field("subject", "Foo", ["p1-o1"], 90),
-        field("subject", "Bar", ["p1-o2"], 91), // duplicate FIELD name — genuinely invalid
+        field("subject", "Bar", ["p1-o2"], 91), // duplicate FIELD name — keep first
       ]),
     );
 
@@ -145,28 +117,41 @@ describe("ExtractionService", () => {
       chunk("p1-o2", "Subject: Bar"),
     ]);
 
-    await expectBadRequest(
-      () => service.extract(request),
-      "Duplicate extracted field: subject",
-    );
+    const result = await service.extract(request);
+
+    const byField = Object.fromEntries(result.fields.map((f) => [f.field, f]));
+    // First occurrence kept.
+    expect(byField.subject.value).toBe("Foo");
+    expect(byField.subject.chunkIds).toEqual(["p1-o1"]);
+    expect(byField.subject.aiConfidence).toBe(90);
   });
 
-  it("throws 400 when a field cites a chunkId the client never sent", async () => {
+  it("drops unknown chunkIds instead of throwing 400 when the LLM cites a chunkId the client never sent", async () => {
     const { service } = await buildService(() =>
       Promise.resolve([field("subject", "Foo", ["p2-o1"], 90)]),
     );
 
-    const request = makeRequest("incoming", [
-      chunk("p1-o1", "nothing useful here"),
-    ]);
+    const request = makeRequest("incoming", [chunk("p1-o1", "Subject: Foo")]);
 
-    await expectBadRequest(
-      () => service.extract(request),
-      'Invalid chunkId "p2-o1" returned for field "subject"',
-    );
+    const result = await service.extract(request);
+
+    const byField = Object.fromEntries(result.fields.map((f) => [f.field, f]));
+    // Unknown chunkId dropped → no source confidence. Value was still verified
+    // against the document text, so aiConfidence stays 90. The decision logic
+    // will mark INVALID because effectiveConfidence is null (no source).
+    expect(byField.subject.chunkIds).toEqual([]);
+    expect(byField.subject.aiConfidence).toBe(90);
   });
 
-  it("throws 400 when an extracted value is absent from the cited chunk", async () => {
+  it("does NOT throw 400 when an extracted value is absent from the document (anti-hallucination)", async () => {
+    /*
+     * The LLM returned "Foo" but the document text is "completely unrelated
+     * text" — "Foo" cannot be found anywhere. Previously this threw a 400
+     * BadRequestException, discarding every correctly-extracted field.
+     *
+     * New behavior: the value is returned (so a reviewer can see it) but
+     * aiConfidence is nulled, which the decision logic interprets as INVALID.
+     */
     const { service } = await buildService(() =>
       Promise.resolve([field("subject", "Foo", ["p1-o1"], 90)]),
     );
@@ -175,10 +160,12 @@ describe("ExtractionService", () => {
       chunk("p1-o1", "completely unrelated text"),
     ]);
 
-    await expectBadRequest(
-      () => service.extract(request),
-      'Extracted value for "subject" was not found in any document chunk',
-    );
+    const result = await service.extract(request);
+
+    const byField = Object.fromEntries(result.fields.map((f) => [f.field, f]));
+    expect(byField.subject.value).toBe("Foo");
+    expect(byField.subject.chunkIds).toEqual(["p1-o1"]);
+    expect(byField.subject.aiConfidence).toBeNull();
   });
 
   it("does not throw when a value spans chunks beyond the cited one", async () => {
@@ -226,9 +213,7 @@ describe("ExtractionService", () => {
       Promise.resolve([field("subject", null, [], null)]),
     );
 
-    const request = makeRequest("incoming", [
-      chunk("p1-o1", "no subject here"),
-    ]);
+    const request = makeRequest("incoming", [chunk("p1-o1", "no subject here")]);
 
     const result = await service.extract(request);
 

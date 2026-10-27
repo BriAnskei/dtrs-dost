@@ -17,7 +17,7 @@
  *   - CHUNK_LEVEL_FIELDS (e.g. "summary"): the LLM wrote the value itself,
  *     so we cannot do a word match. The whole chunk bbox is used.
  *
- *   - Word-level fields (subject, from, to, dateReceived, dateReleased): if
+ *   - Word-level fields (subject, from, to, dateReceived, datePrepared): if
  *     the chunk has word-level tokens, `findValueBox` narrows to the tightest
  *     box around matching words. If no word match is found (or no tokens),
  *     fall back to the whole chunk bbox.

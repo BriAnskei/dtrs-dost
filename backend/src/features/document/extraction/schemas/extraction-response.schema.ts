@@ -3,7 +3,7 @@ import { z } from "zod";
 export const extractionResponseSchema = z.object({
   fields: z.array(
     z.object({
-      field: z.enum(["subject", "from", "to", "dateReceived", "dateReleased", "summary"]),
+      field: z.enum(["subject", "from", "to", "dateReceived", "datePrepared", "summary"]),
 
       value: z.string().nullable(),
 

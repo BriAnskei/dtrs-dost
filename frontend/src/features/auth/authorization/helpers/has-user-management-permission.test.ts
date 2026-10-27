@@ -32,7 +32,7 @@ function makeUser(overrides: Partial<User> = {}): User {
         add: false,
         edit: false,
         reset_password: false,
-        deactivate: false,
+        disable: false,
         reactivate: false,
         delete: false,
       },
@@ -70,7 +70,7 @@ describe("hasUserManagementPermission", () => {
     expect(hasUserManagementPermission(user, UserManagementPermissionEnum.Add)).toBe(true);
     expect(hasUserManagementPermission(user, UserManagementPermissionEnum.Edit)).toBe(true);
     expect(hasUserManagementPermission(user, UserManagementPermissionEnum.ResetPassword)).toBe(true);
-    expect(hasUserManagementPermission(user, UserManagementPermissionEnum.Deactivate)).toBe(true);
+    expect(hasUserManagementPermission(user, UserManagementPermissionEnum.Disable)).toBe(true);
     expect(hasUserManagementPermission(user, UserManagementPermissionEnum.Reactivate)).toBe(true);
     expect(hasUserManagementPermission(user, UserManagementPermissionEnum.Delete)).toBe(true);
   });

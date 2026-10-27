@@ -294,7 +294,7 @@ function DivisionsTab() {
           <BuildingIcon className="size-5 text-primary dark:text-secondary" />
         </div>
         <div>
-          <p className="text-theme-xs text-gray-500 dark:text-gray-400">
+          <p className="text-theme-xs text-gray-499 dark:text-gray-400">
             Total assigned documents
           </p>
           <p className="text-lg font-bold text-gray-800 dark:text-white/90">{total}</p>

@@ -1,14 +1,14 @@
 /**
  * Tests for `useVerifyPasswordStep` — the admin-password verification gate used
- * by BOTH the ResetPasswordModal and DeactivateUserModal flows.
+ * by BOTH the ResetPasswordModal and DisableUserModal flows.
  *
  * WHY THIS HOOK MATTERS:
- *   Before an admin can reset another user's password or deactivate an account,
+ *   Before an admin can reset another user's password or disable an account,
  *   they must re-enter their own password. This hook calls
  *   `authenticationService.verifyPassword`, exposes `isVerifying` (a loading
  *   spinner on the "Continue" button), and surfaces errors inline under the
  *   password field. Both modals are gated on this step, so a regression here
- *   breaks password resets AND deactivations.
+ *   breaks password resets AND disablings.
  *
  * WHAT WE MOCK:
  *   - `authenticationService` (../../../authentication/service/authentication.service)

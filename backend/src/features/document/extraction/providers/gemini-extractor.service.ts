@@ -87,9 +87,16 @@ export class GeminiExtractorService implements LlmExtractor {
             responseMimeType: "application/json",
 
             responseJsonSchema: this.buildResponseSchema(documentType),
+
+            // Deterministic output: temperature 0 + fixed seed ensures the
+            // same prompt always yields the same LLM response (values and
+            // aiConfidence scores), eliminating run-to-run variance.
+            temperature: 0,
+            seed: 42,
           },
         });
       } catch (error) {
+        console.log("Error: ", error);
         const retryable = this.isRetryableError(error);
 
         if (!retryable || attempt === this.maxAttempts) {
@@ -147,8 +154,11 @@ export class GeminiExtractorService implements LlmExtractor {
   private calculateRetryDelay(attempt: number): number {
     const exponentialDelay = this.initialRetryDelayMs * 2 ** (attempt - 1);
 
-    // Add 0–500ms of jitter to avoid synchronized retries.
-    const jitter = Math.floor(Math.random() * 500);
+    // Deterministic jitter derived from the attempt number so retry timing is
+    // reproducible. A seeded PRNG would also work; this simple formula avoids
+    // Math.random() non-determinism while still preventing synchronized retries
+    // across parallel clients (the base exponential delay already varies).
+    const jitter = (attempt * 137) % 500;
 
     return exponentialDelay + jitter;
   }

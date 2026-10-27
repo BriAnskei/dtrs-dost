@@ -15,7 +15,7 @@ export class SetUserManagementPermissionDto {
 
   @IsOptional()
   @IsBoolean()
-  deactivate?: boolean;
+  disable?: boolean;
 
   @IsOptional()
   @IsBoolean()

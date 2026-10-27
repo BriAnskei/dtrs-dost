@@ -5,7 +5,6 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from "@nestjs/common";
-
 import * as argon2 from "argon2";
 import { DataSource, EntityManager } from "typeorm";
 import { Role } from "../../../auth/authorization/enum/roles.enum";
@@ -13,7 +12,7 @@ import { PaginatedResponse } from "../../../common/pagination/paginated-response
 import { capitalizeWords } from "../../../util/capitalizer";
 import { UserPermissionsRepository } from "../../permissions/repository/user-permissions.repository";
 import { CreateUserDto } from "../dto/create/create-user-dto";
-import { FindDeactivatedUsersQueryDto } from "../dto/queries/find-deactivated-user-query-dto";
+import { FindDisabledUsersQueryDto } from "../dto/queries/find-disabled-user-query-dto";
 import { FindUsersQueryDto } from "../dto/queries/find-user-query-dto";
 import { CurrentUserResponseDto } from "../dto/response/current-user-response-dto";
 import { UserWithRelationResponseDto } from "../dto/response/userWithRelation-response-dto";
@@ -48,7 +47,7 @@ export class UserService {
     dto.division_name = user.division?.division_name;
     dto.role = user.role.name;
     dto.created_at = user.created_at;
-    dto.deactivated_at = user.deactivated_at ?? null;
+    dto.disabled_at = user.disabled_at ?? null;
 
     return dto;
   }
@@ -184,7 +183,7 @@ export class UserService {
               add: managementPermissions.add,
               edit: managementPermissions.edit,
               reset_password: managementPermissions.reset_password,
-              deactivate: managementPermissions.deactivate,
+              disable: managementPermissions.disable,
               reactivate: managementPermissions.reactivate,
               delete: managementPermissions.delete,
             }
@@ -227,11 +226,11 @@ export class UserService {
     };
   }
 
-  async findAllDeactivated(
-    query: FindDeactivatedUsersQueryDto,
+  async findAllDisabled(
+    query: FindDisabledUsersQueryDto,
   ): Promise<PaginatedResponse<UserWithRelationResponseDto>> {
     const { users, nextCursor } =
-      await this.userRepository.findAllDeactivatedWithRelation(query);
+      await this.userRepository.findAllDisabledWithRelation(query);
 
     return {
       data: users.map((user) => this.toDto(user)),
@@ -326,11 +325,11 @@ export class UserService {
     }
   }
 
-  async deactivate(id: string, currUserId: string): Promise<void> {
+  async disable(id: string, currUserId: string): Promise<void> {
     if (id === currUserId)
-      throw new BadRequestException("You cannot deactivate your own account");
+      throw new BadRequestException("You cannot disable your own account");
 
-    const res = await this.userRepository.deactivate(id);
+    const res = await this.userRepository.disable(id);
 
     if (!res) throw new NotFoundException("User not found");
   }

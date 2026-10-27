@@ -19,7 +19,7 @@ import { PermissionDomain } from "../../../auth/authorization/enum/permission-do
 import { Role } from "../../../auth/authorization/enum/roles.enum";
 import { UserManagementPermission } from "../../../auth/authorization/enum/user-management-permissions.enum";
 import { CreateUserDto } from "../dto/create/create-user-dto";
-import { FindDeactivatedUsersQueryDto } from "../dto/queries/find-deactivated-user-query-dto";
+import { FindDisabledUsersQueryDto } from "../dto/queries/find-disabled-user-query-dto";
 import { FindUsersQueryDto } from "../dto/queries/find-user-query-dto";
 import { UpdateUserDto } from "../dto/updates/update-user-dto";
 import { UpdateUserPasswordDto } from "../dto/updates/update-user-password.dto";
@@ -56,11 +56,11 @@ export class UserController {
     return this.service.findAll(query);
   }
 
-  @Get("deactivated")
+  @Get("disabled")
   @Roles(Role.SuperAdmin, Role.Admin)
-  @RequirePermission(PERMISSION_DOMAIN, UserManagementPermission.Deactivate)
-  async findAllDeactivated(@Query() query: FindDeactivatedUsersQueryDto) {
-    return this.service.findAllDeactivated(query);
+  @RequirePermission(PERMISSION_DOMAIN, UserManagementPermission.Disable)
+  async findAllDisabled(@Query() query: FindDisabledUsersQueryDto) {
+    return this.service.findAllDisabled(query);
   }
 
   @Patch("password")
@@ -81,14 +81,14 @@ export class UserController {
     await this.service.update(id, dto);
   }
 
-  @Patch(":id/deactivate")
+  @Patch(":id/disable")
   @Roles(Role.SuperAdmin, Role.Admin)
-  @RequirePermission(PERMISSION_DOMAIN, UserManagementPermission.Deactivate)
-  async deactivate(
+  @RequirePermission(PERMISSION_DOMAIN, UserManagementPermission.Disable)
+  async disable(
     @Param("id", ParseUUIDPipe) id: string,
     @Req() req: AuthenticatedRequest,
   ): Promise<void> {
-    await this.service.deactivate(id, req.user.id);
+    await this.service.disable(id, req.user.id);
   }
 
   @Patch(":id/reactivate")

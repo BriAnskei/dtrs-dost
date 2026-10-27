@@ -1,6 +1,9 @@
 import { join } from "node:path";
 import { Module } from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
+import { CqrsModule } from "@nestjs/cqrs";
+import { IdempotencyModule } from "@nestjs/idempotency";
+import { ScheduleModule } from "@nestjs/schedule";
 import { ServeStaticModule } from "@nestjs/serve-static";
 import { ThrottlerModule } from "@nestjs/throttler";
 import { TypeOrmModule } from "@nestjs/typeorm";
@@ -8,16 +11,21 @@ import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
 import { AuthenticationModule } from "./auth/authentication/authentication.module";
 import { AuthorizationModule } from "./auth/authorization/authorization.module";
+import { IdempotencyPersistenceModule } from "./common/idempotency/idempotency.module";
+import { IdempotencyCleanupService } from "./common/idempotency/idempotency-cleanup.service";
+import { TypeOrmIdempotencyStore } from "./common/idempotency/stores/typeorm-idempotency.store";
 import { getDatabaseConfig } from "./config/database.config";
-import { IncomingDocQueue } from "./entities/incoming-doc-queue.entity";
-import { IncomingDocumentFile } from "./entities/incoming-document-file.entity";
-import { InvalidDocument } from "./entities/invalid-document.entity";
+import { ExtractedDocumentQueueModule } from "./features/document/extracted-document-queue/extracted-document-queue.module";
 import { ExtractionModule } from "./features/document/extraction/extraction.module";
+import { IncomingDocumentModule } from "./features/document/incoming/incoming.module";
+import { OutgoingDocumentModule } from "./features/document/outgoing/ougoing.module";
 import { PermissionsModule } from "./features/permissions/permissions.module";
 import { UserModule } from "./features/user/user.module";
 
 @Module({
   imports: [
+    ScheduleModule.forRoot(),
+    CqrsModule.forRoot(),
     ThrottlerModule.forRoot({
       throttlers: [
         {
@@ -29,6 +37,7 @@ import { UserModule } from "./features/user/user.module";
     }),
     ConfigModule.forRoot({
       isGlobal: true,
+      ignoreEnvFile: true,
     }),
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
@@ -38,7 +47,12 @@ import { UserModule } from "./features/user/user.module";
       rootPath: join(__dirname, "..", "uploads"),
       serveRoot: "/uploads",
     }),
-    TypeOrmModule.forFeature([IncomingDocumentFile, InvalidDocument, IncomingDocQueue]),
+
+    IdempotencyModule.forRoot({
+      scope: (req: { user?: { id: string } }) => req.user?.id,
+    }),
+    IdempotencyPersistenceModule,
+
     AuthenticationModule,
     UserModule,
     PermissionsModule,
@@ -46,8 +60,11 @@ import { UserModule } from "./features/user/user.module";
 
     // Documents
     ExtractionModule,
+    ExtractedDocumentQueueModule,
+    IncomingDocumentModule,
+    OutgoingDocumentModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, TypeOrmIdempotencyStore, IdempotencyCleanupService],
 })
 export class AppModule {}
