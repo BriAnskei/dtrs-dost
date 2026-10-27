@@ -336,12 +336,16 @@ export class IncomingDocumentsRepository {
     });
   }
 
-  async findByIdWithJoin(id: string): Promise<IncomingDocumentEntity | null> {
+  async findByIdWithFile(id: string): Promise<IncomingDocumentEntity | null> {
     return await this.repository.findOne({
       where: { id },
       relations: {
         document_file: true,
       },
     });
+  }
+
+  async findById(id: string): Promise<IncomingDocumentEntity | null> {
+    return await this.repository.findOne({ where: { id } });
   }
 }

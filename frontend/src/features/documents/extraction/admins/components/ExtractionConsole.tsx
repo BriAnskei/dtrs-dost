@@ -48,7 +48,17 @@ export default function ExtractionConsole({
           <span className="min-w-0 break-words">{l.message}</span>
         </div>
       ))}
-      {running && (
+      {running && phase === "llm" && (
+        <div className="mt-2 flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
+          <span className="font-medium">Waiting for LLM…</span>
+          <span className="inline-flex items-end gap-0.5">
+            <i className="block h-3 w-0.5 animate-bounce [animation-delay:0ms] rounded bg-gray-500 dark:bg-gray-400" />
+            <i className="block h-3 w-0.5 animate-bounce [animation-delay:150ms] rounded bg-gray-500 dark:bg-gray-400" />
+            <i className="block h-3 w-0.5 animate-bounce [animation-delay:300ms] rounded bg-gray-500 dark:bg-gray-400" />
+          </span>
+        </div>
+      )}
+      {running && phase !== "llm" && (
         <span className="mt-1 inline-block h-3 w-1.5 animate-pulse bg-gray-500 dark:bg-gray-400" />
       )}
     </div>

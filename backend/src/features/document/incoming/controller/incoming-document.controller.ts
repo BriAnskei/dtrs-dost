@@ -20,8 +20,10 @@ import type { AuthenticatedRequest } from "../../../../auth/authentication/types
 import { Roles } from "../../../../auth/authorization/decorator/roles.decorator";
 import { Role } from "../../../../auth/authorization/enum/roles.enum";
 import { ParsePdfFilePipe } from "../../../../common/pipes/parse-pdf-file-pipe";
-import { CreateIncomingFromQueueCommand } from "../command/ create-incoming-from-queue/ create-incoming-from-queue.command";
+import { AssignIncomingDocumentToDivisionCommand } from "../command/assign-incoming-document-to-division/assign-incoming-document-to-division.command";
 import { CreateIncomingDocumentCommand } from "../command/create-incoming-document/create-incoming-document.command";
+import { CreateIncomingFromQueueCommand } from "../command/create-incoming-from-queue/ create-incoming-from-queue.command";
+import { AssignIncomingDocumentToDivisionDto } from "../dto/assign-incoming-document-to-division";
 import { CreateIncomingDocumentDto } from "../dto/create-incoming-document.dto";
 import { FindIncomingDocumentsQueryDto } from "../dto/find-incoming-documents-query.dto";
 import { FindIncomingDocumentsQuery } from "../query/find-incoming-documents/find-incoming-documents.query";
@@ -110,6 +112,16 @@ export class IncomingDocumentController {
   ) {
     return this.queryBus.execute(
       new GetAssignedDivisionNoticeCountsQuery(incomingDocumentId),
+    );
+  }
+
+  @Post("assign-to-division")
+  assignToDivision(
+    @Body() dto: AssignIncomingDocumentToDivisionDto,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    return this.commandBus.execute(
+      new AssignIncomingDocumentToDivisionCommand(dto, req.user.id),
     );
   }
 }

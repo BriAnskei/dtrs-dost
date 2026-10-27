@@ -6,10 +6,7 @@ import PdfPageWithHighlights from "./PdfPageWithHighlights";
 
 // Skip this block if your source extraction already configures the worker.
 if (!pdfjs.GlobalWorkerOptions.workerSrc) {
-  pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-    "pdfjs-dist/build/pdf.worker.min.mjs",
-    import.meta.url,
-  ).toString();
+  pdfjs.GlobalWorkerOptions.workerSrc = "/pdfjs/pdf.worker.min.mjs";
 }
 
 export interface PdfHighlight {

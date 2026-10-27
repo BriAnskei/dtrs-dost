@@ -153,6 +153,9 @@ export default function EditUserModal({
                 setErrors((er) => ({ ...er, division: undefined }));
               }}
               error={errors.division}
+              allowCreate
+              disabled={isSubmitting}
+              required
             />
           )}
 

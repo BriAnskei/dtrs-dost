@@ -1,5 +1,6 @@
 import { apiClient } from "../../../../lib/api-client";
 import type { PaginatedResponse } from "../../../../type/paginated-response.type";
+import type { AssignIncomingDocumentToDivisionDto } from "../types/assign-incoming-document-to-dto-division.type";
 import type { AssignedDivisionNoticeCount } from "../types/assigned-division-notice-count-response";
 import type {
   FindIncomingDocumentsParams,
@@ -42,5 +43,11 @@ export const IncomingDocumentService = {
     );
 
     return data;
+  },
+
+  async assignIncomingDocumentToDivision(
+    dto: AssignIncomingDocumentToDivisionDto,
+  ): Promise<void> {
+    await apiClient.post(`${INCOMING_DOCUMENTS_ENDPOINT}/assign-to-division`, dto);
   },
 };

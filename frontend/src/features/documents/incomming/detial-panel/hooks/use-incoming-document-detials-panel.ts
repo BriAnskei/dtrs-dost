@@ -25,10 +25,10 @@ export function useIncomingDocumentDetailPanel({ row, onClose }: Options) {
 
   const divisionItems = divisionsQuery.data ?? [];
 
-  const onAssignDivisions = () => {
-    // TODO: open the Assign Divisions flow for `doc` (e.g. DivisionMultiSelect modal).
-    // Keep this panel open behind it so the user can confirm what they're assigning.
-  };
+  const [isAssignOpen, setIsAssignOpen] = useState(false);
+
+  const onAssignDivisions = () => setIsAssignOpen(true);
+  const onCloseAssign = () => setIsAssignOpen(false);
 
   const onViewFullDetails = () => {
     // TODO: navigate to the full incoming-document page for `doc.id`,
@@ -55,7 +55,10 @@ export function useIncomingDocumentDetailPanel({ row, onClose }: Options) {
         divisionItems.length === 0,
       retry: () => divisionsQuery.refetch(),
     },
-    onAssignDivisions,
     onViewFullDetails,
+
+    onAssignDivisions,
+    isAssignOpen,
+    onCloseAssign,
   };
 }

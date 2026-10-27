@@ -1,10 +1,12 @@
 import { Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { StorageModule } from "../../../storage/storage.module";
+import { UserModule } from "../../user/user.module";
 import { DocumentFileModule } from "../document-file/document-file.module";
 import { ExtractedDocumentQueueModule } from "../extracted-document-queue/extracted-document-queue.module";
-import { CreateIncomingFromQueueHandler } from "./command/ create-incoming-from-queue/create-incoming-from-queue.handler";
+import { AssignIncomingDocumentToDivisionHandler } from "./command/assign-incoming-document-to-division/assign-incoming-document-to-division.handler";
 import { CreateIncomingDocumentHandler } from "./command/create-incoming-document/create-incoming-document.handler";
+import { CreateIncomingFromQueueHandler } from "./command/create-incoming-from-queue/create-incoming-from-queue.handler";
 import { IncomingDocumentController } from "./controller/incoming-document.controller";
 import { IncomingDocumentAssignmentEntity } from "./entities/incoming-document-assignment.entity";
 import { IncomingDocumentEntity } from "./entities/incoming-document-entity";
@@ -15,6 +17,8 @@ import { GetAssignedDivisionNoticeCountsHandler } from "./query/get-assigned-div
 import { GetIncomingDocumentFileStreamHandler } from "./query/get-incoming-file-stream/get-incoming-document-file-stream.handler";
 import { GetReceiverQueueDetailsHandler } from "./query/get-receiver-queue-details/get-incoming-document-by-queue.handler";
 import { IncomingDocumentsRepository } from "./repository/incoming-document.repository";
+import { IncomingDocumentAssignmentsRepository } from "./repository/incoming-document-assignment.repository";
+import { IncomingDocumentRoutingRepository } from "./repository/incoming-document-routing-repository";
 
 @Module({
   imports: [
@@ -24,6 +28,9 @@ import { IncomingDocumentsRepository } from "./repository/incoming-document.repo
       IncomingDocumentRoutingEntity,
       IncomingDocumentAssignmentEntity,
     ]),
+
+    UserModule,
+
     DocumentFileModule,
     StorageModule,
     ExtractedDocumentQueueModule,
@@ -31,6 +38,9 @@ import { IncomingDocumentsRepository } from "./repository/incoming-document.repo
   controllers: [IncomingDocumentController],
   providers: [
     IncomingDocumentsRepository,
+    IncomingDocumentRoutingRepository,
+    IncomingDocumentAssignmentsRepository,
+
     CreateIncomingDocumentHandler,
     FindIncomingDocumentsHandler,
     CreateIncomingFromQueueHandler,
@@ -41,6 +51,8 @@ import { IncomingDocumentsRepository } from "./repository/incoming-document.repo
     GetIncomingDocumentFileStreamHandler,
 
     GetAssignedDivisionNoticeCountsHandler,
+
+    AssignIncomingDocumentToDivisionHandler,
   ],
 })
 export class IncomingDocumentModule {}

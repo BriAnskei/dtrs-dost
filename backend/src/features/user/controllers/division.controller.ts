@@ -23,7 +23,7 @@ export class DivisionController {
   constructor(private readonly service: DivisionService) {}
 
   @Get("search")
-  @Roles(Role.SuperAdmin)
+  @Roles(Role.SuperAdmin, Role.Admin)
   async findByName(@Query("search") search: string) {
     return this.service.searchByName(search);
   }

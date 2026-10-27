@@ -6,8 +6,8 @@ import StatusBadge, {
   INCOMING_STATUS_BADGE,
 } from "../../../../../components/ui/badge/StatusBadge";
 import type { TableShellProp } from "../../../../../type/table-shell-prop";
+import IncomingDocumentDetailPanel from "../../detial-panel/components/IncomingDocumentDetailPanel";
 import type { IncomingDocumentRow } from "../../types/incoming-document-row.type";
-import IncomingDocumentDetailPanel from "../../view/components/IncomingDocumentDetailPanel";
 import { useIncomingDocumentsTable } from "../hooks/use-incoming-document-table";
 import IncomingDocumentsFilters from "./IncomingDocumentFilters";
 

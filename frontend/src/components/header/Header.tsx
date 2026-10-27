@@ -184,6 +184,7 @@ const Header: React.FC<HeaderProps> = ({ onClick, onToggle }) => {
             <NotificationDropdown />
             {/* <!-- Notification Menu Area --> */}
           </div>
+
           {/* <!-- User Area --> */}
           <UserDropdown />
         </div>

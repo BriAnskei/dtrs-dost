@@ -16,7 +16,7 @@ export class GetIncomingDocumentFileStreamHandler
   ) {}
 
   async execute(query: GetIncomingDocumentFileStreamQuery): Promise<FileStreamResponse> {
-    const incoming = await this.incomingRepository.findByIdWithJoin(query.id);
+    const incoming = await this.incomingRepository.findByIdWithFile(query.id);
 
     if (!incoming) throw new NotFoundException("Cannot find data");
 

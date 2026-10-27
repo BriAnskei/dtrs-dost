@@ -10,7 +10,9 @@
  * Rendering rules:
  *   - Renders one <div key={l.id}> per log entry, showing time, level tag, message.
  *   - Level tags: info→"INFO" (blue), success→"OK" (green), warn→"WARN" (amber), error→"FAIL" (red).
- *   - A running indicator (animate-pulse dot) shows when phase is "source" or "llm".
+ *   - A running indicator shows when phase is "source" or "llm":
+ *     • "llm" phase renders a bouncing-dots spinner (3 dots with staggered delays).
+ *     • Other running phases ("source") render a single animate-pulse dot.
  *   - The container has role="log" and aria-live="polite".
  *   - useEffect scrolls to bottom when logs change.
  *
@@ -98,13 +100,14 @@ describe("ExtractionConsole", () => {
       expect(dot).not.toBeNull();
     });
 
-    it("shows a pulse dot when phase is 'llm'", () => {
+    it("shows a bouncing-dots spinner when phase is 'llm'", () => {
       const { container } = render(
         <ExtractionConsole logs={[makeLog("info", "msg")]} phase="llm" />,
       );
 
-      const dot = container.querySelector(".animate-pulse");
-      expect(dot).not.toBeNull();
+      const dots = container.querySelectorAll(".animate-bounce");
+      expect(dots.length).toBe(3);
+      expect(container.querySelector(".animate-pulse")).toBeNull();
     });
 
     it("does NOT show a pulse dot when phase is 'done'", () => {

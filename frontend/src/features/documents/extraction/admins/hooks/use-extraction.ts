@@ -183,6 +183,7 @@ export function useExtraction(direction: DocumentDirection) {
 
         /* ── PHASE 2: LLM field extraction (backend) ── */
         setPhase("llm");
+        log("info", "Sending chunks to LLM for field extraction… This may take a minute or so.");
 
         const request: ExtractionRequest = {
           documentType: direction,

@@ -43,6 +43,14 @@ export class DivisionService {
     };
   }
 
+  async findById(id: string): Promise<DivisionEntity> {
+    const division = await this.repository.findOne(id);
+
+    if (!division) throw new NotFoundException("Division does not exist");
+
+    return division;
+  }
+
   async updateName(id: string, dto: UpdateDivisionDto) {
     const res = await this.repository.updateName(id, capitalizeWords(dto.division_name));
 

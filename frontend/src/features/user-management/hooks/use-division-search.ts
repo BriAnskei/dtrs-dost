@@ -7,10 +7,13 @@ export function useSearchDivisions(search: string) {
 
   const normalizedSearch = debounceSearch.trim();
 
-  return useQuery({
+  const query = useQuery({
     queryKey: ["division", "search", normalizedSearch],
     queryFn: () => divisionSearchNameService.find(normalizedSearch),
     enabled: normalizedSearch.length >= 2,
     staleTime: 30_000,
   });
+
+  // True while the user's latest keystrokes haven't reached the query yet.
+  return { ...query, isDebouncing: search.trim() !== normalizedSearch };
 }

@@ -168,12 +168,15 @@ export default function AddUserModal({
 
           {form.role === "Division" && (
             <DivisionCombobox
+              required
               value={form.division}
               onChange={(division) => {
                 setForm((f) => ({ ...f, division: division ?? undefined }));
                 setErrors((er) => ({ ...er, division: undefined }));
               }}
               error={errors.division}
+              allowCreate
+              disabled={isSubmitting}
             />
           )}
 
