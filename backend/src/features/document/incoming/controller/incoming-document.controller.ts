@@ -26,8 +26,10 @@ import { CreateIncomingFromQueueCommand } from "../command/create-incoming-from-
 import { AssignIncomingDocumentToDivisionDto } from "../dto/assign-incoming-document-to-division";
 import { CreateIncomingDocumentDto } from "../dto/create-incoming-document.dto";
 import { FindIncomingDocumentsQueryDto } from "../dto/find-incoming-documents-query.dto";
+import { IncomingDocumentDetailsDto } from "../dto/incoming-document-details.dto";
 import { FindIncomingDocumentsQuery } from "../query/find-incoming-documents/find-incoming-documents.query";
 import { GetAssignedDivisionNoticeCountsQuery } from "../query/get-assigned-division-notice-counts/get-assigned-division-notice-counts.query";
+import { GetIncomingDocumentDetailsQuery } from "../query/get-incoming-document-detials/get-incoming-document-details.query";
 import { GetIncomingDocumentFileStreamQuery } from "../query/get-incoming-file-stream/get-incoming-document-file-stream.query";
 import { GetReceiverQueueDetailsQuery } from "../query/get-receiver-queue-details/get-receiver-queue-details.query";
 
@@ -105,8 +107,8 @@ export class IncomingDocumentController {
     });
   }
 
-  @Roles(Role.Admin, Role.SuperAdmin)
   @Get(":incomingDocumentId/assigned-division-notice-counts")
+  @Roles(Role.Admin, Role.SuperAdmin)
   async getAssignedDivisionNoticeCounts(
     @Param("incomingDocumentId", ParseUUIDPipe) incomingDocumentId: string,
   ) {
@@ -116,6 +118,7 @@ export class IncomingDocumentController {
   }
 
   @Post("assign-to-division")
+  @Roles(Role.Admin, Role.SuperAdmin)
   assignToDivision(
     @Body() dto: AssignIncomingDocumentToDivisionDto,
     @Req() req: AuthenticatedRequest,
@@ -123,5 +126,13 @@ export class IncomingDocumentController {
     return this.commandBus.execute(
       new AssignIncomingDocumentToDivisionCommand(dto, req.user.id),
     );
+  }
+
+  @Get(":id")
+  @Roles(Role.Admin, Role.SuperAdmin)
+  async findById(
+    @Param("id", new ParseUUIDPipe()) id: string,
+  ): Promise<IncomingDocumentDetailsDto> {
+    return this.queryBus.execute(new GetIncomingDocumentDetailsQuery(id));
   }
 }

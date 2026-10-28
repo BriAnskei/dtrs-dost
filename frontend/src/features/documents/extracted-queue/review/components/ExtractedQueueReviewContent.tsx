@@ -1,3 +1,4 @@
+import { formatDisplayName } from "../../../../../utils/formant-display-name";
 import SaveIncomingModal from "../../../extraction/admins/components/modal/SaveIncomingModel";
 import ReviewSplitView from "../../../extraction/admins/components/ReviewSplitView";
 import { useExtractedQueueReview } from "../hooks/use-extracted-queue-review";
@@ -41,7 +42,9 @@ export default function ExtractedQueueReviewContent({ id }: { id: string }) {
         {!isLoading && detail && (
           <ReviewDocumentHeader
             fileName={detail.file_name}
-            uploaderName={detail.uploader_name}
+            uploaderName={
+              !detail.uploader_name ? null : formatDisplayName(detail.uploader_name)
+            }
           />
         )}
       </div>

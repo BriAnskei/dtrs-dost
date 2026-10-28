@@ -1,17 +1,8 @@
 import { useState } from "react";
 import { Dropdown } from "../../../../components/ui/dropdown/Dropdown";
 import { useUser } from "../../../../context/currentUser/use-user";
+import { formatDisplayName } from "../../../../utils/formant-display-name";
 import { useSignOut } from "../hooks/useSignout";
-
-function formatDisplayName(fullName: string) {
-  const words = fullName.trim().split(/\s+/);
-
-  if (words.length <= 2) {
-    return fullName;
-  }
-
-  return `${words[0]} ${words[words.length - 1]}`;
-}
 
 export default function UserDropdown() {
   const { currentUser, isLoading } = useUser();

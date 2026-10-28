@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { IncomingDocumentService } from "../../../service/incoming-document-service";
+import { IncomingDocumentService } from "../service/incoming-document-service";
 
 interface UseIncomingDocumentFileOptions {
   id: string | undefined;
@@ -8,7 +8,7 @@ interface UseIncomingDocumentFileOptions {
 
 export function useIncomingDocumentFile({ id, enabled }: UseIncomingDocumentFileOptions) {
   return useQuery({
-    queryKey: ["extracted-document-queue", id, "file"],
+    queryKey: ["incoming-document", id, "file"],
     queryFn: ({ signal }) => {
       if (!id) {
         throw new Error("Incoming document ID is required.");

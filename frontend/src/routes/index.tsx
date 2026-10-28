@@ -16,6 +16,7 @@ import MyUploadedDocumentsPage from "../features/documents/extracted-queue-recei
 import MyUploadedDocumentDetailsPage from "../features/documents/extracted-queue-receiver/view-components/MyUploadedDocumentDetailsPage";
 import DirectUploadPage from "../features/documents/extraction/admins/components/DirectUploadPage";
 import ReceiverUploadPage from "../features/documents/extraction/receiver/components/ReceiverUploadPage";
+import IncomingDocumentDetailsPage from "../features/documents/incomming/detials-page/components/IncomingDocumentDetailsPage";
 import IncomingDocumentsPage from "../features/documents/incomming/list/components/IncomingDocumentsPage";
 import OutgoingDocumentsPage from "../features/documents/outgoing/components/OutgoingDocumentPage";
 import UserManagementPage from "../features/user-management/components/UserManagementPage";
@@ -56,6 +57,14 @@ const ADMINISTRATION_ROUTES: RouteType[] = [
     element: (
       <RoleRoute allowedRoles={[1, 2]}>
         <IncomingDocumentsPage />
+      </RoleRoute>
+    ),
+  },
+  {
+    path: "/incoming/:id",
+    element: (
+      <RoleRoute allowedRoles={[1, 2]}>
+        <IncomingDocumentDetailsPage />
       </RoleRoute>
     ),
   },

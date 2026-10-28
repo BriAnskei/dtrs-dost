@@ -94,8 +94,6 @@ export function useIncomingDocumentsTable() {
     setSort(DEFAULT_SORT);
   }, []);
 
-  // Row selected for the detail view.
-  // TODO: Master-Detail slide-over — render it from `detailTarget` in the table.
   const [detailTarget, setDetailTarget] = useState<IncomingDocumentRow | null>(null);
 
   return {

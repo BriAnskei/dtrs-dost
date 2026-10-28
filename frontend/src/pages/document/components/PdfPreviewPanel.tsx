@@ -3,7 +3,9 @@ import { useMemo, useState } from "react";
 import { Document, Page, pdfjs } from "react-pdf";
 import { PANEL_HEIGHT, PDF_PAGE_WIDTH } from "./constants";
 
-pdfjs.GlobalWorkerOptions.workerSrc = "/pdfjs/pdf.worker.min.mjs";
+if (!pdfjs.GlobalWorkerOptions.workerSrc) {
+  pdfjs.GlobalWorkerOptions.workerSrc = "/pdfjs/pdf.worker.min.mjs";
+}
 interface PdfPreviewPanelProps {
   file: File;
   onClear: () => void;

@@ -3,7 +3,6 @@
 // backend AI field extraction.
 
 import { type ChangeEvent, type DragEvent, useRef, useState } from "react";
-import { pdfjs } from "react-pdf";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
 import axios from "axios";
@@ -12,8 +11,9 @@ import Tesseract from "tesseract.js";
 import QRCodeModal from "../../../components/receiver/QRCodeModal";
 import { useUser } from "../../../context/currentUser/use-user";
 
-pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
-pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
+if (!pdfjsLib.GlobalWorkerOptions.workerSrc) {
+  pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdfjs/pdf.worker.min.mjs";
+}
 
 // ── Helpers ──────────────────────────────────────────────
 

@@ -14,6 +14,7 @@ import { IncomingDocumentRoutingEntity } from "./entities/incoming-document-rout
 import { IncomingDocumentStatusHistoryEntity } from "./entities/incoming-document-status-history-entity";
 import { FindIncomingDocumentsHandler } from "./query/find-incoming-documents/find-incoming-documents.handler";
 import { GetAssignedDivisionNoticeCountsHandler } from "./query/get-assigned-division-notice-counts/get-assigned-division-notice-counts.handler";
+import { GetIncomingDocumentDetailsHandler } from "./query/get-incoming-document-detials/get-incoming-document-detials.handler";
 import { GetIncomingDocumentFileStreamHandler } from "./query/get-incoming-file-stream/get-incoming-document-file-stream.handler";
 import { GetReceiverQueueDetailsHandler } from "./query/get-receiver-queue-details/get-incoming-document-by-queue.handler";
 import { IncomingDocumentsRepository } from "./repository/incoming-document.repository";
@@ -53,6 +54,8 @@ import { IncomingDocumentRoutingRepository } from "./repository/incoming-documen
     GetAssignedDivisionNoticeCountsHandler,
 
     AssignIncomingDocumentToDivisionHandler,
+
+    GetIncomingDocumentDetailsHandler,
   ],
 })
 export class IncomingDocumentModule {}

@@ -9,6 +9,7 @@ import DetailPanel, {
 import StatusBadge, {
   INCOMING_STATUS_BADGE,
 } from "../../../../../components/ui/badge/StatusBadge";
+import { formatDisplayName } from "../../../../../utils/formant-display-name";
 import type { IncomingDocumentRow } from "../../types/incoming-document-row.type";
 import { useIncomingDocumentDetailPanel } from "../hooks/use-incoming-document-detials-panel";
 import AssignDivisionModal from "./modal/AssignDivisionModal";
@@ -109,7 +110,7 @@ export default function IncomingDocumentDetailPanel({
                   <p className="min-w-0 truncate text-theme-xs text-gray-500 dark:text-gray-400">
                     Uploaded by{" "}
                     <span className="font-medium text-gray-700 dark:text-gray-300">
-                      {doc.uploaderName}
+                      {!doc.uploaderName ? null : formatDisplayName(doc.uploaderName)}
                     </span>
                   </p>
                   <div className="shrink-0">

@@ -1,8 +1,8 @@
-// ../hooks/use-incoming-document-detail-panel.ts
 import { useState } from "react";
+import { useNavigate } from "react-router";
+import { useIncomingDocumentFile } from "../../hooks/use-incoming-document-file";
 import type { IncomingDocumentRow } from "../../types/incoming-document-row.type";
 import { useAssignedDivisionNoticeCounts } from "./api/use-assigned-division-notice-count";
-import { useIncomingDocumentFile } from "./api/use-incoming-document-file";
 
 interface Options {
   /** The selected row, or `null` when nothing is selected (panel closed). */
@@ -11,6 +11,8 @@ interface Options {
 }
 
 export function useIncomingDocumentDetailPanel({ row, onClose }: Options) {
+  const navigate = useNavigate();
+
   // Remember the last selected row so the content doesn't blank out
   // while the panel is sliding closed.
   const [lastRow, setLastRow] = useState(row);
@@ -31,8 +33,9 @@ export function useIncomingDocumentDetailPanel({ row, onClose }: Options) {
   const onCloseAssign = () => setIsAssignOpen(false);
 
   const onViewFullDetails = () => {
-    // TODO: navigate to the full incoming-document page for `doc.id`,
-    // then close this panel (onClose) so it doesn't linger after navigation.
+    if (!doc) return;
+    onClose();
+    navigate(`/incoming/${doc.id}`);
   };
 
   return {

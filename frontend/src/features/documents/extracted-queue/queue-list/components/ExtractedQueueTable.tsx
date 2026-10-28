@@ -7,6 +7,7 @@ import TableShell, {
 import KebabMenu from "../../../../../components/ui/kebab-menu/KebabMenu";
 import type { TableShellProp } from "../../../../../type/table-shell-prop";
 import { formatDateTime } from "../../../../../utils/dateFormatter";
+import { formatDisplayName } from "../../../../../utils/formant-display-name";
 import type {
   ExtractedDocumentQueue,
   ExtractedDocumentQueueSort,
@@ -97,7 +98,11 @@ export default function ExtractedQueueTable({
     {
       label: "Uploaded by",
       width: "w-36",
-      render: (q) => <UploaderName name={q.uploader_name} />,
+      render: (q) => (
+        <UploaderName
+          name={!q.uploader_name ? null : formatDisplayName(q.uploader_name)}
+        />
+      ),
     },
     {
       label: "Decision",

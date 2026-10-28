@@ -348,4 +348,65 @@ export class IncomingDocumentsRepository {
   async findById(id: string): Promise<IncomingDocumentEntity | null> {
     return await this.repository.findOne({ where: { id } });
   }
+
+  async findByIdWithFullDetails(id: string): Promise<{
+    document: IncomingDocumentEntity;
+    totalAssignments: number;
+    inProgressAssignmentCount: number;
+    actionTakenCount: number;
+    assignedDivisionCount: number;
+  } | null> {
+    const [document, counts] = await Promise.all([
+      this.repository
+        .createQueryBuilder("incoming")
+        .innerJoinAndSelect("incoming.document_file", "documentFile")
+        .leftJoinAndSelect("documentFile.uploader", "uploader")
+        .leftJoinAndSelect("incoming.assignments", "assignment")
+        .leftJoinAndSelect("assignment.division", "assignmentDivision")
+        .leftJoinAndSelect("assignment.created_by", "assignmentCreator")
+        .leftJoinAndSelect("assignment.action_taken_by", "actionTakenBy")
+        .where("incoming.id = :id", { id })
+        .getOne(),
+
+      this.repository
+        .createQueryBuilder("incoming")
+        .leftJoin("incoming.assignments", "assignment")
+        .select("COUNT(assignment.id)", "total_assignments")
+        .addSelect(
+          `COUNT(assignment.id) FILTER (
+          WHERE assignment.action_taken IS NOT NULL
+            AND BTRIM(assignment.action_taken) <> ''
+        )`,
+          "action_taken_count",
+        )
+        .addSelect(
+          `COUNT(assignment.id) FILTER (
+          WHERE assignment.action_taken IS NULL
+             OR assignment.action_taken_by_id IS NULL
+        )`,
+          "in_progress_assignment_count",
+        )
+        .addSelect(
+          `(SELECT COUNT(*)
+          FROM incoming_document_routings routing
+          WHERE routing.incoming_document_id = incoming.id)`,
+          "assigned_division_count",
+        )
+        .where("incoming.id = :id", { id })
+        .groupBy("incoming.id")
+        .getRawOne(),
+    ]);
+
+    if (!document) {
+      return null;
+    }
+
+    return {
+      document,
+      totalAssignments: Number(counts?.total_assignments ?? 0),
+      inProgressAssignmentCount: Number(counts?.in_progress_assignment_count ?? 0),
+      actionTakenCount: Number(counts?.action_taken_count ?? 0),
+      assignedDivisionCount: Number(counts?.assigned_division_count ?? 0),
+    };
+  }
 }

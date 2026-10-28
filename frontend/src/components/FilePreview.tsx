@@ -14,8 +14,14 @@ interface FilePreviewProps {
   isLoading: boolean;
   isError: boolean;
   onRetry?: () => void;
-  /** Height of the viewing area. Default is compact on phones, taller from `sm`. */
+  /** Fixed height of the viewing area. Default is compact on phones, taller from `sm`. */
   heightClassName?: string;
+  /**
+   * Opt-in "fit page" mode. For PDFs the viewer is sized to exactly one page
+   * and scrolls when there are more pages. This class acts as a safety cap
+   * (e.g. "max-h-[70vh]"). Overrides `heightClassName`.
+   */
+  maxHeightClassName?: string;
 }
 
 type FileKind = "pdf" | "image" | "other";
@@ -40,8 +46,15 @@ export default function FilePreview({
   isError,
   onRetry,
   heightClassName = "h-96 sm:h-120",
+  maxHeightClassName,
 }: FilePreviewProps) {
   const [url, setUrl] = useState<string | null>(null);
+
+  // Fit mode is opt-in so existing callers keep the fixed height.
+  const fit = Boolean(maxHeightClassName);
+  const wrapperSizeClass = fit ? "" : heightClassName;
+  const scrollSizeClass = fit ? (maxHeightClassName as string) : "h-full";
+  const stateSizeClass = fit ? "min-h-48" : "h-full";
 
   // Object URL lives in state + effect (not useMemo) so StrictMode's
   // mount/cleanup/mount cycle can't leave us holding a revoked URL.
@@ -60,10 +73,12 @@ export default function FilePreview({
 
   let content: ReactNode;
   if (isLoading) {
-    content = <PreviewSkeleton label="Loading document…" />;
+    content = <PreviewSkeleton label="Loading document…" fit={fit} />;
   } else if (isError || !blob) {
     content = (
-      <div className="flex h-full flex-col items-center justify-center gap-3 px-6 text-center">
+      <div
+        className={`flex ${stateSizeClass} flex-col items-center justify-center gap-3 px-6 text-center`}
+      >
         <p className="text-theme-sm text-red-600 dark:text-red-400">
           Couldn&apos;t load the document file.
         </p>
@@ -80,10 +95,12 @@ export default function FilePreview({
       </div>
     );
   } else if (kind === "pdf") {
-    content = <PdfPages blob={blob} />;
+    content = <PdfPages blob={blob} fit={fit} scrollSizeClass={scrollSizeClass} />;
   } else if (kind === "image" && url) {
     content = (
-      <div className="custom-scrollbar flex h-full items-start justify-center overflow-auto p-3">
+      <div
+        className={`custom-scrollbar flex ${scrollSizeClass} items-start justify-center overflow-auto p-3`}
+      >
         <img
           src={url}
           alt={name}
@@ -93,7 +110,9 @@ export default function FilePreview({
     );
   } else {
     content = (
-      <div className="flex h-full flex-col items-center justify-center gap-2 px-6 text-center">
+      <div
+        className={`flex ${stateSizeClass} flex-col items-center justify-center gap-2 px-6 text-center`}
+      >
         <FileText
           className="h-8 w-8 text-gray-300 dark:text-gray-600"
           aria-hidden="true"
@@ -141,15 +160,15 @@ export default function FilePreview({
         )}
       </div>
 
-      <div className={`bg-gray-100 dark:bg-gray-900 ${heightClassName}`}>{content}</div>
+      <div className={`bg-gray-100 dark:bg-gray-900 ${wrapperSizeClass}`}>{content}</div>
     </div>
   );
 }
 
-function PreviewSkeleton({ label }: { label: string }) {
+function PreviewSkeleton({ label, fit }: { label: string; fit: boolean }) {
   return (
     <div
-      className="flex h-full items-start justify-center overflow-hidden p-3"
+      className={`flex ${fit ? "" : "h-full"} items-start justify-center overflow-hidden p-3`}
       role="status"
       aria-label={label}
     >
@@ -160,16 +179,27 @@ function PreviewSkeleton({ label }: { label: string }) {
 
 /* ------------------------------ PDF rendering ------------------------------ */
 
-function PdfPages({ blob }: { blob: Blob }) {
+function PdfPages({
+  blob,
+  fit,
+  scrollSizeClass,
+}: {
+  blob: Blob;
+  fit: boolean;
+  scrollSizeClass: string;
+}) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [pdf, setPdf] = useState<PDFDocumentProxy | null>(null);
   const [error, setError] = useState(false);
   const [width, setWidth] = useState(0);
+  // Height / width of page 1. Used to size the viewer to exactly one page.
+  const [firstRatio, setFirstRatio] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
     let doc: PDFDocumentProxy | null = null;
     setPdf(null);
+    setFirstRatio(0);
     setError(false);
     (async () => {
       try {
@@ -179,6 +209,10 @@ function PdfPages({ blob }: { blob: Blob }) {
           doc.destroy();
           return;
         }
+        const first = await doc.getPage(1);
+        const v = first.getViewport({ scale: 1 });
+        if (cancelled) return;
+        setFirstRatio(v.height / v.width);
         setPdf(doc);
       } catch {
         if (!cancelled) setError(true);
@@ -208,10 +242,19 @@ function PdfPages({ blob }: { blob: Blob }) {
     );
   }
 
+  // Fit mode: viewer height = one page + padding. Extra pages scroll.
+  // Math.ceil avoids a 1px phantom scrollbar on single-page files.
+  const fixedHeight =
+    fit && width > 0 && firstRatio > 0 ? Math.ceil(width * firstRatio + PAD) : undefined;
+
   return (
-    <div ref={scrollRef} className="custom-scrollbar h-full overflow-auto p-3">
+    <div
+      ref={scrollRef}
+      className={`custom-scrollbar ${scrollSizeClass} overflow-auto p-3`}
+      style={fixedHeight ? { height: fixedHeight } : undefined}
+    >
       {!pdf || width <= 0 ? (
-        <PreviewSkeleton label="Rendering document…" />
+        <PreviewSkeleton label="Rendering document…" fit={fit} />
       ) : (
         Array.from({ length: pdf.numPages }, (_, i) => i + 1).map((n) => (
           <PdfPage key={n} pdf={pdf} pageNumber={n} width={width} rootRef={scrollRef} />

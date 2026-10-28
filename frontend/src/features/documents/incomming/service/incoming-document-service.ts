@@ -6,6 +6,7 @@ import type {
   FindIncomingDocumentsParams,
   IncomingDocumentResponse,
 } from "../types/incoming-document.type";
+import type { IncomingDocumentDetails } from "../types/incoming-document-details.type";
 
 const INCOMING_DOCUMENTS_ENDPOINT = "/incoming-documents";
 
@@ -49,5 +50,13 @@ export const IncomingDocumentService = {
     dto: AssignIncomingDocumentToDivisionDto,
   ): Promise<void> {
     await apiClient.post(`${INCOMING_DOCUMENTS_ENDPOINT}/assign-to-division`, dto);
+  },
+
+  async getFullDetailsById(id: string): Promise<IncomingDocumentDetails> {
+    const { data } = await apiClient.get<IncomingDocumentDetails>(
+      `/incoming-documents/${id}`,
+    );
+
+    return data;
   },
 };

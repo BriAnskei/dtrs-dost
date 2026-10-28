@@ -6,7 +6,7 @@ import StatusBadge, {
   INCOMING_STATUS_BADGE,
 } from "../../../../../components/ui/badge/StatusBadge";
 import type { TableShellProp } from "../../../../../type/table-shell-prop";
-import IncomingDocumentDetailPanel from "../../detial-panel/components/IncomingDocumentDetailPanel";
+import IncomingDocumentDetailPanel from "../../detial-view/components/IncomingDocumentDetailPanel";
 import type { IncomingDocumentRow } from "../../types/incoming-document-row.type";
 import { useIncomingDocumentsTable } from "../hooks/use-incoming-document-table";
 import IncomingDocumentsFilters from "./IncomingDocumentFilters";
