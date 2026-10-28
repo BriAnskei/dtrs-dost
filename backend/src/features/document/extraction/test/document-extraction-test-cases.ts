@@ -79,13 +79,13 @@ export const outgoingHappyPathCase: DocumentExtractionTestCase = {
   llmFields: [
     makeField("to", "Northwind Holdings", ["p1-o1"], 95),
     makeField("subject", "Q3 Budget Summary", ["p1-o2"], 97),
-    makeField("dateReleased", "2026-10-01", ["p1-o3"], 92),
+    makeField("datePrepared", "2026-10-01", ["p1-o3"], 92),
     makeField("summary", "Budget summary for the third quarter.", ["p1-o2"], 88),
   ],
   expectedFields: [
     makeField("to", "Northwind Holdings", ["p1-o1"], 95),
     makeField("subject", "Q3 Budget Summary", ["p1-o2"], 97),
-    makeField("dateReleased", "2026-10-01", ["p1-o3"], 92),
+    makeField("datePrepared", "2026-10-01", ["p1-o3"], 92),
     makeField("summary", "Budget summary for the third quarter.", ["p1-o2"], 88),
   ],
   notes: "Standard outgoing document using the 4-field outgoing schema.",
