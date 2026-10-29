@@ -55,6 +55,13 @@ apiClient.interceptors.response.use(
       return Promise.reject(err);
     }
 
+    // Abort initiated client-side (e.g. React Query cancels request on
+    // unmount during hard-refresh). Do NOT surface a toast for intentional
+    // cancellations — they are not transport failures.
+    if (err.name === "CancelError" || (err as { __CANCEL__?: boolean }).__CANCEL__) {
+      return Promise.reject(err);
+    }
+
     // No response at all => transport failure (server down, offline, DNS,
     // timeout, empty response). This is NOT an auth problem, so skip the
     // 401/refresh dance entirely and just surface a toast. Auth-flow calls

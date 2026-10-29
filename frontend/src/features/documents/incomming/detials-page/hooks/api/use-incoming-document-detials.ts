@@ -3,9 +3,8 @@ import { IncomingDocumentService } from "../../../service/incoming-document-serv
 
 export function useIncomingDocumentDetails(id: string) {
   return useQuery({
-    queryKey: ["incoming-documents", "details"],
+    queryKey: ["incoming-documents", "details", id],
     queryFn: () => IncomingDocumentService.getFullDetailsById(id),
     enabled: Boolean(id),
-    staleTime: 5 * 60 * 1000,
   });
 }
