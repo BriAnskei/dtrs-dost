@@ -10,9 +10,9 @@ import StatusBadge, {
   INCOMING_STATUS_BADGE,
 } from "../../../../../components/ui/badge/StatusBadge";
 import { formatDisplayName } from "../../../../../utils/formant-display-name";
+import AssignDivisionModal from "../../components/modal/AssignDivisionModal";
 import type { IncomingDocumentRow } from "../../types/incoming-document-row.type";
 import { useIncomingDocumentDetailPanel } from "../hooks/use-incoming-document-detials-panel";
-import AssignDivisionModal from "./modal/AssignDivisionModal";
 
 interface IncomingDocumentDetailPanelProps {
   /** The selected row, or `null` when nothing is selected (panel closed). */

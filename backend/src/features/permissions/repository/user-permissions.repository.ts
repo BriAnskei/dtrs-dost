@@ -4,6 +4,7 @@ import { EntityManager, Repository } from "typeorm";
 import { Role } from "../../../auth/authorization/enum/roles.enum";
 import { decodeCursor, encodeCursor } from "../../../common/pagination/cursor";
 import { PaginatedResponse } from "../../../common/pagination/paginated-response";
+import { escapeLike } from "../../../util/escapeLike";
 import { UserCursor } from "../../user/types/user-cursor";
 import { FindUserManagementPermissionsQueryDto } from "../dto/client/find-user-management-permission-dto";
 import { UserPermissionsEntity } from "../entities/user-permissions-entity";
@@ -40,7 +41,7 @@ export class UserPermissionsRepository {
     // Name filter
     if (name) {
       queryBuilder.andWhere("user.full_name ILIKE :name", {
-        name: `%${name}%`,
+        name: `%${escapeLike(name)}%`,
       });
     }
 

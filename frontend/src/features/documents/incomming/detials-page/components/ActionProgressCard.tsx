@@ -28,6 +28,10 @@ function StatTile({
 }
 
 export default function ActionProgressCard({ progress }: { progress: ActionProgress }) {
+  const { inProgress, actionTaken } = progress;
+
+  if (inProgress === 0 && actionTaken === 0) return null;
+
   return (
     <DetailsCard eyebrow="Action progress">
       <dl className="grid grid-cols-2 gap-3">

@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import { useIncomingDocumentFile } from "../../hooks/use-incoming-document-file";
+import { useAssignedDivisionNoticeCounts } from "../../shared-api-hooks/use-assigned-division-notice-count";
+import { useIncomingDocumentFile } from "../../shared-api-hooks/use-incoming-document-file";
 import type { IncomingDocumentRow } from "../../types/incoming-document-row.type";
-import { useAssignedDivisionNoticeCounts } from "./api/use-assigned-division-notice-count";
 
 interface Options {
   /** The selected row, or `null` when nothing is selected (panel closed). */

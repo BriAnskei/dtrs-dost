@@ -7,6 +7,7 @@ import type {
   IncomingDocumentResponse,
 } from "../types/incoming-document.type";
 import type { IncomingDocumentDetails } from "../types/incoming-document-details.type";
+import type { RoutedDivisionAssignment } from "../types/routed-division-assignments.type";
 
 const INCOMING_DOCUMENTS_ENDPOINT = "/incoming-documents";
 
@@ -46,17 +47,27 @@ export const IncomingDocumentService = {
     return data;
   },
 
-  async assignIncomingDocumentToDivision(
-    dto: AssignIncomingDocumentToDivisionDto,
-  ): Promise<void> {
-    await apiClient.post(`${INCOMING_DOCUMENTS_ENDPOINT}/assign-to-division`, dto);
-  },
-
   async getFullDetailsById(id: string): Promise<IncomingDocumentDetails> {
     const { data } = await apiClient.get<IncomingDocumentDetails>(
       `/incoming-documents/${id}`,
     );
 
     return data;
+  },
+
+  async getIncomingDocumentAssignmentsByRoutingId(
+    routingId: string,
+  ): Promise<RoutedDivisionAssignment[]> {
+    const { data } = await apiClient.get<RoutedDivisionAssignment[]>(
+      `/incoming-documents/${routingId}/assignments`,
+    );
+
+    return data;
+  },
+
+  async assignIncomingDocumentToDivision(
+    dto: AssignIncomingDocumentToDivisionDto,
+  ): Promise<void> {
+    await apiClient.post(`${INCOMING_DOCUMENTS_ENDPOINT}/assign-to-division`, dto);
   },
 };

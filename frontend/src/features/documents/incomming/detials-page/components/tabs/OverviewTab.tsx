@@ -1,14 +1,13 @@
-import { formatDate } from "@fullcalendar/core/index.js";
 import {
   DetailField,
   DetailFieldGrid,
-} from "../../../../../components/master-detail/DetailPanel";
-import { formatDateTime } from "../../../../../utils/dateFormatter";
-import type { IncomingDocumentDetails } from "../../types/incoming-document-details.type";
-import ActionProgressCard, { type ActionProgress } from "./ActionProgressCard";
-import DetailsCard from "./DetialsCard";
-import DocumentFilePreview, { type DocumentFileState } from "./DocumentFilePreview";
-import RoutingActivityCard from "./RoutingActivityCard";
+} from "../../../../../../components/master-detail/DetailPanel";
+import { formatDate, formatDateTime } from "../../../../../../utils/dateFormatter";
+import type { IncomingDocumentDetails } from "../../../types/incoming-document-details.type";
+import ActionProgressCard, { type ActionProgress } from "../ActionProgressCard";
+import DetailsCard from "../DetialsCard";
+import DocumentFilePreview, { type DocumentFileState } from "../DocumentFilePreview";
+import RoutingActivityCard from "../RoutingActivityCard";
 
 interface OverviewTabProps {
   doc: IncomingDocumentDetails;

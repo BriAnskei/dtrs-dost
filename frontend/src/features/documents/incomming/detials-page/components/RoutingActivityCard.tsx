@@ -46,18 +46,24 @@ export default function RoutingActivityCard({
   return (
     <DetailsCard eyebrow="Routing & activity">
       <dl className="space-y-4">
-        <ControlRow
-          icon={GitBranch}
-          label="Assigned divisions"
-          value={doc.assigned_division_count.toLocaleString()}
-          hint="Divisions this document is routed to"
-        />
-        <ControlRow
-          icon={ClipboardList}
-          label="Assignments"
-          value={doc.assignments.toLocaleString()}
-          hint="Notices of action for the main office and division"
-        />
+        {doc.assigned_division_count > 0 && (
+          <ControlRow
+            icon={GitBranch}
+            label="Routed divisions"
+            value={doc.assigned_division_count.toLocaleString()}
+            hint="Divisions this document is routed to"
+          />
+        )}
+
+        {doc.assignments > 0 && (
+          <ControlRow
+            icon={ClipboardList}
+            label="Assignments"
+            value={doc.assignments.toLocaleString()}
+            hint="Notices of action for the main office and division"
+          />
+        )}
+
         <ControlRow
           icon={Clock}
           label="Last updated"

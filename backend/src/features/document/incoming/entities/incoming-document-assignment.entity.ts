@@ -10,6 +10,7 @@ import {
 } from "typeorm";
 import { DivisionEntity } from "../../../user/entities/division.entity";
 import { UserEntity } from "../../../user/entities/user.entity";
+import { AssignmentStatus } from "../enums/assignment-status.enum";
 import { IncomingDocumentEntity } from "./incoming-document-entity";
 
 export enum OfficeType {
@@ -24,6 +25,24 @@ export enum OfficeType {
     ("office_type" = 'MAIN' AND "division_id" IS NULL)
     OR
     ("office_type" = 'DIVISION' AND "division_id" IS NOT NULL)
+  )`,
+)
+@Check(
+  "chk_ida_status_action_taken",
+  `(
+    (
+      "status" IN ('PENDING', 'ONGOING')
+      AND "action_taken" IS NULL
+      AND "action_taken_at" IS NULL
+      AND "action_taken_by_id" IS NULL
+    )
+    OR
+    (
+      "status" = 'COMPLETE'
+      AND "action_taken" IS NOT NULL
+      AND "action_taken_at" IS NOT NULL
+      AND "action_taken_by_id" IS NOT NULL
+    )
   )`,
 )
 @Index("idx_ida_incoming_document_id", ["incoming_document_id"])
@@ -112,4 +131,12 @@ export class IncomingDocumentAssignmentEntity {
 
   @CreateDateColumn({ type: "timestamptz" })
   created_at!: Date;
+
+  @Column({
+    type: "enum",
+    enum: AssignmentStatus,
+    enumName: "assignment_status_enum",
+    default: AssignmentStatus.ONGOING,
+  })
+  status!: AssignmentStatus;
 }

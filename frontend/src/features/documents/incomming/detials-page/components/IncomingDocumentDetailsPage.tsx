@@ -8,11 +8,26 @@ import DetailsErrorState from "./DetialsErrorState";
 import DetailsPageHeader from "./DetialsPageHeader";
 import DetailsPageSkeleton from "./DetialsPageSkeleton";
 import DetailsTabs from "./DetialsTabs";
-import OverviewTab from "./OverviewTab";
+
 import TabPlaceholder from "./TabPlaceHolder";
+import OverviewTab from "./tabs/OverviewTab";
+import RoutedDivisionsTab from "./tabs/RoutedDivisionTab";
+
 export default function IncomingDocumentDetailsPage() {
-  const { tab, setTab, doc, trackingNo, isLoading, isError, retry, progress, file } =
-    useIncomingDocumentDetailsPage();
+  const {
+    tab,
+    setTab,
+    doc,
+    trackingNo,
+    isLoading,
+    isError,
+    retry,
+    progress,
+    file,
+    divisions,
+    onAddAssignments,
+    onRemoveAssignment,
+  } = useIncomingDocumentDetailsPage();
 
   return (
     <>
@@ -38,6 +53,13 @@ export default function IncomingDocumentDetailsPage() {
             <div role="tabpanel" id={panelDomId(tab)} aria-labelledby={tabDomId(tab)}>
               {tab === "overview" ? (
                 <OverviewTab doc={doc} progress={progress} file={file} />
+              ) : tab === "routed-divisions" ? (
+                <RoutedDivisionsTab
+                  doc={doc}
+                  divisions={divisions}
+                  onAddAssignments={onAddAssignments}
+                  onRemoveAssignment={onRemoveAssignment}
+                />
               ) : (
                 <TabPlaceholder
                   label={DETAIL_TABS.find((t) => t.id === tab)?.label ?? ""}

@@ -60,20 +60,11 @@ export class DivisionRepository {
   }> {
     const { limit = 20, cursor, search, sort = DivisionSortOrder.NameAsc } = query;
 
-    /*
-     * ------------------------------------------------------------
-     * Query 1: determine the paginated division IDs/order
-     * ------------------------------------------------------------
-     */
-
     const rankingQuery = this.repository
       .createQueryBuilder("division")
       .select("division.id", "id")
       .addSelect("division.division_name", "division_name");
 
-    /*
-     * MostUsers requires the user count.
-     */
     if (sort === DivisionSortOrder.MostUsers) {
       rankingQuery
         .leftJoin("division.users", "user")
@@ -82,23 +73,11 @@ export class DivisionRepository {
         .addGroupBy("division.division_name");
     }
 
-    /*
-     * ------------------------------------------------------------
-     * Search
-     * ------------------------------------------------------------
-     */
-
     if (search) {
       rankingQuery.andWhere("division.division_name ILIKE :search", {
-        search: `%${search}%`,
+        search: `%${escapeLike(search)}%`,
       });
     }
-
-    /*
-     * ------------------------------------------------------------
-     * Cursor
-     * ------------------------------------------------------------
-     */
 
     if (cursor) {
       const decodedCursor = decodeCursor<DivisionCursor>(cursor);
@@ -140,12 +119,6 @@ export class DivisionRepository {
       }
     }
 
-    /*
-     * ------------------------------------------------------------
-     * Sorting
-     * ------------------------------------------------------------
-     */
-
     if (sort === DivisionSortOrder.NameAsc) {
       rankingQuery
         .orderBy("division.division_name", "ASC")
@@ -153,13 +126,6 @@ export class DivisionRepository {
     } else {
       rankingQuery.orderBy("COUNT(user.id)", "DESC").addOrderBy("division.id", "ASC");
     }
-
-    /*
-     * ------------------------------------------------------------
-     * Fetch one extra record to determine whether another page
-     * exists.
-     * ------------------------------------------------------------
-     */
 
     const rankedDivisions = await rankingQuery.take(limit + 1).getRawMany<{
       id: string;
@@ -172,12 +138,6 @@ export class DivisionRepository {
     if (hasNextPage) {
       rankedDivisions.pop();
     }
-
-    /*
-     * ------------------------------------------------------------
-     * Create next cursor
-     * ------------------------------------------------------------
-     */
 
     const lastDivision = rankedDivisions.at(-1);
 
@@ -199,24 +159,12 @@ export class DivisionRepository {
       }
     }
 
-    /*
-     * ------------------------------------------------------------
-     * No divisions found
-     * ------------------------------------------------------------
-     */
-
     if (rankedDivisions.length === 0) {
       return {
         divisions: [],
         nextCursor: null,
       };
     }
-
-    /*
-     * ------------------------------------------------------------
-     * Query 2: fetch actual divisions + users
-     * ------------------------------------------------------------
-     */
 
     const divisionIds = rankedDivisions.map((division) => division.id);
 
@@ -235,15 +183,6 @@ export class DivisionRepository {
         divisionIds,
       })
       .getMany();
-
-    /*
-     * ------------------------------------------------------------
-     * Restore Query 1 ordering.
-     *
-     * PostgreSQL does not guarantee that WHERE ... IN (...)
-     * returns rows in the same order as divisionIds.
-     * ------------------------------------------------------------
-     */
 
     const divisionOrder = new Map(
       rankedDivisions.map((division, index) => [division.id, index]),

@@ -83,7 +83,7 @@ export class UserRepository {
     // Name filter
     if (name) {
       queryBuilder.andWhere("user.full_name ILIKE :name", {
-        name: `%${name}%`,
+        name: `%${escapeLike(name)}%`,
       });
     }
 
@@ -199,7 +199,7 @@ export class UserRepository {
     // Name filter
     if (name) {
       queryBuilder.andWhere("user.full_name ILIKE :name", {
-        name: `%${name}%`,
+        name: `%${escapeLike(name)}%`,
       });
     }
 

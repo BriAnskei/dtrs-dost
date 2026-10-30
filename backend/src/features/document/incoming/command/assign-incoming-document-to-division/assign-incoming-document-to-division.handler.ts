@@ -46,9 +46,7 @@ export class AssignIncomingDocumentToDivisionHandler
         );
 
         if (isRoutingExist) {
-          throw new ConflictException(
-            "This incoming document is already routed to this division.",
-          );
+          throw new ConflictException("This Division is already routed to this document");
         }
 
         await this.routingRepository.create(
@@ -69,6 +67,12 @@ export class AssignIncomingDocumentToDivisionHandler
         }));
 
         await this.assignmentsRepository.insertMany(assignments, manager);
+
+        await this.incomingRepository.update(
+          dto.incomingDocumentId,
+          { updated_at: new Date() },
+          manager,
+        );
       });
     } catch (error) {
       // concurrent request with the same division id that is passedd will show an error constraint,

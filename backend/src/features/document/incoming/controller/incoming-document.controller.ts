@@ -29,6 +29,7 @@ import { FindIncomingDocumentsQueryDto } from "../dto/find-incoming-documents-qu
 import { IncomingDocumentDetailsDto } from "../dto/incoming-document-details.dto";
 import { FindIncomingDocumentsQuery } from "../query/find-incoming-documents/find-incoming-documents.query";
 import { GetAssignedDivisionNoticeCountsQuery } from "../query/get-assigned-division-notice-counts/get-assigned-division-notice-counts.query";
+import { GetIncomingDocumentAssignmentsByRoutingIdQuery } from "../query/get-incoming-document-assignments-by-routing-id/get-incoming-document-assignments-by-routing-id.query";
 import { GetIncomingDocumentDetailsQuery } from "../query/get-incoming-document-detials/get-incoming-document-details.query";
 import { GetIncomingDocumentFileStreamQuery } from "../query/get-incoming-file-stream/get-incoming-document-file-stream.query";
 import { GetReceiverQueueDetailsQuery } from "../query/get-receiver-queue-details/get-receiver-queue-details.query";
@@ -117,6 +118,14 @@ export class IncomingDocumentController {
     );
   }
 
+  @Get(":id")
+  @Roles(Role.Admin, Role.SuperAdmin)
+  async findById(
+    @Param("id", new ParseUUIDPipe()) id: string,
+  ): Promise<IncomingDocumentDetailsDto> {
+    return this.queryBus.execute(new GetIncomingDocumentDetailsQuery(id));
+  }
+
   @Post("assign-to-division")
   @Roles(Role.Admin, Role.SuperAdmin)
   assignToDivision(
@@ -128,11 +137,10 @@ export class IncomingDocumentController {
     );
   }
 
-  @Get(":id")
-  @Roles(Role.Admin, Role.SuperAdmin)
-  async findById(
-    @Param("id", new ParseUUIDPipe()) id: string,
-  ): Promise<IncomingDocumentDetailsDto> {
-    return this.queryBus.execute(new GetIncomingDocumentDetailsQuery(id));
+  @Get(":routingId/assignments")
+  getAssignmentsByRoutingId(@Param("routingId", ParseUUIDPipe) routingId: string) {
+    return this.queryBus.execute(
+      new GetIncomingDocumentAssignmentsByRoutingIdQuery(routingId),
+    );
   }
 }

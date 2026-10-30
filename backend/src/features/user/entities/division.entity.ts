@@ -1,4 +1,5 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn, Unique } from "typeorm";
+import { IncomingDocumentAssignmentEntity } from "../../document/incoming/entities/incoming-document-assignment.entity";
 import { UserEntity } from "./user.entity";
 
 @Entity("divisions")
@@ -19,4 +20,10 @@ export class DivisionEntity {
     (user) => user.division,
   )
   users!: UserEntity[];
+
+  @OneToMany(
+    () => IncomingDocumentAssignmentEntity,
+    (assignment) => assignment.division,
+  )
+  IncomingDocumentAssignments!: IncomingDocumentAssignmentEntity[];
 }

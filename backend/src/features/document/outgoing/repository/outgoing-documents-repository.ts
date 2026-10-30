@@ -3,6 +3,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { EntityManager, Repository, SelectQueryBuilder } from "typeorm";
 import { decodeCursor, encodeCursor } from "../../../../common/pagination/cursor";
 import { PaginatedResponse } from "../../../../common/pagination/paginated-response";
+import { escapeLike } from "../../../../util/escapeLike";
 import { FindOutgoingDocumentsQueryDto } from "../dto/find-outgoing-documents-query.dto";
 import { OutgoingDocumentEntity } from "../entities/outgoing-document-entity";
 import { OutgoingDocumentDateField } from "../enums/outgoing-document-date-field.enum";
@@ -91,9 +92,7 @@ export class OutgoingDocumentRepository {
       return;
     }
 
-    // Escape LIKE wildcards so user input is matched literally.
-    // ILIKE uses backslash as the default escape character.
-    const escaped = term.replace(/[\\%_]/g, "\\$&");
+    const escaped = escapeLike(term);
 
     // Two independent subqueries so each side can use its own trigram GIN index
     // (idx_outgoing_documents_subject_trgm, idx_document_files_code_trgm).

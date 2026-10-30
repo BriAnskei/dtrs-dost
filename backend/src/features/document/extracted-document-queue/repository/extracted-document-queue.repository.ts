@@ -3,6 +3,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { EntityManager, Repository } from "typeorm";
 import { decodeCursor, encodeCursor } from "../../../../common/pagination/cursor";
 import { PaginatedResponse } from "../../../../common/pagination/paginated-response";
+import { escapeLike } from "../../../../util/escapeLike";
 import { FindExtractedDocumentQueuesQueryDto } from "../dto/find-extracted-document-queues-query.dto";
 import {
   ExtractedDocumentQueueSort,
@@ -65,7 +66,7 @@ export class ExtractedDocumentQueueRepository {
 
     if (uploader_name) {
       queryBuilder.andWhere("uploader.full_name ILIKE :uploaderName", {
-        uploaderName: `%${uploader_name}%`,
+        uploaderName: `%${escapeLike(uploader_name)}%`,
       });
     }
 
@@ -170,7 +171,7 @@ export class ExtractedDocumentQueueRepository {
 
     if (file_name) {
       queryBuilder.andWhere("document_file.file_name ILIKE :fileName", {
-        fileName: `%${file_name}%`,
+        fileName: `%${escapeLike(file_name)}%`,
       });
     }
 

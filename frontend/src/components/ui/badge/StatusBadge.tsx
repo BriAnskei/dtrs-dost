@@ -1,4 +1,4 @@
-import Badge, { BadgeColor } from "./Badge";
+import Badge, { type BadgeColor } from "./Badge";
 
 export type { BadgeColor };
 
@@ -37,10 +37,20 @@ export default function StatusBadge({ config, size = "sm" }: StatusBadgeProps) {
 
 /* ── Per-module status maps ────────────────────────────────────────── */
 
-import type { AccountStatus, UserRole } from "../../../features/user-management/types/user.type";
-import type { IncomingDocumentStatus } from "../../../features/documents/incomming/types/incoming-document.type";
 import type { ExtractedDocumentQueueStatus } from "../../../features/documents/extracted-queue-receiver/types/extracted-queue-receiver-types";
 import type { Decision } from "../../../features/documents/extraction/types/extraction-types";
+import type { IncomingDocumentStatus } from "../../../features/documents/incomming/types/incoming-document.type";
+import type { Status as AssignmentStatus } from "../../../features/documents/incomming/types/routed-division-assignments.type";
+import type {
+  AccountStatus,
+  UserRole,
+} from "../../../features/user-management/types/user.type";
+
+export const ASSIGNMENT_STATUS_BADGE: Record<AssignmentStatus, StatusBadgeConfig> = {
+  PENDING: { color: "warning", label: "Pending" },
+  ONGOING: { color: "info", label: "Ongoing" },
+  COMPLETE: { color: "success", label: "Complete" },
+};
 
 export const ACCOUNT_STATUS_BADGE: Record<AccountStatus, StatusBadgeConfig> = {
   Active: { color: "success", label: "Active" },
@@ -61,11 +71,12 @@ export const INCOMING_STATUS_BADGE: Record<IncomingDocumentStatus, StatusBadgeCo
   complete: { color: "success", label: "Complete" },
 };
 
-export const QUEUE_STATUS_BADGE: Record<ExtractedDocumentQueueStatus, StatusBadgeConfig> = {
-  APPROVED: { color: "success", label: "Approved" },
-  INVALIDATED: { color: "error", label: "Invalidated" },
-  PENDING: { color: "warning", label: "Pending" },
-};
+export const QUEUE_STATUS_BADGE: Record<ExtractedDocumentQueueStatus, StatusBadgeConfig> =
+  {
+    APPROVED: { color: "success", label: "Approved" },
+    INVALIDATED: { color: "error", label: "Invalidated" },
+    PENDING: { color: "warning", label: "Pending" },
+  };
 
 export const DECISION_BADGE: Record<Decision, StatusBadgeConfig> = {
   ACCEPT: { color: "success", label: "Accepted" },
@@ -74,11 +85,13 @@ export const DECISION_BADGE: Record<Decision, StatusBadgeConfig> = {
 };
 
 /** Invalid documents tab: "on-review" vs "marked invalid". */
-export const INVALID_DOC_STATUS_BADGE: Record<"invalid" | "on-review", StatusBadgeConfig> =
-  {
-    invalid: { color: "error", label: "Marked Invalid" },
-    "on-review": { color: "warning", label: "On Review" },
-  };
+export const INVALID_DOC_STATUS_BADGE: Record<
+  "invalid" | "on-review",
+  StatusBadgeConfig
+> = {
+  invalid: { color: "error", label: "Marked Invalid" },
+  "on-review": { color: "warning", label: "On Review" },
+};
 
 /** Uploaded incoming docs page: queue/upload statuses. */
 export const UPLOAD_STATUS_BADGE: Record<

@@ -4,11 +4,13 @@ import { EntityManager, Repository, SelectQueryBuilder } from "typeorm";
 import { decodeCursor, encodeCursor } from "../../../../common/pagination/cursor";
 import { applyCursorCondition } from "../../../../common/pagination/cursor-query.util";
 import { PaginatedResponse } from "../../../../common/pagination/paginated-response";
+import { escapeLike } from "../../../../util/escapeLike";
 import { FindIncomingDocumentsQueryDto } from "../dto/find-incoming-documents-query.dto";
 import {
   IncomingDocumentEntity,
   IncomingDocumentStatus,
 } from "../entities/incoming-document-entity";
+import { AssignmentStatus } from "../enums/assignment-status.enum";
 import { IncomingDocumentDateField } from "../enums/incoming-document-date-field.enum";
 import { IncomingDocumentSortOrder } from "../enums/incoming-document-sort-order.enum";
 import { IncomingDocumentCursor } from "../types/incoming-document-cursor";
@@ -93,8 +95,7 @@ export class IncomingDocumentsRepository {
       return;
     }
 
-    // Escape LIKE wildcards so user input is matched literally.
-    const escaped = term.replace(/[\\%_]/g, "\\$&");
+    const escaped = escapeLike(term);
 
     // Two independent branches so each can use its own trigram GIN index:
     //   - incoming_documents.subject  -> idx_incoming_documents_subject_trgm
@@ -374,17 +375,15 @@ export class IncomingDocumentsRepository {
         .select("COUNT(assignment.id)", "total_assignments")
         .addSelect(
           `COUNT(assignment.id) FILTER (
-          WHERE assignment.action_taken IS NOT NULL
-            AND BTRIM(assignment.action_taken) <> ''
+          WHERE assignment.status = :ongoingStatus
         )`,
-          "action_taken_count",
+          "in_progress_assignment_count",
         )
         .addSelect(
           `COUNT(assignment.id) FILTER (
-          WHERE assignment.action_taken IS NULL
-             OR assignment.action_taken_by_id IS NULL
+          WHERE assignment.status = :completeStatus
         )`,
-          "in_progress_assignment_count",
+          "action_taken_count",
         )
         .addSelect(
           `(SELECT COUNT(*)
@@ -393,6 +392,10 @@ export class IncomingDocumentsRepository {
           "assigned_division_count",
         )
         .where("incoming.id = :id", { id })
+        .setParameters({
+          ongoingStatus: AssignmentStatus.ONGOING,
+          completeStatus: AssignmentStatus.COMPLETE,
+        })
         .groupBy("incoming.id")
         .getRawOne(),
     ]);
@@ -408,5 +411,15 @@ export class IncomingDocumentsRepository {
       actionTakenCount: Number(counts?.action_taken_count ?? 0),
       assignedDivisionCount: Number(counts?.assigned_division_count ?? 0),
     };
+  }
+
+  async update(
+    id: string,
+    payload: Partial<IncomingDocumentEntity>,
+    manager: EntityManager,
+  ): Promise<boolean> {
+    const result = await manager.update(IncomingDocumentEntity, id, payload);
+
+    return (result.affected ?? 0) > 0;
   }
 }
