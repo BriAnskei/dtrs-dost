@@ -1,11 +1,13 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import type { DivisionNoticeOfAction } from "../../types/assign-incoming-document-to-dto-division.type";
+import { OfficeType } from "../../enum/office-type.enum";
 import type { AssignedDivisionNoticeCount } from "../../types/assigned-division-notice-count-response";
+import type { NoticeOfActionDto } from "../../types/notice-of-action-dto";
 import type {
   RoutedDivisionAssignment,
   Status,
 } from "../../types/routed-division-assignments.type";
+import { useCreateIncomingDocumentAssignments } from "./api/use-create-incoming-document-assignments";
 import { useIncomingDocumentAssignmentsByRoutingId } from "./api/use-incoming-document-assignments-by-routing-id";
 import { useNoticeDrafts } from "./use-notice-drafts";
 
@@ -37,21 +39,15 @@ const byStatusThenCreated = (
 interface UseDivisionAssignmentsPanelArgs {
   /** The selected division row. `null` closes the panel. */
   row: AssignedDivisionNoticeCount | null;
+  /** The document the division is routed from. */
+  incomingDocumentId: string;
   onClose: () => void;
-  /** Resolve `true` when the notices were saved, `false` to keep the form open. */
-  onAddAssignments: (
-    routingId: string,
-    notices: DivisionNoticeOfAction[],
-  ) => Promise<boolean>;
-  /** Resolve `true` when the assignment was deleted, `false` to restore it in the list. */
-  onRemoveAssignment: (routingId: string, assignmentId: string) => Promise<boolean>;
 }
 
 export function useDivisionAssignmentsPanel({
   row,
+  incomingDocumentId,
   onClose,
-  onAddAssignments,
-  onRemoveAssignment,
 }: UseDivisionAssignmentsPanelArgs) {
   // Keep the last row while the panel slides out, so the title doesn't blank.
   const [shown, setShown] = useState(row);
@@ -59,6 +55,53 @@ export function useDivisionAssignmentsPanel({
 
   const query = useIncomingDocumentAssignmentsByRoutingId(shown?.routing_id ?? "");
   const drafts = useNoticeDrafts();
+  const { mutateAsync: createAssignments } = useCreateIncomingDocumentAssignments();
+
+  /* ------------------------- API calls (stubs) -------------------------- */
+
+  /** Resolves `true` when the notices were saved, `false` to keep the form open. */
+  /** Resolves `true` when the notices were saved, `false` to keep the form open. */
+  const onAddAssignments = useCallback(
+    async (routingId: string, notices: NoticeOfActionDto[]): Promise<boolean> => {
+      try {
+        await createAssignments({
+          incomingDocumentId,
+          dto: {
+            // This panel only ever manages division routings.
+            officeType: OfficeType.DIVISION,
+            incomingDocumentRoutingId: routingId,
+            noticesOfActions: notices,
+          },
+        });
+        toast.success(
+          notices.length === 1
+            ? "Notice of action added"
+            : `${notices.length} notices of action added`,
+        );
+        return true;
+      } catch {
+        toast.error("Couldn't add the notices of action. Please try again.");
+        return false; // keep the form open so nothing typed is lost
+      }
+    },
+    [createAssignments, incomingDocumentId],
+  );
+
+  /** Resolves `true` when the assignment was deleted, `false` to restore it in the list. */
+  const onRemoveAssignment = useCallback(
+    async (_routingId: string, _assignmentId: string): Promise<boolean> => {
+      // TODO: call the remove-assignment endpoint once the backend supports it,
+      // e.g. DELETE /incoming-documents/:routingId/assignments/:assignmentId.
+      // Invalidate the same three queries as onAddAssignments, then return true.
+      // The backend should decide whether assignments with an action taken
+      // can be deleted; the panel already asks for confirmation for those.
+      toast.info("Removing notices of action isn't available yet.");
+      return false;
+    },
+    [],
+  );
+
+  /* ------------------------------- state -------------------------------- */
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [confirmId, setConfirmId] = useState<string | null>(null);
@@ -206,3 +249,4 @@ export function useDivisionAssignmentsPanel({
     cancelConfirm,
   };
 }
+

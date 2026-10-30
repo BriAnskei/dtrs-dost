@@ -3,14 +3,13 @@ import { useRef, useState } from "react";
 import Skeleton, { SkeletonTheme } from "react-loading-skeleton";
 import TableShell, {
   type TableShellColumn,
-} from "../../../../../../components/tables/TableShell";
-import AssignDivisionModal from "../../../components/modal/AssignDivisionModal";
-import type { DivisionNoticeOfAction } from "../../../types/assign-incoming-document-to-dto-division.type";
-import type { AssignedDivisionNoticeCount } from "../../../types/assigned-division-notice-count-response";
-import type { IncomingDocumentDetails } from "../../../types/incoming-document-details.type";
-import { cardClass, SKELETON_BASE, SKELETON_HIGHLIGHT } from "../../constant";
-import DetailsCard from "../DetialsCard";
-import DivisionAssignmentsPanel from "../panel/DivisionAssginmentsPanel";
+} from "../../../../../../../components/tables/TableShell";
+import AssignDivisionModal from "../../../../components/modal/AssignDivisionModal";
+import type { AssignedDivisionNoticeCount } from "../../../../types/assigned-division-notice-count-response";
+import type { IncomingDocumentDetails } from "../../../../types/incoming-document-details.type";
+import { cardClass, SKELETON_BASE, SKELETON_HIGHLIGHT } from "../../../constant";
+import DetailsCard from "../../DetialsCard";
+import DivisionAssignmentsPanel from "./DivisionAssignmentsPanel";
 
 export interface DivisionCountsState {
   data: AssignedDivisionNoticeCount[] | undefined;
@@ -22,13 +21,6 @@ export interface DivisionCountsState {
 interface RoutedDivisionsTabProps {
   doc: IncomingDocumentDetails;
   divisions: DivisionCountsState;
-  /** Forwarded to the assignments panel. Resolve `true` once saved. */
-  onAddAssignments: (
-    routingId: string,
-    notices: DivisionNoticeOfAction[],
-  ) => Promise<boolean>;
-  /** Forwarded to the assignments panel. Resolve `true` once deleted. */
-  onRemoveAssignment: (routingId: string, assignmentId: string) => Promise<boolean>;
 }
 
 const primaryButton =
@@ -49,14 +41,21 @@ const TABLE_HEIGHT_DESKTOP = "272px";
 const TABLE_HEIGHT_MOBILE = "580px";
 
 /* -------------------------------------------------------------------------- */
-/*  Summary tile                                                              */
+/*  Summary stat                                                              */
 /* -------------------------------------------------------------------------- */
 
-function StatTile({ label, value }: { label: string; value: number }) {
+/**
+ * Flat stat: small label over a number, no box of its own. Grouped by
+ * dividers in the parent `<dl>`, same as the assignments panel, so the
+ * card stays the only container (no nested boxes).
+ */
+function Stat({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-xl bg-gray-50 p-4 dark:bg-white/3">
-      <dt className="text-theme-xs text-gray-400 dark:text-gray-500">{label}</dt>
-      <dd className="mt-1 text-3xl font-semibold tabular-nums text-gray-800 dark:text-white/90">
+    <div className="min-w-0 px-3 first:pl-0 last:pr-0 sm:px-5">
+      <dt className="text-theme-xs leading-snug text-gray-500 dark:text-gray-400">
+        {label}
+      </dt>
+      <dd className="mt-0.5 text-2xl font-semibold tabular-nums text-gray-800 dark:text-white/90">
         {value.toLocaleString()}
       </dd>
     </div>
@@ -67,12 +66,7 @@ function StatTile({ label, value }: { label: string; value: number }) {
 /*  Tab                                                                       */
 /* -------------------------------------------------------------------------- */
 
-export default function RoutedDivisionsTab({
-  doc,
-  divisions,
-  onAddAssignments,
-  onRemoveAssignment,
-}: RoutedDivisionsTabProps) {
+export default function RoutedDivisionsTab({ doc, divisions }: RoutedDivisionsTabProps) {
   const [routing, setRouting] = useState(false);
   const [detailTarget, setDetailTarget] = useState<AssignedDivisionNoticeCount | null>(
     null,
@@ -138,7 +132,7 @@ export default function RoutedDivisionsTab({
     <>
       <DetailsCard>
         <div className="space-y-5">
-          {/* Summary tiles: now the top header. Hidden on error, and hidden
+          {/* Summary stats: the top header. Hidden on error, and hidden
               entirely when the document has no routed divisions yet. */}
           {!divisions.isError &&
             (divisions.isLoading ? (
@@ -150,19 +144,16 @@ export default function RoutedDivisionsTab({
                   role="status"
                   aria-busy="true"
                   aria-label="Loading routed division totals"
-                  className="grid gap-3 sm:grid-cols-3"
                 >
-                  <Skeleton height={88} borderRadius={12} />
-                  <Skeleton height={88} borderRadius={12} />
-                  <Skeleton height={88} borderRadius={12} />
+                  <Skeleton height={52} />
                 </div>
               </SkeletonTheme>
             ) : (
               hasDivisions && (
-                <dl className="grid gap-3 sm:grid-cols-3">
-                  <StatTile label="Routed divisions" value={list.length} />
-                  <StatTile label="Total assignments" value={totalAssignments} />
-                  <StatTile label="Pending actions" value={totalPending} />
+                <dl className="grid grid-cols-3 divide-x divide-gray-200 dark:divide-white/8">
+                  <Stat label="Routed divisions" value={list.length} />
+                  <Stat label="Total assignments" value={totalAssignments} />
+                  <Stat label="Pending actions" value={totalPending} />
                 </dl>
               )
             ))}
@@ -257,7 +248,7 @@ export default function RoutedDivisionsTab({
 
                   <span className="grid grid-cols-2 gap-x-4 gap-y-2">
                     <span className="block">
-                      <span className="block text-theme-xs text-gray-400 dark:text-gray-500 font-medium uppercase tracking-wide">
+                      <span className="block text-theme-xs text-gray-500 dark:text-gray-400 font-medium uppercase tracking-wide">
                         Assignments
                       </span>
                       <span className="mt-0.5 block text-theme-xs tabular-nums text-gray-700 dark:text-gray-300">
@@ -265,7 +256,7 @@ export default function RoutedDivisionsTab({
                       </span>
                     </span>
                     <span className="block">
-                      <span className="block text-theme-xs text-gray-400 dark:text-gray-500 font-medium uppercase tracking-wide">
+                      <span className="block text-theme-xs text-gray-500 dark:text-gray-400 font-medium uppercase tracking-wide">
                         Actions taken
                       </span>
                       <span className="mt-0.5 block text-theme-xs tabular-nums text-gray-700 dark:text-gray-300">
@@ -285,8 +276,7 @@ export default function RoutedDivisionsTab({
         row={detailTarget}
         isDocComplete={isComplete}
         onClose={() => setDetailTarget(null)}
-        onAddAssignments={onAddAssignments}
-        onRemoveAssignment={onRemoveAssignment}
+        incomingDocumentId={doc.id}
       />
 
       {routing && (

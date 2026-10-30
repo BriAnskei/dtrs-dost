@@ -1,4 +1,4 @@
-import DetailsCard from "./DetialsCard";
+import DetailsCard from "../../DetialsCard";
 
 export interface ActionProgress {
   /** Assignments with no action taken yet. */
@@ -18,11 +18,11 @@ function StatTile({
 }) {
   return (
     <div className="rounded-xl bg-gray-50 p-4 dark:bg-white/3">
-      <dt className="text-theme-xs text-gray-400 dark:text-gray-500">{label}</dt>
+      <dt className="text-theme-xs text-gray-500 dark:text-gray-400">{label}</dt>
       <dd className="mt-1 text-3xl font-semibold text-gray-800 dark:text-white/90">
         {value.toLocaleString()}
       </dd>
-      <p className="mt-1 text-theme-xs text-gray-500 dark:text-gray-400">{hint}</p>
+      <dd className="mt-1 text-theme-xs text-gray-500 dark:text-gray-400">{hint}</dd>
     </div>
   );
 }

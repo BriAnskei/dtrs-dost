@@ -3,15 +3,17 @@ import { useId } from "react";
 import Skeleton, { SkeletonTheme } from "react-loading-skeleton";
 import DetailPanel, {
   DetailSection,
-} from "../../../../../../components/master-detail/DetailPanel";
-import { formatDateTime } from "../../../../../../utils/dateFormatter";
-import NoticeOfActionEditor from "../../../components/NoticeOfActionEditor";
-import type { DivisionNoticeOfAction } from "../../../types/assign-incoming-document-to-dto-division.type";
-import type { AssignedDivisionNoticeCount } from "../../../types/assigned-division-notice-count-response";
-import type { Status } from "../../../types/routed-division-assignments.type";
-import { cardClass, SKELETON_BASE, SKELETON_HIGHLIGHT } from "../../constant";
-import { primaryButton, secondaryButton } from "../../detial-panel-form-style-constant";
-import { useDivisionAssignmentsPanel } from "../../hooks/use-division-assignment-panel";
+} from "../../../../../../../components/master-detail/DetailPanel";
+import { formatDateTime } from "../../../../../../../utils/dateFormatter";
+import NoticeOfActionEditor from "../../../../components/NoticeOfActionEditor";
+import type { AssignedDivisionNoticeCount } from "../../../../types/assigned-division-notice-count-response";
+import type { Status } from "../../../../types/routed-division-assignments.type";
+import { cardClass, SKELETON_BASE, SKELETON_HIGHLIGHT } from "../../../constant";
+import {
+  primaryButton,
+  secondaryButton,
+} from "../../../detial-panel-form-style-constant";
+import { useDivisionAssignmentsPanel } from "../../../hooks/use-division-assignment-panel";
 import AssignmentStatusText from "./AssignmentStatusText";
 import UserTag from "./UserTag";
 
@@ -20,16 +22,10 @@ const COMPLETE_HINT = "This document is complete, so its assignments can't be ch
 interface DivisionAssignmentsPanelProps {
   /** The selected division row. `null` closes the panel. */
   row: AssignedDivisionNoticeCount | null;
+  incomingDocumentId: string;
   /** Completed documents are read-only. */
   isDocComplete: boolean;
   onClose: () => void;
-  /** Resolve `true` when the notices were saved, `false` to keep the form open. */
-  onAddAssignments: (
-    routingId: string,
-    notices: DivisionNoticeOfAction[],
-  ) => Promise<boolean>;
-  /** Resolve `true` when the assignment was deleted, `false` to restore it in the list. */
-  onRemoveAssignment: (routingId: string, assignmentId: string) => Promise<boolean>;
 }
 
 const confirmMessage = (status: Status) =>
@@ -41,12 +37,16 @@ const confirmMessage = (status: Status) =>
 /*  Small pieces                                                              */
 /* -------------------------------------------------------------------------- */
 
-/** Same look as the tiles in the Routed Divisions tab. */
-function StatTile({ label, value }: { label: string; value: number }) {
+/**
+ * Flat stat: small label over a number, no box of its own.
+ * Stats are grouped by dividers in the parent `<dl>`, so the panel
+ * surface stays the only container (no nested cards).
+ */
+function Stat({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-xl bg-gray-50 p-4 dark:bg-white/3">
-      <dt className="text-theme-xs text-gray-400 dark:text-gray-500">{label}</dt>
-      <dd className="mt-1 text-2xl font-semibold tabular-nums text-gray-800 dark:text-white/90">
+    <div className="min-w-0 px-4 first:pl-0 last:pr-0">
+      <dt className="truncate text-theme-xs text-gray-500 dark:text-gray-400">{label}</dt>
+      <dd className="mt-0.5 text-xl font-semibold tabular-nums text-gray-800 dark:text-white/90">
         {value.toLocaleString()}
       </dd>
     </div>
@@ -61,8 +61,7 @@ export default function DivisionAssignmentsPanel({
   row,
   isDocComplete,
   onClose,
-  onAddAssignments,
-  onRemoveAssignment,
+  incomingDocumentId,
 }: DivisionAssignmentsPanelProps) {
   const idPrefix = useId();
 
@@ -85,7 +84,7 @@ export default function DivisionAssignmentsPanel({
     requestDelete,
     confirmDelete,
     cancelConfirm,
-  } = useDivisionAssignmentsPanel({ row, onClose, onAddAssignments, onRemoveAssignment });
+  } = useDivisionAssignmentsPanel({ row, incomingDocumentId, onClose });
 
   const pendingCount = Math.max(0, items.length - takenCount);
 
@@ -131,11 +130,7 @@ export default function DivisionAssignmentsPanel({
             aria-label="Loading assignments"
             className="space-y-3"
           >
-            <div className="grid grid-cols-3 gap-3">
-              <Skeleton height={76} borderRadius={12} />
-              <Skeleton height={76} borderRadius={12} />
-              <Skeleton height={76} borderRadius={12} />
-            </div>
+            <Skeleton height={44} />
             <Skeleton height={104} borderRadius={12} />
             <Skeleton height={104} borderRadius={12} />
           </div>
@@ -156,10 +151,10 @@ export default function DivisionAssignmentsPanel({
       ) : (
         <>
           {items.length > 0 && (
-            <dl className="grid grid-cols-3 gap-3">
-              <StatTile label="Assignments" value={items.length} />
-              <StatTile label="Actions taken" value={takenCount} />
-              <StatTile label="Pending actions" value={pendingCount} />
+            <dl className="grid grid-cols-3 divide-x divide-gray-200 dark:divide-white/8">
+              <Stat label="Assignments" value={items.length} />
+              <Stat label="Actions taken" value={takenCount} />
+              <Stat label="Pending actions" value={pendingCount} />
             </dl>
           )}
 

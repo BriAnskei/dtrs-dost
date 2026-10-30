@@ -39,6 +39,15 @@ export class IncomingDocumentRoutingRepository {
     });
   }
 
+  async findById(
+    id: string,
+    manager?: EntityManager,
+  ): Promise<IncomingDocumentRoutingEntity | null> {
+    const repo = manager?.getRepository(IncomingDocumentRoutingEntity) ?? this.repository;
+
+    return repo.findOne({ where: { id } });
+  }
+
   findAssignedDivisionNoticeCountsByIncomingId(incomingDocumentId: string): Promise<
     {
       routing_id: string;

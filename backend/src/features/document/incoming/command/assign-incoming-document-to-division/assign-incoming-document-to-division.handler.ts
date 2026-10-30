@@ -2,7 +2,7 @@ import { ConflictException, NotFoundException } from "@nestjs/common";
 import { CommandHandler, ICommandHandler } from "@nestjs/cqrs";
 import { DataSource, QueryFailedError } from "typeorm";
 import { DivisionService } from "../../../../user/service/division.service";
-import { OfficeType } from "../../entities/incoming-document-assignment.entity";
+import { IncomingDocumentAssignmentEntity, OfficeType } from "../../entities/incoming-document-assignment.entity";
 import { IncomingDocumentsRepository } from "../../repository/incoming-document.repository";
 import { IncomingDocumentAssignmentsRepository } from "../../repository/incoming-document-assignment.repository";
 import { IncomingDocumentRoutingRepository } from "../../repository/incoming-document-routing-repository";
@@ -57,14 +57,15 @@ export class AssignIncomingDocumentToDivisionHandler
           manager,
         );
 
-        const assignments = noticesOfAction.map((notice) => ({
-          incoming_document_id: dto.incomingDocumentId,
-          division_id: dto.divisionId,
-          office_type: OfficeType.DIVISION,
-          notice_of_action: notice.noticeOfAction.trim(),
-          notice_description: notice.noticeDescription?.trim() || null,
-          created_by_id: createdById,
-        }));
+        const assignments: Partial<IncomingDocumentAssignmentEntity>[] =
+          noticesOfAction.map((notice) => ({
+            incoming_document_id: dto.incomingDocumentId,
+            division_id: dto.divisionId,
+            office_type: OfficeType.DIVISION,
+            notice_of_action: notice.noticeOfAction.trim(),
+            notice_description: notice.noticeDescription?.trim() || null,
+            created_by_id: createdById,
+          }));
 
         await this.assignmentsRepository.insertMany(assignments, manager);
 

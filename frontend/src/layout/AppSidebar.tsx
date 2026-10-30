@@ -83,6 +83,7 @@ const AppSidebar: React.FC = () => {
           {nav.subItems ? (
             <button
               onClick={() => handleSubmenuToggle(index, menuType)}
+              aria-label={nav.name}
               className={`menu-item group ${
                 openSubmenu?.type === menuType && openSubmenu?.index === index
                   ? "menu-item-active"
@@ -119,6 +120,7 @@ const AppSidebar: React.FC = () => {
             nav.path && (
               <Link
                 to={nav.path}
+                aria-label={nav.name}
                 className={`menu-item group ${
                   isActive(nav.path) ? "menu-item-active" : "menu-item-inactive"
                 } ${

@@ -1,4 +1,4 @@
-import UserAvatar from "../../../../../../components/common/UserAvatar";
+import UserAvatar from "../../../../../../../components/common/UserAvatar";
 
 interface UserTagProps {
   /** `null` when the user was removed (the entity's foreign keys are SET NULL). */
@@ -20,7 +20,7 @@ export default function UserTag({
   const position = person?.position || null;
 
   const nameClass = !person
-    ? "text-theme-xs italic text-gray-400 dark:text-gray-500"
+    ? "text-theme-xs italic text-gray-500 dark:text-gray-400"
     : size === "md"
       ? "text-theme-sm font-medium text-gray-800 dark:text-white/90"
       : "text-theme-xs font-medium text-gray-700 dark:text-gray-300";

@@ -1,6 +1,6 @@
-import type { BadgeColor } from "../../../../../../components/ui/badge/Badge";
-import { ASSIGNMENT_STATUS_BADGE } from "../../../../../../components/ui/badge/StatusBadge";
-import type { Status } from "../../../types/routed-division-assignments.type";
+import type { BadgeColor } from "../../../../../../../components/ui/badge/Badge";
+import { ASSIGNMENT_STATUS_BADGE } from "../../../../../../../components/ui/badge/StatusBadge";
+import type { Status } from "../../../../types/routed-division-assignments.type";
 
 /**
  * Font-color-only version of the shared status badge: same label and color

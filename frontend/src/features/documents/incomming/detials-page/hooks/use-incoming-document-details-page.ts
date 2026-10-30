@@ -1,18 +1,28 @@
+import {
+  Activity,
+  FileText,
+  GitBranch,
+  History,
+  ListChecks,
+  type LucideIcon,
+} from "lucide-react";
 import { useCallback } from "react";
 import { useParams, useSearchParams } from "react-router";
-import { toast } from "sonner";
 import { useAssignedDivisionNoticeCounts } from "../../shared-api-hooks/use-assigned-division-notice-count";
 import { useIncomingDocumentFile } from "../../shared-api-hooks/use-incoming-document-file";
-import type { DivisionNoticeOfAction } from "../../types/assign-incoming-document-to-dto-division.type";
 import { useIncomingDocumentDetails } from "./api/use-incoming-document-detials";
 
 export const DETAIL_TABS = [
-  { id: "overview", label: "Overview" },
-  { id: "routed-divisions", label: "Routed Divisions" },
-  { id: "ongoing-actions", label: "Ongoing Actions" },
-  { id: "action-history", label: "Action History" },
-  { id: "status-history", label: "Status History" },
-] as const;
+  { id: "overview", label: "Overview", icon: FileText },
+  { id: "routed-divisions", label: "Routed Divisions", icon: GitBranch },
+  { id: "ongoing-actions", label: "Ongoing Actions", icon: Activity },
+  { id: "action-history", label: "Action History", icon: ListChecks },
+  { id: "status-history", label: "Status History", icon: History },
+] as const satisfies readonly {
+  id: string;
+  label: string;
+  icon: LucideIcon;
+}[];
 
 export type DetailTabId = (typeof DETAIL_TABS)[number]["id"];
 
@@ -58,35 +68,6 @@ export function useIncomingDocumentDetailsPage() {
     actionTaken: doc?.action_taken_count ?? 0,
   };
 
-  const onAddAssignments = useCallback(
-    async (_routingId: string, _notices: DivisionNoticeOfAction[]): Promise<boolean> => {
-      // TODO: call the add-assignments endpoint once the backend supports it,
-      // e.g. POST /incoming-documents/:routingId/assignments with `_notices`.
-      // On success, invalidate:
-      //   ["incoming-document-assignments", routingId]   (the panel's list)
-      //   ["assigned-division-notice-counts", id]        (table + summary tiles)
-      //   the document details query                     (overview progress)
-      // and return true. Returning false keeps the panel's form open.
-      toast.info("Adding notices of action isn't available yet.");
-      return false;
-    },
-    [],
-  );
-
-  const onRemoveAssignment = useCallback(
-    async (_routingId: string, _assignmentId: string): Promise<boolean> => {
-      // TODO: call the remove-assignment endpoint once the backend supports it,
-      // e.g. DELETE /incoming-documents/:routingId/assignments/:assignmentId.
-      // Invalidate the same three queries as onAddAssignments, then return true.
-      // Returning false restores the row in the panel.
-      // The backend should decide whether assignments with an action taken
-      // can be deleted; the panel already asks for confirmation for those.
-      toast.info("Removing notices of action isn't available yet.");
-      return false;
-    },
-    [],
-  );
-
   return {
     tab,
     setTab,
@@ -108,7 +89,5 @@ export function useIncomingDocumentDetailsPage() {
       isError: divisionsQuery.isError,
       retry: () => divisionsQuery.refetch(),
     },
-    onAddAssignments,
-    onRemoveAssignment,
   };
 }

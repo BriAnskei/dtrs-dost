@@ -22,9 +22,11 @@ import { Role } from "../../../../auth/authorization/enum/roles.enum";
 import { ParsePdfFilePipe } from "../../../../common/pipes/parse-pdf-file-pipe";
 import { AssignIncomingDocumentToDivisionCommand } from "../command/assign-incoming-document-to-division/assign-incoming-document-to-division.command";
 import { CreateIncomingDocumentCommand } from "../command/create-incoming-document/create-incoming-document.command";
+import { CreateIncomingDocumentAssignmentsCommand } from "../command/create-incoming-document-assigments/create-incoming-document-assigments.command";
 import { CreateIncomingFromQueueCommand } from "../command/create-incoming-from-queue/ create-incoming-from-queue.command";
 import { AssignIncomingDocumentToDivisionDto } from "../dto/assign-incoming-document-to-division";
 import { CreateIncomingDocumentDto } from "../dto/create-incoming-document.dto";
+import { CreateIncomingDocumentAssignmentsDto } from "../dto/create-incoming-document-assignments-dto";
 import { FindIncomingDocumentsQueryDto } from "../dto/find-incoming-documents-query.dto";
 import { IncomingDocumentDetailsDto } from "../dto/incoming-document-details.dto";
 import { FindIncomingDocumentsQuery } from "../query/find-incoming-documents/find-incoming-documents.query";
@@ -138,9 +140,21 @@ export class IncomingDocumentController {
   }
 
   @Get(":routingId/assignments")
+  @Roles(Role.Admin, Role.SuperAdmin)
   getAssignmentsByRoutingId(@Param("routingId", ParseUUIDPipe) routingId: string) {
     return this.queryBus.execute(
       new GetIncomingDocumentAssignmentsByRoutingIdQuery(routingId),
+    );
+  }
+
+  @Post(":incomingDocumentId/assignments")
+  createAssignments(
+    @Param("incomingDocumentId", ParseUUIDPipe) incomingDocumentId: string,
+    @Body() dto: CreateIncomingDocumentAssignmentsDto,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    return this.commandBus.execute(
+      new CreateIncomingDocumentAssignmentsCommand(incomingDocumentId, dto, req.user.id),
     );
   }
 }

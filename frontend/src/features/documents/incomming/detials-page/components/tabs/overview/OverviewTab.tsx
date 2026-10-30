@@ -1,13 +1,14 @@
+import { formatDate } from "@fullcalendar/core/index.js";
 import {
   DetailField,
   DetailFieldGrid,
-} from "../../../../../../components/master-detail/DetailPanel";
-import { formatDate, formatDateTime } from "../../../../../../utils/dateFormatter";
-import type { IncomingDocumentDetails } from "../../../types/incoming-document-details.type";
-import ActionProgressCard, { type ActionProgress } from "../ActionProgressCard";
-import DetailsCard from "../DetialsCard";
-import DocumentFilePreview, { type DocumentFileState } from "../DocumentFilePreview";
-import RoutingActivityCard from "../RoutingActivityCard";
+} from "../../../../../../../components/master-detail/DetailPanel";
+import { formatDateTime } from "../../../../../../../utils/dateFormatter";
+import type { IncomingDocumentDetails } from "../../../../types/incoming-document-details.type";
+import DetailsCard from "../../DetialsCard";
+import DocumentFilePreview, { type DocumentFileState } from "../../DocumentFilePreview";
+import ActionProgressCard, { type ActionProgress } from "./ActionProgressCard";
+import RoutingActivityCard from "./RoutingActivityCard";
 
 interface OverviewTabProps {
   doc: IncomingDocumentDetails;
@@ -23,7 +24,7 @@ export default function OverviewTab({ doc, progress, file }: OverviewTabProps) {
           <div className="grid gap-6 md:grid-cols-[minmax(0,1fr)_17rem]">
             <div className="min-w-0 space-y-6">
               <div className="space-y-2">
-                <h3 className="text-theme-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
+                <h3 className="text-theme-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                   Summary
                 </h3>
                 {doc.summary ? (
@@ -31,7 +32,7 @@ export default function OverviewTab({ doc, progress, file }: OverviewTabProps) {
                     {doc.summary}
                   </p>
                 ) : (
-                  <p className="text-theme-sm italic text-gray-400 dark:text-gray-500">
+                  <p className="text-theme-sm italic text-gray-500 dark:text-gray-400">
                     No summary available.
                   </p>
                 )}
