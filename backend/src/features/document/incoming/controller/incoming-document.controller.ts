@@ -30,13 +30,16 @@ import { AssignIncomingDocumentToDivisionDto } from "../dto/assign-incoming-docu
 import { CreateIncomingDocumentDto } from "../dto/create-incoming-document.dto";
 import { CreateIncomingDocumentAssignmentsDto } from "../dto/create-incoming-document-assignments-dto";
 import { FindIncomingDocumentsQueryDto } from "../dto/find-incoming-documents-query.dto";
+import { GetIncomingDocumentAssignmentsDto } from "../dto/get-incoming-document-assignments-dto";
 import { IncomingDocumentDetailsDto } from "../dto/incoming-document-details.dto";
 import { FindIncomingDocumentsQuery } from "../query/find-incoming-documents/find-incoming-documents.query";
 import { GetAssignedDivisionNoticeCountsQuery } from "../query/get-assigned-division-notice-counts/get-assigned-division-notice-counts.query";
+import { GetIncomingDocumentAssignmentsQuery } from "../query/get-incoming-document-assignments/get-incoming-document-assignments.query";
 import { GetIncomingDocumentAssignmentsByRoutingIdQuery } from "../query/get-incoming-document-assignments-by-routing-id/get-incoming-document-assignments-by-routing-id.query";
 import { GetIncomingDocumentDetailsQuery } from "../query/get-incoming-document-detials/get-incoming-document-details.query";
 import { GetIncomingDocumentFileStreamQuery } from "../query/get-incoming-file-stream/get-incoming-document-file-stream.query";
 import { GetReceiverQueueDetailsQuery } from "../query/get-receiver-queue-details/get-receiver-queue-details.query";
+import { IncomingDocumentAssignmentResponse } from "../types/get-incoming-document-assignment.type";
 
 @Controller("incoming-documents")
 export class IncomingDocumentController {
@@ -157,6 +160,18 @@ export class IncomingDocumentController {
   getAssignmentsByRoutingId(@Param("routingId", ParseUUIDPipe) routingId: string) {
     return this.queryBus.execute(
       new GetIncomingDocumentAssignmentsByRoutingIdQuery(routingId),
+    );
+  }
+
+  @Get(":incomingDocumentId/assignments")
+  @Roles(Role.Admin, Role.SuperAdmin)
+  getAssignments(
+    @Param("incomingDocumentId", ParseUUIDPipe)
+    incomingDocumentId: string,
+    @Query() filters: GetIncomingDocumentAssignmentsDto,
+  ): Promise<IncomingDocumentAssignmentResponse[]> {
+    return this.queryBus.execute(
+      new GetIncomingDocumentAssignmentsQuery(incomingDocumentId, filters),
     );
   }
 

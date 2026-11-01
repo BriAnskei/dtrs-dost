@@ -39,8 +39,8 @@ export default function StatusBadge({ config, size = "sm" }: StatusBadgeProps) {
 
 import type { ExtractedDocumentQueueStatus } from "../../../features/documents/extracted-queue-receiver/types/extracted-queue-receiver-types";
 import type { Decision } from "../../../features/documents/extraction/types/extraction-types";
-import type { IncomingDocumentStatus } from "../../../features/documents/incomming/types/incoming-document.type";
-import type { Status as AssignmentStatus } from "../../../features/documents/incomming/types/routed-division-assignments.type";
+import type { IncomingDocumentStatus } from "../../../features/documents/incoming/types/incoming-document.type";
+import type { Status as AssignmentStatus } from "../../../features/documents/incoming/types/routed-division-assignments.type";
 import type {
   AccountStatus,
   UserRole,

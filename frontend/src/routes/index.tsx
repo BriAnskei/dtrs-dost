@@ -16,8 +16,8 @@ import MyUploadedDocumentsPage from "../features/documents/extracted-queue-recei
 import MyUploadedDocumentDetailsPage from "../features/documents/extracted-queue-receiver/view-components/MyUploadedDocumentDetailsPage";
 import DirectUploadPage from "../features/documents/extraction/admins/components/DirectUploadPage";
 import ReceiverUploadPage from "../features/documents/extraction/receiver/components/ReceiverUploadPage";
-import IncomingDocumentDetailsPage from "../features/documents/incomming/detials-page/components/IncomingDocumentDetailsPage";
-import IncomingDocumentsPage from "../features/documents/incomming/list/components/IncomingDocumentsPage";
+import IncomingDocumentDetailsPage from "../features/documents/incoming/detials-page/components/IncomingDocumentDetailsPage";
+import IncomingDocumentsPage from "../features/documents/incoming/list/components/IncomingDocumentsPage";
 import OutgoingDocumentsPage from "../features/documents/outgoing/components/OutgoingDocumentPage";
 import UserManagementPage from "../features/user-management/components/UserManagementPage";
 import AppLayout from "../layout/AppLayout";
