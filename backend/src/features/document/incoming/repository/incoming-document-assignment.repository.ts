@@ -42,4 +42,25 @@ export class IncomingDocumentAssignmentsRepository {
       .orderBy("assignment.created_at", "ASC")
       .getMany();
   }
+
+  async findById(
+    id: string,
+    manager?: EntityManager,
+  ): Promise<IncomingDocumentAssignmentEntity | null> {
+    const repo =
+      manager?.getRepository(IncomingDocumentAssignmentEntity) ?? this.repository;
+
+    return repo.findOne({
+      where: { id },
+    });
+  }
+
+  async delete(id: string, manager?: EntityManager): Promise<boolean> {
+    const repo =
+      manager?.getRepository(IncomingDocumentAssignmentEntity) ?? this.repository;
+
+    const res = await repo.delete(id);
+
+    return (res.affected ?? 0) > 0;
+  }
 }

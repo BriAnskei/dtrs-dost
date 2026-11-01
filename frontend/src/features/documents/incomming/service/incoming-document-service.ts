@@ -76,6 +76,18 @@ export const IncomingDocumentService = {
     incomingDocumentId: string,
     dto: CreateIncomingDocumentAssignmentsDto,
   ): Promise<void> {
-    await apiClient.post(`/incoming-documents/${incomingDocumentId}/assignments`, dto);
+    await apiClient.post(
+      `${INCOMING_DOCUMENTS_ENDPOINT}/${incomingDocumentId}/assignments`,
+      dto,
+    );
+  },
+
+  async deleteAssignment(
+    incomingDocumentId: string,
+    assignmentId: string,
+  ): Promise<void> {
+    await apiClient.delete(
+      `${INCOMING_DOCUMENTS_ENDPOINT}/${incomingDocumentId}/assignments/${assignmentId}`,
+    );
   },
 };

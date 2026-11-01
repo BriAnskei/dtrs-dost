@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   ParseUUIDPipe,
@@ -23,7 +24,8 @@ import { ParsePdfFilePipe } from "../../../../common/pipes/parse-pdf-file-pipe";
 import { AssignIncomingDocumentToDivisionCommand } from "../command/assign-incoming-document-to-division/assign-incoming-document-to-division.command";
 import { CreateIncomingDocumentCommand } from "../command/create-incoming-document/create-incoming-document.command";
 import { CreateIncomingDocumentAssignmentsCommand } from "../command/create-incoming-document-assigments/create-incoming-document-assigments.command";
-import { CreateIncomingFromQueueCommand } from "../command/create-incoming-from-queue/ create-incoming-from-queue.command";
+import { CreateIncomingFromQueueCommand } from "../command/create-incoming-from-queue/create-incoming-from-queue.command";
+import { DeleteIncomingDocumentAssignmentCommand } from "../command/delete-incoming-document-assignment/delete-incoming-document-assignment.command";
 import { AssignIncomingDocumentToDivisionDto } from "../dto/assign-incoming-document-to-division";
 import { CreateIncomingDocumentDto } from "../dto/create-incoming-document.dto";
 import { CreateIncomingDocumentAssignmentsDto } from "../dto/create-incoming-document-assignments-dto";
@@ -80,6 +82,17 @@ export class IncomingDocumentController {
   ) {
     return this.commandBus.execute(
       new CreateIncomingFromQueueCommand(queueId, dto, req.user.id),
+    );
+  }
+
+  @Post(":incomingDocumentId/assignments")
+  createAssignments(
+    @Param("incomingDocumentId", ParseUUIDPipe) incomingDocumentId: string,
+    @Body() dto: CreateIncomingDocumentAssignmentsDto,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    return this.commandBus.execute(
+      new CreateIncomingDocumentAssignmentsCommand(incomingDocumentId, dto, req.user.id),
     );
   }
 
@@ -147,14 +160,14 @@ export class IncomingDocumentController {
     );
   }
 
-  @Post(":incomingDocumentId/assignments")
-  createAssignments(
+  @Delete(":incomingDocumentId/assignments/:assignmentId")
+  @Roles(Role.SuperAdmin, Role.Admin)
+  async deleteAssignment(
     @Param("incomingDocumentId", ParseUUIDPipe) incomingDocumentId: string,
-    @Body() dto: CreateIncomingDocumentAssignmentsDto,
-    @Req() req: AuthenticatedRequest,
+    @Param("assignmentId", ParseUUIDPipe) assignmentId: string,
   ) {
     return this.commandBus.execute(
-      new CreateIncomingDocumentAssignmentsCommand(incomingDocumentId, dto, req.user.id),
+      new DeleteIncomingDocumentAssignmentCommand(assignmentId, incomingDocumentId),
     );
   }
 }

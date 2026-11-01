@@ -8,6 +8,7 @@ import type {
   Status,
 } from "../../types/routed-division-assignments.type";
 import { useCreateIncomingDocumentAssignments } from "./api/use-create-incoming-document-assignments";
+import { useDeleteIncomingDocumentAssignment } from "./api/use-delete-incoming-document-assignment";
 import { useIncomingDocumentAssignmentsByRoutingId } from "./api/use-incoming-document-assignments-by-routing-id";
 import { useNoticeDrafts } from "./use-notice-drafts";
 
@@ -56,6 +57,7 @@ export function useDivisionAssignmentsPanel({
   const query = useIncomingDocumentAssignmentsByRoutingId(shown?.routing_id ?? "");
   const drafts = useNoticeDrafts();
   const { mutateAsync: createAssignments } = useCreateIncomingDocumentAssignments();
+  const { mutateAsync: deleteAssignment } = useDeleteIncomingDocumentAssignment();
 
   /* ------------------------- API calls (stubs) -------------------------- */
 
@@ -89,16 +91,16 @@ export function useDivisionAssignmentsPanel({
 
   /** Resolves `true` when the assignment was deleted, `false` to restore it in the list. */
   const onRemoveAssignment = useCallback(
-    async (_routingId: string, _assignmentId: string): Promise<boolean> => {
-      // TODO: call the remove-assignment endpoint once the backend supports it,
-      // e.g. DELETE /incoming-documents/:routingId/assignments/:assignmentId.
-      // Invalidate the same three queries as onAddAssignments, then return true.
-      // The backend should decide whether assignments with an action taken
-      // can be deleted; the panel already asks for confirmation for those.
-      toast.info("Removing notices of action isn't available yet.");
-      return false;
+    async (routingId: string, assignmentId: string): Promise<boolean> => {
+      try {
+        await deleteAssignment({ incomingDocumentId, assignmentId, routingId });
+        return true;
+      } catch {
+        // The mutation's onError already shows the error toast.
+        return false;
+      }
     },
-    [],
+    [deleteAssignment, incomingDocumentId],
   );
 
   /* ------------------------------- state -------------------------------- */
@@ -249,4 +251,3 @@ export function useDivisionAssignmentsPanel({
     cancelConfirm,
   };
 }
-

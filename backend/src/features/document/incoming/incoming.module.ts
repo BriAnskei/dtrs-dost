@@ -8,6 +8,7 @@ import { AssignIncomingDocumentToDivisionHandler } from "./command/assign-incomi
 import { CreateIncomingDocumentHandler } from "./command/create-incoming-document/create-incoming-document.handler";
 import { CreateIncomingDocumentAssignmentsHandler } from "./command/create-incoming-document-assigments/create-incoming-document-assigments.handler";
 import { CreateIncomingFromQueueHandler } from "./command/create-incoming-from-queue/create-incoming-from-queue.handler";
+import { DeleteIncomingDocumentAssignmentHandler } from "./command/delete-incoming-document-assignment/delete-incoming-document-assignment.handler";
 import { IncomingDocumentController } from "./controller/incoming-document.controller";
 import { IncomingDocumentAssignmentEntity } from "./entities/incoming-document-assignment.entity";
 import { IncomingDocumentEntity } from "./entities/incoming-document-entity";
@@ -62,6 +63,8 @@ import { IncomingDocumentRoutingRepository } from "./repository/incoming-documen
     GetIncomingDocumentAssignmentsByRoutingIdHandler,
 
     CreateIncomingDocumentAssignmentsHandler,
+
+    DeleteIncomingDocumentAssignmentHandler,
   ],
 })
 export class IncomingDocumentModule {}

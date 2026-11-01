@@ -21,6 +21,7 @@ export function useCreateOutgoingDocument() {
     },
 
     onError: (error) => {
+      console.log(error);
       toast.error(getApiErrorMessage(error, "Failed to create outgoing document."));
     },
   });

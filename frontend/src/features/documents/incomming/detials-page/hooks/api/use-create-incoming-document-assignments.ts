@@ -1,4 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { getApiErrorMessage } from "../../../../../../lib/api-error";
 import { IncomingDocumentService } from "../../../service/incoming-document-service";
 import type { CreateIncomingDocumentAssignmentsDto } from "../../../types/create-incoming-document-assignments-dto";
 
@@ -34,5 +36,11 @@ export function useCreateIncomingDocumentAssignments() {
             ]
           : []),
       ]),
+    onError: (error) => {
+      console.error(error);
+      toast.error(getApiErrorMessage(error, "Failed to create assignment"), {
+        id: "create-assignment-errror",
+      });
+    },
   });
 }

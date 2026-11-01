@@ -6,7 +6,7 @@ import { DocumentFileService } from "../../../document-file/service/document-fil
 import { ExtractedDocumentQueueService } from "../../../extracted-document-queue/service/extracted-document-queue.service";
 import { generateDocumentCode } from "../../../utils/document-code.util";
 import { IncomingDocumentsRepository } from "../../repository/incoming-document.repository";
-import { CreateIncomingFromQueueCommand } from "./ create-incoming-from-queue.command";
+import { CreateIncomingFromQueueCommand } from "./create-incoming-from-queue.command";
 
 @CommandHandler(CreateIncomingFromQueueCommand)
 @Injectable()
