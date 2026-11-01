@@ -34,6 +34,22 @@ interface UserAvatarProps {
   className?: string;
 }
 
+const normalize = (value: string) => value.trim().replace(/\s+/g, " ");
+
+const SUFFIX_TOKEN = /^(jr|sr|ii|iii|iv)\.?$/i;
+/** First + last initial, ignoring suffixes. "" when there is no usable name. */
+function getInitials(name: string | null | undefined): string {
+  console.log("Name: ", name);
+  const tokens = normalize(name ?? "")
+    .split(" ")
+    .filter((t) => t && !SUFFIX_TOKEN.test(t));
+  if (tokens.length === 0) return "";
+
+  const first = [...tokens[0]][0] ?? "";
+  const last = tokens.length > 1 ? ([...tokens[tokens.length - 1]][0] ?? "") : "";
+  return (first + last).toUpperCase();
+}
+
 /**
  * Initials avatar. Decorative: the person's name should always appear as text
  * next to it, so it is hidden from screen readers.
@@ -45,22 +61,6 @@ export default function UserAvatar({
 }: UserAvatarProps) {
   const initials = getInitials(name);
   const tone = initials && name ? colorFor(name) : UNKNOWN_TONE;
-
-  const SUFFIX_TOKEN = /^(jr|sr|ii|iii|iv)\.?$/i;
-
-  const normalize = (value: string) => value.trim().replace(/\s+/g, " ");
-
-  /** First + last initial, ignoring suffixes. "" when there is no usable name. */
-  function getInitials(name: string | null | undefined): string {
-    const tokens = normalize(name ?? "")
-      .split(" ")
-      .filter((t) => t && !SUFFIX_TOKEN.test(t));
-    if (tokens.length === 0) return "";
-
-    const first = [...tokens[0]][0] ?? "";
-    const last = tokens.length > 1 ? ([...tokens[tokens.length - 1]][0] ?? "") : "";
-    return (first + last).toUpperCase();
-  }
 
   return (
     <span

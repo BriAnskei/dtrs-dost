@@ -3,17 +3,15 @@ import { toast } from "sonner";
 import { OfficeType } from "../../../enum/office-type.enum";
 import { useNoticeDrafts } from "../../../shared/hooks/use-notice-drafts";
 import type { AssignedDivisionNoticeCount } from "../../../types/assigned-division-notice-count-response";
+import type { AssignmentStatus } from "../../../types/assignment-types";
 import type { NoticeOfActionDto } from "../../../types/notice-of-action-dto";
-import type {
-  RoutedDivisionAssignment,
-  Status,
-} from "../../../types/routed-division-assignments.type";
+import type { RoutedDivisionAssignment } from "../../../types/routed-division-assignments.type";
 import { useCreateIncomingDocumentAssignments } from "./api/use-create-incoming-document-assignments";
 import { useDeleteIncomingDocumentAssignment } from "./api/use-delete-incoming-document-assignment";
 import { useIncomingDocumentAssignmentsByRoutingId } from "./api/use-incoming-document-assignments-by-routing-id";
 
 /** Pending first, then ongoing, then complete. */
-const STATUS_ORDER: Record<Status, number> = {
+const STATUS_ORDER: Record<AssignmentStatus, number> = {
   PENDING: 0,
   ONGOING: 1,
   COMPLETE: 2,

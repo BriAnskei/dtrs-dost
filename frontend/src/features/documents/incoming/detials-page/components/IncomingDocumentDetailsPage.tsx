@@ -1,4 +1,5 @@
 import PageMeta from "../../../../../components/common/PageMeta";
+import ActionAssignmentsTab from "../assignment/components/ActionAssignmentsTab";
 import { panelDomId, tabDomId } from "../constant";
 import {
   DETAIL_TABS,
@@ -53,6 +54,8 @@ export default function IncomingDocumentDetailsPage() {
                 <OverviewTab doc={doc} progress={progress} file={file} />
               ) : tab === "routed-divisions" ? (
                 <RoutedDivisionsTab doc={doc} divisions={divisions} />
+              ) : tab === "action-assignments" ? (
+                <ActionAssignmentsTab incomingDocumentId={doc.id} />
               ) : (
                 <TabPlaceholder
                   label={DETAIL_TABS.find((t) => t.id === tab)?.label ?? ""}

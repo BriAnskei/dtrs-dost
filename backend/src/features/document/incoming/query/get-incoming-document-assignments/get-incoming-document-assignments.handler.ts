@@ -37,7 +37,8 @@ export class GetIncomingDocumentAssignmentsHandler
         : null,
 
       created_at: assignment.created_at,
-
+      status: assignment.status,
+      action_taken: assignment.action_taken,
       action_taken_by:
         assignment.status === AssignmentStatus.COMPLETE && assignment.action_taken_by
           ? {

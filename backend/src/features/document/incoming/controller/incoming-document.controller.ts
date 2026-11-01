@@ -155,7 +155,7 @@ export class IncomingDocumentController {
     );
   }
 
-  @Get(":routingId/assignments")
+  @Get(":routingId/routing/assignments")
   @Roles(Role.Admin, Role.SuperAdmin)
   getAssignmentsByRoutingId(@Param("routingId", ParseUUIDPipe) routingId: string) {
     return this.queryBus.execute(

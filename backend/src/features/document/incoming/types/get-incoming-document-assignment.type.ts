@@ -19,8 +19,10 @@ export interface IncomingDocumentAssignmentResponse {
   division_name: string | null;
   notice_of_action: string;
   notice_description: string | null;
+  status: AssignmentStatus;
   assigned_by: AssignmentUserResponse | null;
   created_at: Date;
+  action_taken: string | null;
   action_taken_by: AssignmentUserResponse | null;
   action_taken_at: Date | null;
 }

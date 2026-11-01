@@ -1,6 +1,6 @@
+import { Eye, RotateCw, Search } from "lucide-react";
 import { useState } from "react";
 import KebabMenu from "../../ui/kebab-menu/KebabMenu";
-import { Eye, RotateCw, Search } from "lucide-react";
 import RoutedDivisionsModal from "../../ui/modal/document/RoutedDivisionsModal";
 import StatusUpdateModal, {
   type StatusType,
@@ -108,8 +108,16 @@ function MobileCard({
         </span>
         <KebabMenu
           actions={[
-            { label: "View", icon: <Eye className="h-4 w-4" />, handler: () => onView(record) },
-            { label: "Update Status", icon: <RotateCw className="h-4 w-4" />, handler: () => onUpdateStatus(record) },
+            {
+              label: "View",
+              icon: <Eye className="h-4 w-4" />,
+              handler: () => onView(record),
+            },
+            {
+              label: "Update Status",
+              icon: <RotateCw className="h-4 w-4" />,
+              handler: () => onUpdateStatus(record),
+            },
           ]}
         />
       </div>
@@ -506,8 +514,16 @@ export default function DivisionIncomingDocumentsTable({
                         <TableCell className="px-3 py-3">
                           <KebabMenu
                             actions={[
-                              { label: "View", icon: <Eye className="h-4 w-4" />, handler: () => handleView(record) },
-                              { label: "Update Status", icon: <RotateCw className="h-4 w-4" />, handler: () => openUpdateModal(record) },
+                              {
+                                label: "View",
+                                icon: <Eye className="h-4 w-4" />,
+                                handler: () => handleView(record),
+                              },
+                              {
+                                label: "Update Status",
+                                icon: <RotateCw className="h-4 w-4" />,
+                                handler: () => openUpdateModal(record),
+                              },
                             ]}
                           />
                         </TableCell>

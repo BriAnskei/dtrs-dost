@@ -1,6 +1,8 @@
+import { NotFoundException } from "@nestjs/common";
 import { IQueryHandler, QueryHandler } from "@nestjs/cqrs";
 import { RoutedDivisionAssigmentsResponse } from "../../dto/routed-division-assigments-response.dto";
 import { IncomingDocumentAssignmentsRepository } from "../../repository/incoming-document-assignment.repository";
+import { IncomingDocumentRoutingRepository } from "../../repository/incoming-document-routing-repository";
 import { GetIncomingDocumentAssignmentsByRoutingIdQuery } from "./get-incoming-document-assignments-by-routing-id.query";
 
 @QueryHandler(GetIncomingDocumentAssignmentsByRoutingIdQuery)
@@ -8,12 +10,17 @@ export class GetIncomingDocumentAssignmentsByRoutingIdHandler
   implements IQueryHandler<GetIncomingDocumentAssignmentsByRoutingIdQuery>
 {
   constructor(
+    private readonly routingRepository: IncomingDocumentRoutingRepository,
     private readonly assignmentsRepository: IncomingDocumentAssignmentsRepository,
   ) {}
 
   async execute(
     query: GetIncomingDocumentAssignmentsByRoutingIdQuery,
   ): Promise<RoutedDivisionAssigmentsResponse[]> {
+    const routing = await this.routingRepository.findById(query.routingId);
+
+    if (!routing) throw new NotFoundException("Routing does not existi");
+
     const assignments = await this.assignmentsRepository.findAllByRoutingId(
       query.routingId,
     );

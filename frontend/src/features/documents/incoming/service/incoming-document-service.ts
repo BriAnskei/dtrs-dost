@@ -64,7 +64,7 @@ export const IncomingDocumentService = {
     routingId: string,
   ): Promise<RoutedDivisionAssignment[]> {
     const { data } = await apiClient.get<RoutedDivisionAssignment[]>(
-      `/incoming-documents/${routingId}/assignments`,
+      `/incoming-documents/${routingId}/routing/assignments`,
     );
 
     return data;
@@ -91,7 +91,7 @@ export const IncomingDocumentService = {
     params?: GetIncomingDocumentAssignmentsParams,
   ): Promise<IncomingDocumentAssignment[]> {
     const { data } = await apiClient.get<IncomingDocumentAssignment[]>(
-      `/incoming-documents/${incomingDocumentId}/assignments`,
+      `${INCOMING_DOCUMENTS_ENDPOINT}/${incomingDocumentId}/assignments`,
       { params },
     );
 

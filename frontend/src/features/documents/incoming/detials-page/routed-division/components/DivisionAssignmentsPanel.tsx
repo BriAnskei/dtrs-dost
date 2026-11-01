@@ -7,18 +7,18 @@ import DetailPanel, {
 import { formatDateTime } from "../../../../../../utils/dateFormatter";
 import AssignmentStatusText from "../../../shared/component/AssignmentStatusText";
 import NoticeOfActionEditor from "../../../shared/component/NoticeOfActionEditor";
+import UserTag from "../../../shared/component/UserTag";
 import {
   primaryButton,
   secondaryButton,
 } from "../../../shared/detial-panel-form-style-constant";
 import type { AssignedDivisionNoticeCount } from "../../../types/assigned-division-notice-count-response";
-import type { Status } from "../../../types/routed-division-assignments.type";
+import type { AssignmentStatus } from "../../../types/assignment-types";
 import { cardClass, SKELETON_BASE, SKELETON_HIGHLIGHT } from "../../constant";
 import {
   canDeleteAssignment,
   useDivisionAssignmentsPanel,
-} from "../hooks/use-division-assignment-panel";
-import UserTag from "./UserTag";
+} from "../hooks/use-routed-divisions-tab";
 
 const COMPLETE_HINT = "This document is complete, so its assignments can't be changed.";
 const COMPLETED_NOTICE_HINT =
@@ -34,7 +34,7 @@ interface DivisionAssignmentsPanelProps {
 }
 
 /** Only pending and ongoing notices can be deleted, so only they get a message. */
-const confirmMessage = (status: Status) =>
+const confirmMessage = (status: AssignmentStatus) =>
   status === "ONGOING"
     ? "Delete this notice? The division is already working on it. This can't be undone."
     : "Delete this notice? This can't be undone.";

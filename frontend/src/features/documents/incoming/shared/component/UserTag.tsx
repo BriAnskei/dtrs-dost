@@ -1,4 +1,4 @@
-import UserAvatar from "../../../../../../components/common/UserAvatar";
+import UserAvatar from "../../../../../components/common/UserAvatar";
 
 interface UserTagProps {
   /** `null` when the user was removed (the entity's foreign keys are SET NULL). */

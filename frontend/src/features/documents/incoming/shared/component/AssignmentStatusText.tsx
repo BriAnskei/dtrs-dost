@@ -1,6 +1,6 @@
 import type { BadgeColor } from "../../../../../components/ui/badge/Badge";
 import { ASSIGNMENT_STATUS_BADGE } from "../../../../../components/ui/badge/StatusBadge";
-import type { Status } from "../../types/routed-division-assignments.type";
+import type { AssignmentStatus } from "../../types/assignment-types";
 
 /**
  * Font-color-only version of the shared status badge: same label and color
@@ -18,7 +18,7 @@ const TEXT_COLOR: Partial<Record<BadgeColor, string>> = {
 
 const FALLBACK_TEXT_COLOR = "text-gray-500 dark:text-gray-400";
 
-export default function AssignmentStatusText({ status }: { status: Status }) {
+export default function AssignmentStatusText({ status }: { status: AssignmentStatus }) {
   const { color, label } = ASSIGNMENT_STATUS_BADGE[status];
 
   return (
