@@ -19,7 +19,7 @@ export class GetIncomingDocumentAssignmentsByRoutingIdHandler
   ): Promise<RoutedDivisionAssigmentsResponse[]> {
     const routing = await this.routingRepository.findById(query.routingId);
 
-    if (!routing) throw new NotFoundException("Routing does not existi");
+    if (!routing) throw new NotFoundException("Routing does not exist");
 
     const assignments = await this.assignmentsRepository.findAllByRoutingId(
       query.routingId,

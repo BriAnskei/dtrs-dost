@@ -25,6 +25,8 @@ export interface IncomingDocumentAssignment {
 }
 
 export interface GetIncomingDocumentAssignmentsParams {
+  limit?: number;
+  search?: string;
   status?: AssignmentStatus;
   officeType?: OfficeType;
   sort?: AssignmentSort;

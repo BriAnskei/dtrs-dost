@@ -89,10 +89,16 @@ export const IncomingDocumentService = {
   async getIncomingDocumentAssignments(
     incomingDocumentId: string,
     params?: GetIncomingDocumentAssignmentsParams,
-  ): Promise<IncomingDocumentAssignment[]> {
-    const { data } = await apiClient.get<IncomingDocumentAssignment[]>(
+    cursor?: string,
+  ): Promise<PaginatedResponse<IncomingDocumentAssignment>> {
+    const { data } = await apiClient.get<PaginatedResponse<IncomingDocumentAssignment>>(
       `${INCOMING_DOCUMENTS_ENDPOINT}/${incomingDocumentId}/assignments`,
-      { params },
+      {
+        params: {
+          ...params,
+          cursor,
+        },
+      },
     );
 
     return data;

@@ -1,11 +1,20 @@
-import { AssignmentSort } from "../dto/get-incoming-document-assignments-dto";
-import { OfficeType } from "../entities/incoming-document-assignment.entity";
-import { AssignmentStatus } from "../enums/assignment-status.enum";
+import type { AssignmentSort } from "../dto/get-incoming-document-assignments-dto";
+import type { OfficeType } from "../entities/incoming-document-assignment.entity";
+import type { AssignmentStatus } from "../enums/assignment-status.enum";
 
 export interface GetIncomingDocumentAssignmentsFilters {
+  limit: number;
+  search?: string;
   status?: AssignmentStatus;
   officeType?: OfficeType;
-  sort?: AssignmentSort;
+  sort: AssignmentSort;
+  cursor?: string;
+}
+
+export interface IncomingDocumentAssignmentCursor {
+  id: string;
+  sort: AssignmentSort;
+  sortValue: string;
 }
 
 export interface AssignmentUserResponse {

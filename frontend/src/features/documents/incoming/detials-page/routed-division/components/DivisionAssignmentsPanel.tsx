@@ -18,7 +18,7 @@ import { cardClass, SKELETON_BASE, SKELETON_HIGHLIGHT } from "../../constant";
 import {
   canDeleteAssignment,
   useDivisionAssignmentsPanel,
-} from "../hooks/use-routed-divisions-tab";
+} from "../hooks/use-division-assignment-panel";
 
 const COMPLETE_HINT = "This document is complete, so its assignments can't be changed.";
 const COMPLETED_NOTICE_HINT =

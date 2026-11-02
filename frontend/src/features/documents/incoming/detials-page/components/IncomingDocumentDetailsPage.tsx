@@ -14,18 +14,8 @@ import DetailsTabs from "./DetialsTabs";
 import TabPlaceholder from "./TabPlaceHolder";
 
 export default function IncomingDocumentDetailsPage() {
-  const {
-    tab,
-    setTab,
-    doc,
-    trackingNo,
-    isLoading,
-    isError,
-    retry,
-    progress,
-    file,
-    divisions,
-  } = useIncomingDocumentDetailsPage();
+  const { tab, setTab, doc, trackingNo, isLoading, isError, retry, progress, file } =
+    useIncomingDocumentDetailsPage();
 
   return (
     <>
@@ -53,7 +43,7 @@ export default function IncomingDocumentDetailsPage() {
               {tab === "overview" ? (
                 <OverviewTab doc={doc} progress={progress} file={file} />
               ) : tab === "routed-divisions" ? (
-                <RoutedDivisionsTab doc={doc} divisions={divisions} />
+                <RoutedDivisionsTab doc={doc} />
               ) : tab === "action-assignments" ? (
                 <ActionAssignmentsTab incomingDocumentId={doc.id} />
               ) : (

@@ -1,4 +1,6 @@
 import { IQueryHandler, QueryHandler } from "@nestjs/cqrs";
+import { PaginatedResponse } from "../../../../../common/pagination/paginated-response";
+import { IncomingDocumentAssignmentEntity } from "../../entities/incoming-document-assignment.entity";
 import { AssignmentStatus } from "../../enums/assignment-status.enum";
 import { IncomingDocumentAssignmentsRepository } from "../../repository/incoming-document-assignment.repository";
 import { IncomingDocumentAssignmentResponse } from "../../types/get-incoming-document-assignment.type";
@@ -14,13 +16,23 @@ export class GetIncomingDocumentAssignmentsHandler
 
   async execute(
     query: GetIncomingDocumentAssignmentsQuery,
-  ): Promise<IncomingDocumentAssignmentResponse[]> {
-    const assignments = await this.assignmentsRepository.findAllByIncomingDocumentId(
-      query.incomingDocumentId,
-      query.filters,
-    );
+  ): Promise<PaginatedResponse<IncomingDocumentAssignmentResponse>> {
+    const { data, nextCursor } =
+      await this.assignmentsRepository.findAllByIncomingDocumentId(
+        query.incomingDocumentId,
+        query.filters,
+      );
 
-    return assignments.map((assignment) => ({
+    return {
+      data: data.map((assignment) => this.toResponse(assignment)),
+      nextCursor,
+    };
+  }
+
+  private toResponse(
+    assignment: IncomingDocumentAssignmentEntity,
+  ): IncomingDocumentAssignmentResponse {
+    return {
       id: assignment.id,
       office_type: assignment.office_type,
 
@@ -39,6 +51,7 @@ export class GetIncomingDocumentAssignmentsHandler
       created_at: assignment.created_at,
       status: assignment.status,
       action_taken: assignment.action_taken,
+
       action_taken_by:
         assignment.status === AssignmentStatus.COMPLETE && assignment.action_taken_by
           ? {
@@ -51,6 +64,6 @@ export class GetIncomingDocumentAssignmentsHandler
         assignment.status === AssignmentStatus.COMPLETE
           ? assignment.action_taken_at
           : null,
-    }));
+    };
   }
 }

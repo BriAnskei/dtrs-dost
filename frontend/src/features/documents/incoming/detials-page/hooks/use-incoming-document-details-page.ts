@@ -1,7 +1,6 @@
 import { FileText, GitBranch, History, ListChecks, type LucideIcon } from "lucide-react";
 import { useCallback } from "react";
 import { useParams, useSearchParams } from "react-router";
-import { useAssignedDivisionNoticeCounts } from "../../shared/hooks/api/use-assigned-division-notice-count";
 import { useIncomingDocumentFile } from "../../shared/hooks/api/use-incoming-document-file";
 import { useIncomingDocumentDetails } from "./api/use-incoming-document-detials";
 
@@ -51,10 +50,6 @@ export function useIncomingDocumentDetailsPage() {
     enabled: tab === "overview",
   });
 
-  // Only fetched while the Routed Divisions tab is open. The assign mutation
-  // invalidates this query, so the list refreshes after routing.
-  const divisionsQuery = useAssignedDivisionNoticeCounts(id, tab === "routed-divisions");
-
   const progress = {
     inProgress: doc?.in_progress_assignment_count ?? 0,
     actionTaken: doc?.action_taken_count ?? 0,
@@ -74,12 +69,6 @@ export function useIncomingDocumentDetailsPage() {
       isLoading: fileQuery.isLoading,
       isError: fileQuery.isError,
       retry: () => fileQuery.refetch(),
-    },
-    divisions: {
-      data: divisionsQuery.data,
-      isLoading: divisionsQuery.isLoading,
-      isError: divisionsQuery.isError,
-      retry: () => divisionsQuery.refetch(),
     },
   };
 }

@@ -169,7 +169,7 @@ export class IncomingDocumentController {
     @Param("incomingDocumentId", ParseUUIDPipe)
     incomingDocumentId: string,
     @Query() filters: GetIncomingDocumentAssignmentsDto,
-  ): Promise<IncomingDocumentAssignmentResponse[]> {
+  ) {
     return this.queryBus.execute(
       new GetIncomingDocumentAssignmentsQuery(incomingDocumentId, filters),
     );

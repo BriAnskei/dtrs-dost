@@ -1,5 +1,4 @@
 import { ChevronRight, Plus } from "lucide-react";
-import { useRef, useState } from "react";
 import Skeleton, { SkeletonTheme } from "react-loading-skeleton";
 import TableShell, {
   type TableShellColumn,
@@ -9,36 +8,19 @@ import type { AssignedDivisionNoticeCount } from "../../../types/assigned-divisi
 import type { IncomingDocumentDetails } from "../../../types/incoming-document-details.type";
 import { cardClass, SKELETON_BASE, SKELETON_HIGHLIGHT } from "../../constant";
 import DetailsCard from "../../overview/component/DetialsCard";
+import { useRoutedDivisionTab } from "../hooks/use-routed-division-tab";
 import DivisionAssignmentsPanel from "./DivisionAssignmentsPanel";
-
-export interface DivisionCountsState {
-  data: AssignedDivisionNoticeCount[] | undefined;
-  isLoading: boolean;
-  isError: boolean;
-  retry: () => void;
-}
 
 interface RoutedDivisionsTabProps {
   doc: IncomingDocumentDetails;
-  divisions: DivisionCountsState;
 }
 
 const primaryButton =
   "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg bg-primary px-4 py-2.5 text-theme-sm font-medium text-white transition hover:bg-primary/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-secondary/40 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:ring-offset-gray-900";
 
-const COMPLETE_HINT = "This document is complete, so nothing new can be assigned.";
-
-/**
- * Fixed table heights so the layout stays the same whether the list has
- * 0 rows or 50. Sized for roughly 5 rows; extra rows scroll inside the table.
- *
- * Desktop: sticky header (~41px) + 5 rows (~46px each).
- * Mobile:  5 cards (~105px each) + gaps between them.
- *
- * Tune these if the row padding or card content changes.
- */
-const TABLE_HEIGHT_DESKTOP = "272px";
-const TABLE_HEIGHT_MOBILE = "580px";
+// TableShell applies this as a fixed height (not a max-height), so the table
+// keeps the same size regardless of how many rows load.
+const TABLE_HEIGHT = "560px";
 
 /* -------------------------------------------------------------------------- */
 /*  Summary stat                                                              */
@@ -66,27 +48,25 @@ function Stat({ label, value }: { label: string; value: number }) {
 /*  Tab                                                                       */
 /* -------------------------------------------------------------------------- */
 
-export default function RoutedDivisionsTab({ doc, divisions }: RoutedDivisionsTabProps) {
-  const [routing, setRouting] = useState(false);
-  const [detailTarget, setDetailTarget] = useState<AssignedDivisionNoticeCount | null>(
-    null,
-  );
-
-  // TableShell requires scroll refs for infinite scroll; this list is a single
-  // unpaginated response, so they are never observed.
-  const mobileScrollRef = useRef<HTMLDivElement>(null);
-  const mobileSentinelRef = useRef<HTMLDivElement>(null);
-  const desktopScrollRef = useRef<HTMLDivElement>(null);
-  const desktopSentinelRef = useRef<HTMLDivElement>(null);
-
-  const isComplete = doc.status === "complete";
-  const list = divisions.data ?? [];
-  const hasDivisions = list.length > 0;
-  const totalAssignments = list.reduce((sum, d) => sum + d.total_assignments, 0);
-  const totalTaken = list.reduce((sum, d) => sum + d.action_taken_count, 0);
-  const totalPending = Math.max(0, totalAssignments - totalTaken);
-
-  const handleViewDetails = (row: AssignedDivisionNoticeCount) => setDetailTarget(row);
+export default function RoutedDivisionsTab({ doc }: RoutedDivisionsTabProps) {
+  const {
+    list,
+    hasDivisions,
+    isLoading,
+    isError,
+    retry,
+    stats,
+    isComplete,
+    completeHint,
+    routing,
+    openRouting,
+    closeRouting,
+    routeModalDoc,
+    detailTarget,
+    openDetails,
+    closeDetails,
+    tableRefs,
+  } = useRoutedDivisionTab(doc);
 
   const columns: TableShellColumn<AssignedDivisionNoticeCount>[] = [
     {
@@ -134,8 +114,8 @@ export default function RoutedDivisionsTab({ doc, divisions }: RoutedDivisionsTa
         <div className="space-y-5">
           {/* Summary stats: the top header. Hidden on error, and hidden
               entirely when the document has no routed divisions yet. */}
-          {!divisions.isError &&
-            (divisions.isLoading ? (
+          {!isError &&
+            (isLoading ? (
               <SkeletonTheme
                 baseColor={SKELETON_BASE}
                 highlightColor={SKELETON_HIGHLIGHT}
@@ -151,9 +131,9 @@ export default function RoutedDivisionsTab({ doc, divisions }: RoutedDivisionsTa
             ) : (
               hasDivisions && (
                 <dl className="grid grid-cols-3 divide-x divide-gray-200 dark:divide-white/8">
-                  <Stat label="Routed divisions" value={list.length} />
-                  <Stat label="Total assignments" value={totalAssignments} />
-                  <Stat label="Pending actions" value={totalPending} />
+                  <Stat label="Routed divisions" value={stats.routedDivisions} />
+                  <Stat label="Total assignments" value={stats.totalAssignments} />
+                  <Stat label="Pending actions" value={stats.pendingActions} />
                 </dl>
               )
             ))}
@@ -165,9 +145,9 @@ export default function RoutedDivisionsTab({ doc, divisions }: RoutedDivisionsTa
             </p>
             <button
               type="button"
-              onClick={() => setRouting(true)}
+              onClick={openRouting}
               disabled={isComplete}
-              title={isComplete ? COMPLETE_HINT : undefined}
+              title={isComplete ? completeHint : undefined}
               className={primaryButton}
             >
               <Plus className="h-4 w-4" aria-hidden="true" />
@@ -180,18 +160,18 @@ export default function RoutedDivisionsTab({ doc, divisions }: RoutedDivisionsTa
               role="note"
               className="rounded-lg bg-gray-50 px-3 py-2 text-theme-xs text-gray-500 dark:bg-white/3 dark:text-gray-400"
             >
-              {COMPLETE_HINT}
+              {completeHint}
             </p>
           )}
 
-          {divisions.isError ? (
+          {isError ? (
             <div className={`${cardClass} space-y-3 text-center`} role="alert">
               <p className="text-theme-sm text-gray-600 dark:text-gray-300">
                 Couldn't load the routed divisions.
               </p>
               <button
                 type="button"
-                onClick={divisions.retry}
+                onClick={retry}
                 className="rounded text-theme-sm font-medium text-primary hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-secondary/40"
               >
                 Retry
@@ -201,23 +181,18 @@ export default function RoutedDivisionsTab({ doc, divisions }: RoutedDivisionsTa
             <TableShell<AssignedDivisionNoticeCount>
               columns={columns}
               data={list}
-              isLoading={divisions.isLoading}
+              isLoading={isLoading}
               isError={false}
               error={undefined}
               entityName="divisions"
               emptyMessage="Not routed to any division yet."
               hasNextPage={false}
               isFetchingNextPage={false}
-              mobileScrollRef={mobileScrollRef}
-              mobileSentinelRef={mobileSentinelRef}
-              desktopScrollRef={desktopScrollRef}
-              desktopSentinelRef={desktopSentinelRef}
-              // TableShell applies these as a fixed height (not a max-height), so
-              // the table keeps the same size regardless of how many rows load.
-              maxTableHeight={TABLE_HEIGHT_DESKTOP}
-              maxMobileHeight={TABLE_HEIGHT_MOBILE}
+              {...tableRefs}
+              maxTableHeight={TABLE_HEIGHT}
+              maxMobileHeight={TABLE_HEIGHT}
               getRowKey={(row) => row.division_id}
-              onRowClick={handleViewDetails}
+              onRowClick={openDetails}
               getRowClassName={(row) =>
                 row.division_id === detailTarget?.division_id
                   ? "bg-gray-100/70 dark:bg-white/[0.06]"
@@ -228,7 +203,7 @@ export default function RoutedDivisionsTab({ doc, divisions }: RoutedDivisionsTa
                 <button
                   key={row.division_id}
                   type="button"
-                  onClick={() => handleViewDetails(row)}
+                  onClick={() => openDetails(row)}
                   aria-label={`View details for ${row.division_name}`}
                   className={`block w-full cursor-pointer rounded-xl border bg-white dark:bg-white/[0.03] p-4 text-left space-y-3 transition-colors hover:bg-gray-50 dark:hover:bg-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 ${
                     row.division_id === detailTarget?.division_id
@@ -275,20 +250,11 @@ export default function RoutedDivisionsTab({ doc, divisions }: RoutedDivisionsTa
       <DivisionAssignmentsPanel
         row={detailTarget}
         isDocComplete={isComplete}
-        onClose={() => setDetailTarget(null)}
+        onClose={closeDetails}
         incomingDocumentId={doc.id}
       />
 
-      {routing && (
-        <AssignDivisionModal
-          doc={{
-            id: doc.id,
-            trackingNo: doc.code ?? doc.tracking_sequence,
-            subject: doc.subject,
-          }}
-          onClose={() => setRouting(false)}
-        />
-      )}
+      {routing && <AssignDivisionModal doc={routeModalDoc} onClose={closeRouting} />}
     </>
   );
 }
