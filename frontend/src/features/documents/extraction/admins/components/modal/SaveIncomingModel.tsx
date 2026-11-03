@@ -2,6 +2,7 @@ import { Check, Loader2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import Modal from "../../../../../../components/Modal";
 import type { IncomingDraft } from "../../../helpers/incoming-helpers";
+import { formatDate } from "../../../../../../utils/dateFormatter";
 
 const primaryBtn =
   "inline-flex items-center justify-center gap-2 px-4 py-2 text-theme-sm font-medium text-white bg-primary hover:bg-primary/90 rounded-lg transition-colors whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-primary";
@@ -149,7 +150,7 @@ export default function SaveIncomingModal({
               <SummaryRow label="From" value={draft.documentFrom} />
               <SummaryRow label="Recipient" value={draft.recipient} />
               <SummaryRow label="Subject" value={draft.subject} />
-              <SummaryRow label="Date received" value={draft.dateReceived} />
+              <SummaryRow label="Date received" value={formatDate(draft.dateReceived)}/>
               <SummaryRow label="Summary" value={draft.summary} />
               {editedCount > 0 && (
                 <p className="text-theme-xs text-secondary">

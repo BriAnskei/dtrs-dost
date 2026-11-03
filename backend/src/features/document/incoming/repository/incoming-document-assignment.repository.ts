@@ -45,12 +45,14 @@ export class IncomingDocumentAssignmentsRepository {
         IncomingDocumentRoutingEntity,
         "routing",
         `
-        routing.incoming_document_id = assignment.incoming_document_id
-        AND routing.division_id = assignment.division_id
-        AND assignment.office_type = :officeType
+      routing.incoming_document_id = assignment.incoming_document_id
+      AND routing.division_id = assignment.division_id
+      AND assignment.office_type = :officeType
       `,
         { officeType: OfficeType.DIVISION },
       )
+      .leftJoinAndSelect("assignment.created_by", "created_by")
+      .leftJoinAndSelect("assignment.action_taken_by", "action_taken_by")
       .where("routing.id = :routingId", { routingId })
       .getMany();
   }

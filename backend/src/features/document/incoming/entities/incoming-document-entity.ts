@@ -10,6 +10,7 @@ import {
 } from "typeorm";
 import { DocumentFileEntity } from "../../document-file/entities/document-file.entity";
 import { IncomingDocumentAssignmentEntity } from "./incoming-document-assignment.entity";
+import { IncomingDocumentAssignmentCountEntity } from "./incoming-document-assignment-count.entity";
 import { IncomingDocumentRoutingEntity } from "./incoming-document-routing.entity";
 import { IncomingDocumentStatusHistoryEntity } from "./incoming-document-status-history-entity";
 
@@ -120,4 +121,10 @@ export class IncomingDocumentEntity {
     default: () => "CURRENT_TIMESTAMP",
   })
   created_at!: Date;
+
+  @OneToOne(
+    () => IncomingDocumentAssignmentCountEntity,
+    (counter) => counter.incoming_document,
+  )
+  assignment_counts!: IncomingDocumentAssignmentCountEntity;
 }

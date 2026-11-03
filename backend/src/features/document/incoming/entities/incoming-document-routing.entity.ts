@@ -4,11 +4,13 @@ import {
   Index,
   JoinColumn,
   ManyToOne,
+  OneToOne,
   PrimaryGeneratedColumn,
   Unique,
 } from "typeorm";
 import { DivisionEntity } from "../../../user/entities/division.entity";
 import { IncomingDocumentEntity } from "./incoming-document-entity";
+import { IncomingDocumentRoutingAssignmentCounterEntity } from "./incoming-document-routing-assignment-counter.entity";
 
 @Entity("incoming_document_routings")
 @Unique("uq_incoming_document_routing", ["incoming_document_id", "division_id"])
@@ -46,4 +48,10 @@ export class IncomingDocumentRoutingEntity {
     foreignKeyConstraintName: "fk_idr_division",
   })
   division!: DivisionEntity;
+
+  @OneToOne(
+    () => IncomingDocumentRoutingAssignmentCounterEntity,
+    (counter) => counter.routing,
+  )
+  assignment_counters!: IncomingDocumentRoutingAssignmentCounterEntity;
 }
