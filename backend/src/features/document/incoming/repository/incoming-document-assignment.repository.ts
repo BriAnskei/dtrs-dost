@@ -45,15 +45,13 @@ export class IncomingDocumentAssignmentsRepository {
         IncomingDocumentRoutingEntity,
         "routing",
         `
-          routing.incoming_document_id = assignment.incoming_document_id
-          AND routing.division_id = assignment.division_id
-        `,
+        routing.incoming_document_id = assignment.incoming_document_id
+        AND routing.division_id = assignment.division_id
+        AND assignment.office_type = :officeType
+      `,
+        { officeType: OfficeType.DIVISION },
       )
-      .leftJoinAndSelect("assignment.division", "division")
-      .leftJoinAndSelect("assignment.created_by", "createdBy")
-      .leftJoinAndSelect("assignment.action_taken_by", "actionTakenBy")
       .where("routing.id = :routingId", { routingId })
-      .orderBy("assignment.created_at", "ASC")
       .getMany();
   }
 
@@ -98,7 +96,7 @@ export class IncomingDocumentAssignmentsRepository {
     this.applyOfficeTypeFilter(queryBuilder, officeType);
 
     if (cursor) {
-      this.applyCursor(queryBuilder, cursor, sort, incomingDocumentId);
+      this.applyCursor(queryBuilder, cursor, sort);
     }
 
     this.applySorting(queryBuilder, sort);
@@ -139,12 +137,10 @@ export class IncomingDocumentAssignmentsRepository {
       search: `%${escapeLike(term)}%`,
     });
   }
-
   private applyCursor(
     queryBuilder: AssignmentQueryBuilder,
     cursor: string,
     sort: AssignmentSort,
-    incomingDocumentId: string,
   ): void {
     let decoded: IncomingDocumentAssignmentCursor;
 
@@ -158,18 +154,19 @@ export class IncomingDocumentAssignmentsRepository {
       !decoded ||
       typeof decoded.id !== "string" ||
       decoded.sort !== sort ||
-      typeof decoded.sortValue !== "string"
+      typeof decoded.sortValue !== "string" ||
+      !Number.isFinite(Date.parse(decoded.sortValue))
     ) {
       throw new BadRequestException("Invalid cursor for assignments");
     }
 
     switch (sort) {
       case AssignmentSort.NEWEST:
-        this.applyAssignmentCursor(queryBuilder, decoded.id, incomingDocumentId, "<");
+        this.applyAssignmentCursor(queryBuilder, decoded.sortValue, decoded.id, "<");
         break;
 
       case AssignmentSort.OLDEST:
-        this.applyAssignmentCursor(queryBuilder, decoded.id, incomingDocumentId, ">");
+        this.applyAssignmentCursor(queryBuilder, decoded.sortValue, decoded.id, ">");
         break;
 
       default:
@@ -179,23 +176,18 @@ export class IncomingDocumentAssignmentsRepository {
 
   private applyAssignmentCursor(
     queryBuilder: AssignmentQueryBuilder,
-    assignmentId: string,
-    incomingDocumentId: string,
+    cursorCreatedAt: string,
+    cursorId: string,
     operator: "<" | ">",
   ): void {
     queryBuilder.andWhere(
       `(assignment.created_at, assignment.id) ${operator} (
-      (
-        SELECT cursor_row.created_at
-        FROM incoming_document_assignments cursor_row
-        WHERE cursor_row.id = CAST(:cursorId AS uuid)
-          AND cursor_row.incoming_document_id = CAST(:incomingDocumentId AS uuid)
-      ),
+      CAST(:cursorCreatedAt AS timestamptz),
       CAST(:cursorId AS uuid)
     )`,
       {
-        cursorId: assignmentId,
-        incomingDocumentId,
+        cursorCreatedAt,
+        cursorId,
       },
     );
   }
