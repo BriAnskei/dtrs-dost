@@ -352,52 +352,23 @@ export class IncomingDocumentsRepository {
 
   async findByIdWithFullDetails(id: string): Promise<{
     document: IncomingDocumentEntity;
-    totalAssignments: number;
-    inProgressAssignmentCount: number;
-    actionTakenCount: number;
     assignedDivisionCount: number;
   } | null> {
-    const [document, counts] = await Promise.all([
+    const [document, routingCount] = await Promise.all([
       this.repository
         .createQueryBuilder("incoming")
         .innerJoinAndSelect("incoming.document_file", "documentFile")
         .leftJoinAndSelect("documentFile.uploader", "uploader")
-        .leftJoinAndSelect("incoming.assignments", "assignment")
-        .leftJoinAndSelect("assignment.division", "assignmentDivision")
-        .leftJoinAndSelect("assignment.created_by", "assignmentCreator")
-        .leftJoinAndSelect("assignment.action_taken_by", "actionTakenBy")
+        .leftJoinAndSelect("incoming.assignment_counts", "assignmentCounts")
         .where("incoming.id = :id", { id })
         .getOne(),
 
       this.repository
         .createQueryBuilder("incoming")
-        .leftJoin("incoming.assignments", "assignment")
-        .select("COUNT(assignment.id)", "total_assignments")
-        .addSelect(
-          `COUNT(assignment.id) FILTER (
-          WHERE assignment.status = :ongoingStatus
-        )`,
-          "in_progress_assignment_count",
-        )
-        .addSelect(
-          `COUNT(assignment.id) FILTER (
-          WHERE assignment.status = :completeStatus
-        )`,
-          "action_taken_count",
-        )
-        .addSelect(
-          `(SELECT COUNT(*)
-          FROM incoming_document_routings routing
-          WHERE routing.incoming_document_id = incoming.id)`,
-          "assigned_division_count",
-        )
+        .leftJoin("incoming.routings", "routing")
+        .select("COUNT(routing.id)", "assigned_division_count")
         .where("incoming.id = :id", { id })
-        .setParameters({
-          ongoingStatus: AssignmentStatus.ONGOING,
-          completeStatus: AssignmentStatus.COMPLETE,
-        })
-        .groupBy("incoming.id")
-        .getRawOne(),
+        .getRawOne<{ assigned_division_count: string }>(),
     ]);
 
     if (!document) {
@@ -406,10 +377,7 @@ export class IncomingDocumentsRepository {
 
     return {
       document,
-      totalAssignments: Number(counts?.total_assignments ?? 0),
-      inProgressAssignmentCount: Number(counts?.in_progress_assignment_count ?? 0),
-      actionTakenCount: Number(counts?.action_taken_count ?? 0),
-      assignedDivisionCount: Number(counts?.assigned_division_count ?? 0),
+      assignedDivisionCount: Number(routingCount?.assigned_division_count ?? 0),
     };
   }
 

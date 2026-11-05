@@ -247,6 +247,36 @@ export class IncomingDocumentAssignmentsRepository {
     });
   }
 
+  async findByIdWithRouting(
+    assignmentId: string,
+    manager: EntityManager,
+  ): Promise<{
+    assignment: IncomingDocumentAssignmentEntity;
+    routingId: string | null;
+  } | null> {
+    const { entities, raw } = await manager
+      .getRepository(IncomingDocumentAssignmentEntity)
+      .createQueryBuilder("assignment")
+      .leftJoin(
+        IncomingDocumentRoutingEntity,
+        "routing",
+        `
+        routing.incoming_document_id = assignment.incoming_document_id
+        AND routing.division_id = assignment.division_id
+      `,
+      )
+      .addSelect("routing.id", "routing_id")
+      .where("assignment.id = :assignmentId", { assignmentId })
+      .getRawAndEntities();
+
+    if (!entities.length) return null;
+
+    return {
+      assignment: entities[0],
+      routingId: raw[0]?.routing_id ?? null,
+    };
+  }
+
   async delete(id: string, manager?: EntityManager): Promise<boolean> {
     const repo =
       manager?.getRepository(IncomingDocumentAssignmentEntity) ?? this.repository;

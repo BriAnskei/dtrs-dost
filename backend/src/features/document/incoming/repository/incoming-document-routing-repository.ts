@@ -60,38 +60,16 @@ export class IncomingDocumentRoutingRepository {
     return this.repository
       .createQueryBuilder("routing")
       .innerJoin("routing.division", "division")
-      .leftJoin(
-        IncomingDocumentAssignmentEntity,
-        "assignment",
-        `assignment.incoming_document_id = routing.incoming_document_id
-       AND assignment.division_id = routing.division_id
-       AND assignment.office_type = :officeType`,
-        { officeType: OfficeType.DIVISION },
-      )
+      .leftJoin("routing.assignment_counters", "routingCounts")
       .where("routing.incoming_document_id = :incomingDocumentId", {
         incomingDocumentId,
       })
       .select("routing.id", "routing_id")
       .addSelect("division.id", "division_id")
       .addSelect("division.division_name", "division_name")
-      .addSelect("COUNT(assignment.id)", "total_assignments")
-      .addSelect(
-        `COUNT(
-        CASE WHEN assignment.status = :completedStatus THEN 1 END
-      )`,
-        "action_taken_count",
-      )
-      .setParameter("completedStatus", AssignmentStatus.COMPLETE)
-      .groupBy("routing.id")
-      .addGroupBy("division.id")
-      .addGroupBy("division.division_name")
+      .addSelect("COALESCE(routingCounts.total, 0)", "total_assignments")
+      .addSelect("COALESCE(routingCounts.complete, 0)", "action_taken_count")
       .orderBy("division.division_name", "ASC")
-      .getRawMany<{
-        routing_id: string;
-        division_id: string;
-        division_name: string;
-        total_assignments: string;
-        action_taken_count: string;
-      }>();
+      .getRawMany();
   }
 }

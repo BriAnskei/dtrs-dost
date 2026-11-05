@@ -1,13 +1,13 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { CommandHandler, EventBus, ICommandHandler } from "@nestjs/cqrs";
 import { DataSource } from "typeorm";
-import { IncomingDocumentCreatedEvent } from "../../../../../common/events/incoming-document-created.event";
 import { buildDocumentKey } from "../../../../../storage/s3/buildDocumentKey";
 import { S3Service } from "../../../../../storage/s3/s3.service";
 import { capitalizeWords } from "../../../../../util/capitalizer";
 import { DocumentFileService } from "../../../document-file/service/document-file.service";
 import { generateDocumentCode } from "../../../utils/document-code.util";
 import { IncomingDocumentsRepository } from "../../repository/incoming-document.repository";
+import { AssignmentCounterService } from "../../services/assignment-counter.service";
 import { CreateIncomingDocumentCommand } from "./create-incoming-document.command";
 
 @CommandHandler(CreateIncomingDocumentCommand)
@@ -22,6 +22,8 @@ export class CreateIncomingDocumentHandler
     private readonly dataSource: DataSource,
     private readonly documentFileService: DocumentFileService,
     private readonly s3Service: S3Service,
+    private readonly assignmentCounterService: AssignmentCounterService,
+
     private readonly eventBus: EventBus,
   ) {}
 
@@ -61,6 +63,12 @@ export class CreateIncomingDocumentHandler
         const code = generateDocumentCode("incoming", savedDocument.tracking_sequence);
         await this.documentFileService.updateCode(documentFile.id, code, manager);
 
+        // create new couter matrix
+        await this.assignmentCounterService.createIncomingDocumentCount(
+          savedDocument.id,
+          manager,
+        );
+
         return {
           id: savedDocument.id,
           documentFileId: documentFile.id,
@@ -79,7 +87,7 @@ export class CreateIncomingDocumentHandler
       //   ),
       // );
 
-      return result;
+      return ;
     } catch (error) {
       if (uploadCompleted) {
         try {

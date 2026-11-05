@@ -11,8 +11,10 @@ import { CreateIncomingFromQueueHandler } from "./command/create-incoming-from-q
 import { DeleteIncomingDocumentAssignmentHandler } from "./command/delete-incoming-document-assignment/delete-incoming-document-assignment.handler";
 import { IncomingDocumentController } from "./controller/incoming-document.controller";
 import { IncomingDocumentAssignmentEntity } from "./entities/incoming-document-assignment.entity";
+import { IncomingDocumentAssignmentCountEntity } from "./entities/incoming-document-assignment-count.entity";
 import { IncomingDocumentEntity } from "./entities/incoming-document-entity";
 import { IncomingDocumentRoutingEntity } from "./entities/incoming-document-routing.entity";
+import { IncomingDocumentRoutingAssignmentCounterEntity } from "./entities/incoming-document-routing-assignment-counter.entity";
 import { IncomingDocumentStatusHistoryEntity } from "./entities/incoming-document-status-history-entity";
 import { FindIncomingDocumentsHandler } from "./query/find-incoming-documents/find-incoming-documents.handler";
 import { GetAssignedDivisionNoticeCountsHandler } from "./query/get-assigned-division-notice-counts/get-assigned-division-notice-counts.handler";
@@ -23,7 +25,10 @@ import { GetIncomingDocumentFileStreamHandler } from "./query/get-incoming-file-
 import { GetReceiverQueueDetailsHandler } from "./query/get-receiver-queue-details/get-incoming-document-by-queue.handler";
 import { IncomingDocumentsRepository } from "./repository/incoming-document.repository";
 import { IncomingDocumentAssignmentsRepository } from "./repository/incoming-document-assignment.repository";
+import { IncomingDocumentAssignmentCountRepository } from "./repository/incoming-document-assignment-counts.repository";
+import { IncomingDocumentRoutingAssignmentCounterRepository } from "./repository/incoming-document-routing-assignment-counter.repository";
 import { IncomingDocumentRoutingRepository } from "./repository/incoming-document-routing-repository";
+import { AssignmentCounterService } from "./services/assignment-counter.service";
 
 @Module({
   imports: [
@@ -32,6 +37,8 @@ import { IncomingDocumentRoutingRepository } from "./repository/incoming-documen
       IncomingDocumentStatusHistoryEntity,
       IncomingDocumentRoutingEntity,
       IncomingDocumentAssignmentEntity,
+      IncomingDocumentAssignmentCountEntity,
+      IncomingDocumentRoutingAssignmentCounterEntity,
     ]),
 
     UserModule,
@@ -42,31 +49,30 @@ import { IncomingDocumentRoutingRepository } from "./repository/incoming-documen
   ],
   controllers: [IncomingDocumentController],
   providers: [
+    // Repositories
     IncomingDocumentsRepository,
     IncomingDocumentRoutingRepository,
     IncomingDocumentAssignmentsRepository,
+    IncomingDocumentAssignmentCountRepository,
+    IncomingDocumentRoutingAssignmentCounterRepository,
 
+    // Service
+    AssignmentCounterService,
+
+    // Command handlers
     CreateIncomingDocumentHandler,
-    FindIncomingDocumentsHandler,
     CreateIncomingFromQueueHandler,
-
-    // for receiver
-    GetReceiverQueueDetailsHandler,
-
-    GetIncomingDocumentFileStreamHandler,
-
-    GetAssignedDivisionNoticeCountsHandler,
-
-    AssignIncomingDocumentToDivisionHandler,
-
-    GetIncomingDocumentDetailsHandler,
-
-    GetIncomingDocumentAssignmentsByRoutingIdHandler,
-
     CreateIncomingDocumentAssignmentsHandler,
-
+    AssignIncomingDocumentToDivisionHandler,
     DeleteIncomingDocumentAssignmentHandler,
 
+    // Query handlers
+    FindIncomingDocumentsHandler,
+    GetReceiverQueueDetailsHandler,
+    GetIncomingDocumentFileStreamHandler,
+    GetAssignedDivisionNoticeCountsHandler,
+    GetIncomingDocumentDetailsHandler,
+    GetIncomingDocumentAssignmentsByRoutingIdHandler,
     GetIncomingDocumentAssignmentsHandler,
   ],
 })

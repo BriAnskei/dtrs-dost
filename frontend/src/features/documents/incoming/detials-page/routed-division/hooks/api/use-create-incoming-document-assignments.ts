@@ -20,7 +20,7 @@ export function useCreateIncomingDocumentAssignments() {
       Promise.all([
         // Document details (overview progress)
         queryClient.invalidateQueries({
-          queryKey: ["incoming-document", "details", incomingDocumentId],
+          queryKey: ["incoming-documents", "details", incomingDocumentId],
         }),
         queryClient.invalidateQueries({
           queryKey: ["assigned-division-notice-counts", incomingDocumentId],

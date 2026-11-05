@@ -5,3 +5,4 @@ export interface AssignedDivisionNoticeCount {
   total_assignments: number;
   action_taken_count: number;
 }
+

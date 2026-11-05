@@ -35,13 +35,6 @@ export class IncomingDocumentRoutingAssignmentCounterEntity {
     default: 0,
     nullable: false,
   })
-  pending!: string;
-
-  @Column({
-    type: "bigint",
-    default: 0,
-    nullable: false,
-  })
   ongoing!: string;
 
   @Column({

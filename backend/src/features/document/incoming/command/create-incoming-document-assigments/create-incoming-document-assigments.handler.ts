@@ -1,6 +1,6 @@
 import { BadRequestException, NotFoundException } from "@nestjs/common";
 import { CommandHandler, ICommandHandler } from "@nestjs/cqrs";
-import { DataSource } from "typeorm";
+import { DataSource, EntityManager } from "typeorm";
 import {
   IncomingDocumentAssignmentEntity,
   OfficeType,
@@ -9,6 +9,7 @@ import { AssignmentStatus } from "../../enums/assignment-status.enum";
 import { IncomingDocumentsRepository } from "../../repository/incoming-document.repository";
 import { IncomingDocumentAssignmentsRepository } from "../../repository/incoming-document-assignment.repository";
 import { IncomingDocumentRoutingRepository } from "../../repository/incoming-document-routing-repository";
+import { AssignmentCounterService } from "../../services/assignment-counter.service";
 import { CreateIncomingDocumentAssignmentsCommand } from "./create-incoming-document-assigments.command";
 
 @CommandHandler(CreateIncomingDocumentAssignmentsCommand)
@@ -20,6 +21,8 @@ export class CreateIncomingDocumentAssignmentsHandler
     private readonly incomingRepository: IncomingDocumentsRepository,
     private readonly routingRepository: IncomingDocumentRoutingRepository,
     private readonly assignmentsRepository: IncomingDocumentAssignmentsRepository,
+
+    private readonly counterService: AssignmentCounterService,
   ) {}
 
   async execute(command: CreateIncomingDocumentAssignmentsCommand) {
@@ -37,7 +40,9 @@ export class CreateIncomingDocumentAssignmentsHandler
 
       if (dto.officeType === OfficeType.DIVISION) {
         if (!dto.incomingDocumentRoutingId)
-          throw new BadRequestException("routing id is rquired in division type");
+          throw new BadRequestException(
+            "routing id is rquired in division asignment type",
+          );
 
         const routing = await this.routingRepository.findById(
           dto.incomingDocumentRoutingId,
@@ -45,7 +50,9 @@ export class CreateIncomingDocumentAssignmentsHandler
         );
 
         if (!routing || routing.incoming_document_id !== incomingDocumentId) {
-          throw new NotFoundException("Incoming document routing not found.");
+          throw new NotFoundException(
+            "Invalid parameters or Incoming document routing not found.",
+          );
         }
 
         divisionId = routing.division_id;
@@ -65,11 +72,48 @@ export class CreateIncomingDocumentAssignmentsHandler
 
       await this.assignmentsRepository.insertMany(assignments, manager);
 
+      await this.handleCounters(
+        {
+          incomingDocumentId,
+          routingId: dto.incomingDocumentRoutingId,
+          officeType: dto.officeType,
+          assignmentSum: dto.noticesOfActions.length,
+        },
+        manager,
+      );
+
       await this.incomingRepository.update(
         incomingDocumentId,
         { updated_at: new Date() },
         manager,
       );
     });
+  }
+
+  private async handleCounters(
+    payload: {
+      incomingDocumentId: string;
+      routingId: string | undefined;
+      officeType: OfficeType;
+      assignmentSum: number;
+    },
+    manager: EntityManager,
+  ): Promise<void> {
+    const { incomingDocumentId, routingId, officeType, assignmentSum } = payload;
+    if (assignmentSum === 0) return;
+
+    if (officeType === OfficeType.DIVISION && routingId) {
+      await this.counterService.adjustIncomingRoutingtCounts(
+        routingId,
+        { total: assignmentSum },
+        manager,
+      );
+    }
+
+    await this.counterService.adjustIncomingGlobalCounts(
+      incomingDocumentId,
+      { total: assignmentSum },
+      manager,
+    );
   }
 }

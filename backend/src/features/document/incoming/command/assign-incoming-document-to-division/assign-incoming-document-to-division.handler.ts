@@ -1,11 +1,15 @@
 import { ConflictException, NotFoundException } from "@nestjs/common";
 import { CommandHandler, ICommandHandler } from "@nestjs/cqrs";
-import { DataSource, QueryFailedError } from "typeorm";
+import { DataSource, EntityManager, QueryFailedError } from "typeorm";
 import { DivisionService } from "../../../../user/service/division.service";
-import { IncomingDocumentAssignmentEntity, OfficeType } from "../../entities/incoming-document-assignment.entity";
+import {
+  IncomingDocumentAssignmentEntity,
+  OfficeType,
+} from "../../entities/incoming-document-assignment.entity";
 import { IncomingDocumentsRepository } from "../../repository/incoming-document.repository";
 import { IncomingDocumentAssignmentsRepository } from "../../repository/incoming-document-assignment.repository";
 import { IncomingDocumentRoutingRepository } from "../../repository/incoming-document-routing-repository";
+import { AssignmentCounterService } from "../../services/assignment-counter.service";
 import { AssignIncomingDocumentToDivisionCommand } from "./assign-incoming-document-to-division.command";
 
 @CommandHandler(AssignIncomingDocumentToDivisionCommand)
@@ -17,8 +21,8 @@ export class AssignIncomingDocumentToDivisionHandler
     private readonly incomingRepository: IncomingDocumentsRepository,
     private readonly routingRepository: IncomingDocumentRoutingRepository,
     private readonly assignmentsRepository: IncomingDocumentAssignmentsRepository,
-
     private readonly divisionService: DivisionService,
+    private readonly counterService: AssignmentCounterService,
   ) {}
 
   async execute(command: AssignIncomingDocumentToDivisionCommand) {
@@ -49,7 +53,7 @@ export class AssignIncomingDocumentToDivisionHandler
           throw new ConflictException("This Division is already routed to this document");
         }
 
-        await this.routingRepository.create(
+        const newRouting = await this.routingRepository.create(
           {
             incoming_document_id: dto.incomingDocumentId,
             division_id: dto.divisionId,
@@ -68,6 +72,15 @@ export class AssignIncomingDocumentToDivisionHandler
           }));
 
         await this.assignmentsRepository.insertMany(assignments, manager);
+
+        await this.createCounters(
+          {
+            incomingId: dto.incomingDocumentId,
+            routingId: newRouting.id,
+            assignmentSum: dto.noticesOfAction?.length ?? 0,
+          },
+          manager,
+        );
 
         await this.incomingRepository.update(
           dto.incomingDocumentId,
@@ -104,5 +117,23 @@ export class AssignIncomingDocumentToDivisionHandler
 
       throw error;
     }
+  }
+
+  private async createCounters(
+    payload: { incomingId: string; routingId: string; assignmentSum: number },
+    manager: EntityManager,
+  ): Promise<void> {
+    // during incoming creation incoming counter is created along the way, here
+    // we are routing a new division, thus we create routing counter.
+    const { incomingId, routingId, assignmentSum } = payload;
+
+    await this.counterService.createRoutingCount(routingId, manager);
+
+    if (assignmentSum === 0) return;
+
+    await this.counterService.adjustDocumentAssignmentCounts(
+      { incomingDocumentId: incomingId, routingId, changes: { total: assignmentSum } },
+      manager,
+    );
   }
 }

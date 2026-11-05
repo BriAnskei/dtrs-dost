@@ -20,10 +20,12 @@ export class GetIncomingDocumentDetailsHandler
     );
 
     if (!result) {
-      throw new NotFoundException(`Incoming document not found`);
+      throw new NotFoundException("Incoming document not found");
     }
 
-    const { document, ...counts } = result;
+    const { document, assignedDivisionCount } = result;
+    const counts = document.assignment_counts;
+
     const dto = new IncomingDocumentDetailsDto();
 
     dto.id = document.id;
@@ -49,10 +51,10 @@ export class GetIncomingDocumentDetailsHandler
     dto.uploader_id = document.document_file.uploader_id;
     dto.uploader_name = document.document_file.uploader?.full_name ?? null;
 
-    dto.assignments = counts.totalAssignments;
-    dto.in_progress_assignment_count = counts.inProgressAssignmentCount;
-    dto.action_taken_count = counts.actionTakenCount;
-    dto.assigned_division_count = counts.assignedDivisionCount;
+    dto.assignments = Number(counts?.total ?? 0);
+    dto.in_progress_assignment_count = Number(counts?.ongoing ?? 0);
+    dto.action_taken_count = Number(counts?.complete ?? 0);
+    dto.assigned_division_count = assignedDivisionCount;
 
     return dto;
   }
