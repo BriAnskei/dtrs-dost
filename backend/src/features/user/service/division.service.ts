@@ -1,4 +1,5 @@
 import { ConflictException, Injectable, NotFoundException } from "@nestjs/common";
+import { EntityManager } from "typeorm/browser";
 import { PaginatedResponse } from "../../../common/pagination/paginated-response";
 import { capitalizeWords } from "../../../util/capitalizer";
 import { FindDivisionsQueryDto } from "../dto/queries/find-divisions-query-dto";
@@ -43,8 +44,8 @@ export class DivisionService {
     };
   }
 
-  async findById(id: string): Promise<DivisionEntity> {
-    const division = await this.repository.findOne(id);
+  async findById(id: string, manager?: EntityManager): Promise<DivisionEntity> {
+    const division = await this.repository.findOne(id, manager);
 
     if (!division) throw new NotFoundException("Division does not exist");
 

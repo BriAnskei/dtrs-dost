@@ -164,11 +164,11 @@ export class IncomingDocumentAssignmentsRepository {
 
     switch (sort) {
       case AssignmentSort.NEWEST:
-        this.applyAssignmentCursor(queryBuilder, decoded.sortValue, decoded.id, "<");
+        this.applyAssignmentCursor(queryBuilder, decoded.id, "<");
         break;
 
       case AssignmentSort.OLDEST:
-        this.applyAssignmentCursor(queryBuilder, decoded.sortValue, decoded.id, ">");
+        this.applyAssignmentCursor(queryBuilder, decoded.id, ">");
         break;
 
       default:
@@ -178,17 +178,19 @@ export class IncomingDocumentAssignmentsRepository {
 
   private applyAssignmentCursor(
     queryBuilder: AssignmentQueryBuilder,
-    cursorCreatedAt: string,
     cursorId: string,
     operator: "<" | ">",
   ): void {
     queryBuilder.andWhere(
       `(assignment.created_at, assignment.id) ${operator} (
-      CAST(:cursorCreatedAt AS timestamptz),
+      (
+        SELECT cursor_row.created_at
+        FROM incoming_document_assignments cursor_row
+        WHERE cursor_row.id = CAST(:cursorId AS uuid)
+      ),
       CAST(:cursorId AS uuid)
     )`,
       {
-        cursorCreatedAt,
         cursorId,
       },
     );
@@ -235,6 +237,39 @@ export class IncomingDocumentAssignmentsRepository {
     }
   }
 
+  async existsByStatuses(
+    incomingDocumentId: string,
+    divisionId: string,
+    statuses: AssignmentStatus[],
+    manager: EntityManager,
+  ): Promise<boolean> {
+    return manager
+      .getRepository(IncomingDocumentAssignmentEntity)
+      .createQueryBuilder("assignment")
+      .where("assignment.incoming_document_id = :incomingDocumentId", {
+        incomingDocumentId,
+      })
+      .andWhere("assignment.division_id = :divisionId", {
+        divisionId,
+      })
+      .andWhere("assignment.status IN (:...statuses)", {
+        statuses,
+      })
+      .getExists();
+  }
+
+  async findForUpdate(
+    assignmentId: string,
+    manager: EntityManager,
+  ): Promise<IncomingDocumentAssignmentEntity | null> {
+    return manager
+      .getRepository(IncomingDocumentAssignmentEntity)
+      .createQueryBuilder("assignment")
+      .setLock("pessimistic_write")
+      .where("assignment.id = :assignmentId", { assignmentId })
+      .getOne();
+  }
+
   async findById(
     id: string,
     manager?: EntityManager,
@@ -245,36 +280,6 @@ export class IncomingDocumentAssignmentsRepository {
     return repo.findOne({
       where: { id },
     });
-  }
-
-  async findByIdWithRouting(
-    assignmentId: string,
-    manager: EntityManager,
-  ): Promise<{
-    assignment: IncomingDocumentAssignmentEntity;
-    routingId: string | null;
-  } | null> {
-    const { entities, raw } = await manager
-      .getRepository(IncomingDocumentAssignmentEntity)
-      .createQueryBuilder("assignment")
-      .leftJoin(
-        IncomingDocumentRoutingEntity,
-        "routing",
-        `
-        routing.incoming_document_id = assignment.incoming_document_id
-        AND routing.division_id = assignment.division_id
-      `,
-      )
-      .addSelect("routing.id", "routing_id")
-      .where("assignment.id = :assignmentId", { assignmentId })
-      .getRawAndEntities();
-
-    if (!entities.length) return null;
-
-    return {
-      assignment: entities[0],
-      routingId: raw[0]?.routing_id ?? null,
-    };
   }
 
   async delete(id: string, manager?: EntityManager): Promise<boolean> {

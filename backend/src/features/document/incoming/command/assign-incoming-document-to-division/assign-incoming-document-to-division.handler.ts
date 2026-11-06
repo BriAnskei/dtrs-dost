@@ -34,6 +34,7 @@ export class AssignIncomingDocumentToDivisionHandler
       return await this.dataSource.transaction(async (manager) => {
         const incomingDocument = await this.incomingRepository.findById(
           dto.incomingDocumentId,
+          manager,
         );
 
         if (!incomingDocument) {
@@ -41,7 +42,7 @@ export class AssignIncomingDocumentToDivisionHandler
         }
 
         // fetches the division on business level, throws NotFound if division does not exist
-        await this.divisionService.findById(dto.divisionId);
+        await this.divisionService.findById(dto.divisionId, manager);
 
         const isRoutingExist = await this.routingRepository.exists(
           dto.incomingDocumentId,
@@ -113,6 +114,14 @@ export class AssignIncomingDocumentToDivisionHandler
         throw new ConflictException(
           "This incoming document is already routed to this division.",
         );
+      }
+
+      if (
+        error instanceof QueryFailedError &&
+        error.driverError?.code === "23503" &&
+        error.driverError?.constraint === "fk_idr_division"
+      ) {
+        throw new NotFoundException("Division does not exist.");
       }
 
       throw error;

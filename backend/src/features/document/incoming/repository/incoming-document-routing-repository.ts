@@ -1,12 +1,8 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { EntityManager, Repository } from "typeorm";
-import {
-  IncomingDocumentAssignmentEntity,
-  OfficeType,
-} from "../entities/incoming-document-assignment.entity";
+
 import { IncomingDocumentRoutingEntity } from "../entities/incoming-document-routing.entity";
-import { AssignmentStatus } from "../enums/assignment-status.enum";
 
 @Injectable()
 export class IncomingDocumentRoutingRepository {
@@ -32,6 +28,31 @@ export class IncomingDocumentRoutingRepository {
       : this.repository;
 
     return repository.exists({
+      where: {
+        incoming_document_id: incomingDocumentId,
+        division_id: divisionId,
+      },
+    });
+  }
+
+  async findByIdForUpdate(
+    routingId: string,
+    manager: EntityManager,
+  ): Promise<IncomingDocumentRoutingEntity | null> {
+    return manager
+      .getRepository(IncomingDocumentRoutingEntity)
+      .createQueryBuilder("routing")
+      .setLock("pessimistic_write")
+      .where("routing.id = :routingId", { routingId })
+      .getOne();
+  }
+
+  async findByIncomingDocumentAndDivision(
+    incomingDocumentId: string,
+    divisionId: string,
+    manager: EntityManager,
+  ): Promise<IncomingDocumentRoutingEntity | null> {
+    return manager.getRepository(IncomingDocumentRoutingEntity).findOne({
       where: {
         incoming_document_id: incomingDocumentId,
         division_id: divisionId,
@@ -71,5 +92,11 @@ export class IncomingDocumentRoutingRepository {
       .addSelect("COALESCE(routingCounts.complete, 0)", "action_taken_count")
       .orderBy("division.division_name", "ASC")
       .getRawMany();
+  }
+
+  async delete(id: string, manager: EntityManager): Promise<boolean> {
+    const result = await manager.getRepository(IncomingDocumentRoutingEntity).delete(id);
+
+    return (result.affected ?? 0) > 0;
   }
 }

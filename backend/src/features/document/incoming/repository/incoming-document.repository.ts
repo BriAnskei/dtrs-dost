@@ -10,7 +10,6 @@ import {
   IncomingDocumentEntity,
   IncomingDocumentStatus,
 } from "../entities/incoming-document-entity";
-import { AssignmentStatus } from "../enums/assignment-status.enum";
 import { IncomingDocumentDateField } from "../enums/incoming-document-date-field.enum";
 import { IncomingDocumentSortOrder } from "../enums/incoming-document-sort-order.enum";
 import { IncomingDocumentCursor } from "../types/incoming-document-cursor";
@@ -345,9 +344,13 @@ export class IncomingDocumentsRepository {
       },
     });
   }
+  async findById(
+    id: string,
+    manager?: EntityManager,
+  ): Promise<IncomingDocumentEntity | null> {
+    const repository = manager?.getRepository(IncomingDocumentEntity) ?? this.repository;
 
-  async findById(id: string): Promise<IncomingDocumentEntity | null> {
-    return await this.repository.findOne({ where: { id } });
+    return repository.findOne({ where: { id } });
   }
 
   async findByIdWithFullDetails(id: string): Promise<{

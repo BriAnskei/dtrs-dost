@@ -8,17 +8,19 @@ interface CreateAssignmentsVariables {
   incomingDocumentId: string;
   dto: CreateIncomingDocumentAssignmentsDto;
 }
-
 export function useCreateIncomingDocumentAssignments() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: ({ incomingDocumentId, dto }: CreateAssignmentsVariables) =>
       IncomingDocumentService.createIncomingDocumentAssignments(incomingDocumentId, dto),
+    onSuccess: (_, { incomingDocumentId, dto }) => {
+      const count = dto.noticesOfActions.length;
+      toast.success(
+        count === 1 ? "Notice of action added" : `${count} notices of action added`,
+      );
 
-    onSuccess: (_, { incomingDocumentId, dto }) =>
-      Promise.all([
-        // Document details (overview progress)
+      return Promise.all([
         queryClient.invalidateQueries({
           queryKey: ["incoming-documents", "details", incomingDocumentId],
         }),
@@ -35,11 +37,12 @@ export function useCreateIncomingDocumentAssignments() {
               }),
             ]
           : []),
-      ]),
+      ]);
+    },
     onError: (error) => {
       console.error(error);
       toast.error(getApiErrorMessage(error, "Failed to create assignment"), {
-        id: "create-assignment-errror",
+        id: "create-assignment-error",
       });
     },
   });

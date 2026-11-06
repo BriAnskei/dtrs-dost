@@ -112,4 +112,8 @@ export const IncomingDocumentService = {
       `${INCOMING_DOCUMENTS_ENDPOINT}/${incomingDocumentId}/assignments/${assignmentId}`,
     );
   },
+
+  async deleteIncomingDocumentRouting(routingId: string): Promise<void> {
+    await apiClient.delete(`/incoming-documents/routings/${routingId}`);
+  },
 };

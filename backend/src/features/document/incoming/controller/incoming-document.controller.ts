@@ -3,6 +3,8 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
+  HttpStatus,
   Param,
   ParseUUIDPipe,
   Post,
@@ -26,6 +28,7 @@ import { CreateIncomingDocumentCommand } from "../command/create-incoming-docume
 import { CreateIncomingDocumentAssignmentsCommand } from "../command/create-incoming-document-assigments/create-incoming-document-assigments.command";
 import { CreateIncomingFromQueueCommand } from "../command/create-incoming-from-queue/create-incoming-from-queue.command";
 import { DeleteIncomingDocumentAssignmentCommand } from "../command/delete-incoming-document-assignment/delete-incoming-document-assignment.command";
+import { DeleteIncomingDocumentRoutingCommand } from "../command/delete-incoming-document-routing/delete-incoming-document-routing.command";
 import { AssignIncomingDocumentToDivisionDto } from "../dto/assign-incoming-document-to-division";
 import { CreateIncomingDocumentDto } from "../dto/create-incoming-document.dto";
 import { CreateIncomingDocumentAssignmentsDto } from "../dto/create-incoming-document-assignments-dto";
@@ -184,5 +187,14 @@ export class IncomingDocumentController {
     return this.commandBus.execute(
       new DeleteIncomingDocumentAssignmentCommand(assignmentId, incomingDocumentId),
     );
+  }
+
+  @Delete("routings/:routingId")
+  @Roles(Role.Admin, Role.SuperAdmin)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async deleteRouting(
+    @Param("routingId", new ParseUUIDPipe()) routingId: string,
+  ): Promise<void> {
+    return this.commandBus.execute(new DeleteIncomingDocumentRoutingCommand(routingId));
   }
 }

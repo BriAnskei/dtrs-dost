@@ -1,4 +1,4 @@
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Unlink } from "lucide-react";
 import { useId } from "react";
 import Skeleton, { SkeletonTheme } from "react-loading-skeleton";
 import DetailPanel, {
@@ -19,10 +19,15 @@ import {
   canDeleteAssignment,
   useDivisionAssignmentsPanel,
 } from "../hooks/use-division-assignment-panel";
+import UnrouteDivisionModal from "./modal/UnrouteDivisionModal";
 
 const COMPLETE_HINT = "This document is complete, so its assignments can't be changed.";
 const COMPLETED_NOTICE_HINT =
   "Completed notices can't be deleted because their action is already recorded.";
+
+/** Quiet text button: the destructive action stays understated until the modal. */
+const unrouteTrigger =
+  "mr-auto inline-flex items-center gap-2 whitespace-nowrap rounded-lg px-3 py-2 text-theme-sm font-medium text-gray-500 transition hover:bg-error-50 hover:text-error-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-secondary/40 disabled:cursor-not-allowed disabled:opacity-50 dark:text-gray-400 dark:hover:bg-error-500/10 dark:hover:text-error-400";
 
 interface DivisionAssignmentsPanelProps {
   /** The selected division row. `null` closes the panel. */
@@ -90,6 +95,7 @@ export default function DivisionAssignmentsPanel({
     requestDelete,
     confirmDelete,
     cancelConfirm,
+    unroute,
   } = useDivisionAssignmentsPanel({ row, incomingDocumentId, onClose });
 
   const pendingCount = Math.max(0, items.length - takenCount);
@@ -348,27 +354,52 @@ export default function DivisionAssignmentsPanel({
       </button>
     </>
   ) : (
-    <button
-      type="button"
-      onClick={drafts.add}
-      disabled={query.isLoading || query.isError}
-      className={primaryButton}
-    >
-      <Plus className="h-4 w-4" aria-hidden="true" />
-      Add notice of action
-    </button>
+    <>
+      {/* Left-aligned and quiet, away from the primary action. It stays
+          clickable when blocked: the modal explains why and what to do. */}
+      <button
+        type="button"
+        onClick={unroute.open}
+        disabled={!query.isSuccess || isBusy}
+        className={unrouteTrigger}
+      >
+        <Unlink className="h-4 w-4" aria-hidden="true" />
+        Unroute division
+      </button>
+      <button
+        type="button"
+        onClick={drafts.add}
+        disabled={query.isLoading || query.isError}
+        className={primaryButton}
+      >
+        <Plus className="h-4 w-4" aria-hidden="true" />
+        Add notice of action
+      </button>
+    </>
   );
 
   return (
-    <DetailPanel
-      isOpen={row !== null}
-      onClose={requestClose}
-      eyebrow="Routed division"
-      title={shown?.division_name ?? ""}
-      size="lg"
-      closeDisabled={isBusy}
-      body={body}
-      footer={footer}
-    />
+    <>
+      <DetailPanel
+        isOpen={row !== null}
+        onClose={requestClose}
+        eyebrow="Routed division"
+        title={shown?.division_name ?? ""}
+        size="lg"
+        closeDisabled={isBusy}
+        body={body}
+        footer={footer}
+      />
+
+      <UnrouteDivisionModal
+        isOpen={unroute.isOpen}
+        divisionName={shown?.division_name ?? "This division"}
+        counts={unroute.counts}
+        canUnroute={unroute.canUnroute}
+        isPending={unroute.isPending}
+        onConfirm={() => void unroute.confirm()}
+        onClose={unroute.close}
+      />
+    </>
   );
 }

@@ -9,6 +9,7 @@ import { CreateIncomingDocumentHandler } from "./command/create-incoming-documen
 import { CreateIncomingDocumentAssignmentsHandler } from "./command/create-incoming-document-assigments/create-incoming-document-assigments.handler";
 import { CreateIncomingFromQueueHandler } from "./command/create-incoming-from-queue/create-incoming-from-queue.handler";
 import { DeleteIncomingDocumentAssignmentHandler } from "./command/delete-incoming-document-assignment/delete-incoming-document-assignment.handler";
+import { DeleteIncomingDocumentRoutingHandler } from "./command/delete-incoming-document-routing/delete-incoming-document-routing.handler";
 import { IncomingDocumentController } from "./controller/incoming-document.controller";
 import { IncomingDocumentAssignmentEntity } from "./entities/incoming-document-assignment.entity";
 import { IncomingDocumentAssignmentCountEntity } from "./entities/incoming-document-assignment-count.entity";
@@ -74,6 +75,7 @@ import { AssignmentCounterService } from "./services/assignment-counter.service"
     GetIncomingDocumentDetailsHandler,
     GetIncomingDocumentAssignmentsByRoutingIdHandler,
     GetIncomingDocumentAssignmentsHandler,
+    DeleteIncomingDocumentRoutingHandler,
   ],
 })
 export class IncomingDocumentModule {}

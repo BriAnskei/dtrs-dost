@@ -21,98 +21,142 @@ export class CreateIncomingDocumentAssignmentsHandler
     private readonly incomingRepository: IncomingDocumentsRepository,
     private readonly routingRepository: IncomingDocumentRoutingRepository,
     private readonly assignmentsRepository: IncomingDocumentAssignmentsRepository,
-
     private readonly counterService: AssignmentCounterService,
   ) {}
 
-  async execute(command: CreateIncomingDocumentAssignmentsCommand) {
+  async execute(command: CreateIncomingDocumentAssignmentsCommand): Promise<void> {
     const { incomingDocumentId, dto, createdById } = command;
 
     return this.dataSource.transaction(async (manager) => {
-      const incomingDocument = await this.incomingRepository.findById(incomingDocumentId);
+      await this.validateIncomingDocument(incomingDocumentId, manager);
 
-      if (!incomingDocument) {
-        throw new NotFoundException("Incoming document not found.");
-      }
+      const context = await this.resolveAssignmentContext(
+        incomingDocumentId,
+        dto.officeType,
+        dto.incomingDocumentRoutingId,
+        manager,
+      );
 
-      let divisionId: string | null = null;
-      let status = AssignmentStatus.ONGOING;
-
-      if (dto.officeType === OfficeType.DIVISION) {
-        if (!dto.incomingDocumentRoutingId)
-          throw new BadRequestException(
-            "routing id is rquired in division asignment type",
-          );
-
-        const routing = await this.routingRepository.findById(
-          dto.incomingDocumentRoutingId,
-          manager,
-        );
-
-        if (!routing || routing.incoming_document_id !== incomingDocumentId) {
-          throw new NotFoundException(
-            "Invalid parameters or Incoming document routing not found.",
-          );
-        }
-
-        divisionId = routing.division_id;
-        status = AssignmentStatus.PENDING;
-      }
-
-      const assignments: Partial<IncomingDocumentAssignmentEntity>[] =
-        dto.noticesOfActions.map((notice) => ({
-          incoming_document_id: incomingDocumentId,
-          division_id: divisionId,
-          office_type: dto.officeType,
-          notice_of_action: notice.noticeOfAction.trim(),
-          notice_description: notice.noticeDescription?.trim() || null,
-          created_by_id: createdById,
-          status,
-        }));
+      const assignments = this.buildAssignments(
+        incomingDocumentId,
+        createdById,
+        dto.officeType,
+        dto.noticesOfActions,
+        context,
+      );
 
       await this.assignmentsRepository.insertMany(assignments, manager);
 
-      await this.handleCounters(
-        {
-          incomingDocumentId,
-          routingId: dto.incomingDocumentRoutingId,
-          officeType: dto.officeType,
-          assignmentSum: dto.noticesOfActions.length,
-        },
+      await this.adjustCounters(
+        incomingDocumentId,
+        context.routingId,
+        assignments.length,
         manager,
       );
 
-      await this.incomingRepository.update(
-        incomingDocumentId,
-        { updated_at: new Date() },
-        manager,
-      );
+      await this.updateIncomingDocument(incomingDocumentId, manager);
     });
   }
 
-  private async handleCounters(
-    payload: {
-      incomingDocumentId: string;
-      routingId: string | undefined;
-      officeType: OfficeType;
-      assignmentSum: number;
-    },
+  private async validateIncomingDocument(
+    incomingDocumentId: string,
     manager: EntityManager,
   ): Promise<void> {
-    const { incomingDocumentId, routingId, officeType, assignmentSum } = payload;
-    if (assignmentSum === 0) return;
+    const incomingDocument = await this.incomingRepository.findById(
+      incomingDocumentId,
+      manager,
+    );
 
-    if (officeType === OfficeType.DIVISION && routingId) {
-      await this.counterService.adjustIncomingRoutingtCounts(
-        routingId,
-        { total: assignmentSum },
-        manager,
-      );
+    if (!incomingDocument) {
+      throw new NotFoundException("Incoming document not found.");
+    }
+  }
+
+  private async resolveAssignmentContext(
+    incomingDocumentId: string,
+    officeType: OfficeType,
+    routingId: string | undefined,
+    manager: EntityManager,
+  ): Promise<{
+    divisionId: string | null;
+    routingId: string | null;
+    status: AssignmentStatus;
+  }> {
+    if (officeType === OfficeType.MAIN) {
+      return {
+        divisionId: null,
+        routingId: null,
+        status: AssignmentStatus.ONGOING,
+      };
+    }
+
+    if (!routingId) {
+      throw new BadRequestException("Routing ID is required for division assignments.");
+    }
+
+    const routing = await this.routingRepository.findByIdForUpdate(routingId, manager);
+
+    if (!routing || routing.incoming_document_id !== incomingDocumentId) {
+      throw new NotFoundException("Incoming document routing not found.");
+    }
+
+    return {
+      divisionId: routing.division_id,
+      routingId: routing.id,
+      status: AssignmentStatus.PENDING,
+    };
+  }
+
+  private buildAssignments(
+    incomingDocumentId: string,
+    createdById: string,
+    officeType: OfficeType,
+    notices: CreateIncomingDocumentAssignmentsCommand["dto"]["noticesOfActions"],
+    context: {
+      divisionId: string | null;
+      routingId: string | null;
+      status: AssignmentStatus;
+    },
+  ): Partial<IncomingDocumentAssignmentEntity>[] {
+    return notices.map((notice) => ({
+      incoming_document_id: incomingDocumentId,
+      division_id: context.divisionId,
+      office_type: officeType,
+      notice_of_action: notice.noticeOfAction.trim(),
+      notice_description: notice.noticeDescription?.trim() || null,
+      created_by_id: createdById,
+      status: context.status,
+    }));
+  }
+
+  private async adjustCounters(
+    incomingDocumentId: string,
+    routingId: string | null,
+    assignmentCount: number,
+    manager: EntityManager,
+  ): Promise<void> {
+    if (assignmentCount === 0) return;
+
+    const changes = { total: assignmentCount };
+
+    if (routingId) {
+      await this.counterService.adjustIncomingRoutingtCounts(routingId, changes, manager);
     }
 
     await this.counterService.adjustIncomingGlobalCounts(
       incomingDocumentId,
-      { total: assignmentSum },
+      changes,
+      manager,
+    );
+  }
+
+  private async updateIncomingDocument(
+    incomingDocumentId: string,
+    manager: EntityManager,
+  ): Promise<void> {
+    await this.incomingRepository.update(
+      incomingDocumentId,
+      { updated_at: new Date() },
       manager,
     );
   }

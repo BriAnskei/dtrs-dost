@@ -1,5 +1,4 @@
 import { useCallback, useMemo, useState } from "react";
-import { toast } from "sonner";
 import { OfficeType } from "../../../enum/office-type.enum";
 import { useNoticeDrafts } from "../../../shared/hooks/use-notice-drafts";
 import type { AssignedDivisionNoticeCount } from "../../../types/assigned-division-notice-count-response";
@@ -9,6 +8,7 @@ import type { RoutedDivisionAssignment } from "../../../types/routed-division-as
 import { useCreateIncomingDocumentAssignments } from "./api/use-create-incoming-document-assignments";
 import { useDeleteIncomingDocumentAssignment } from "./api/use-delete-incoming-document-assignment";
 import { useIncomingDocumentAssignmentsByRoutingId } from "./api/use-incoming-document-assignments-by-routing-id";
+import { useUnrouteDivision } from "./use-unroute-division";
 
 /** Pending first, then ongoing, then complete. */
 const STATUS_ORDER: Record<AssignmentStatus, number> = {
@@ -69,14 +69,9 @@ export function useDivisionAssignmentsPanel({
             noticesOfActions: notices,
           },
         });
-        toast.success(
-          notices.length === 1
-            ? "Notice of action added"
-            : `${notices.length} notices of action added`,
-        );
+
         return true;
       } catch {
-        toast.error("Couldn't add the notices of action. Please try again.");
         return false; // keep the form open so nothing typed is lost
       }
     },
@@ -110,7 +105,6 @@ export function useDivisionAssignmentsPanel({
     [query.data],
   );
   const takenCount = items.filter(isActionTaken).length;
-  const isBusy = isSubmitting || busyId !== null;
   const isFormOpen = drafts.notices.length > 0;
 
   /* ----------------------------- closing -------------------------------- */
@@ -131,6 +125,19 @@ export function useDivisionAssignmentsPanel({
   };
 
   const keepEditing = () => setDiscardPrompt(false);
+
+  /* ----------------------------- unrouting ------------------------------ */
+
+  // After the division is unrouted its panel has nothing left to show, so close it.
+  const unroute = useUnrouteDivision({
+    routingId: shown?.routing_id,
+    incomingDocumentId,
+    items,
+    isReady: query.isSuccess,
+    onUnrouted: finishClose,
+  });
+
+  const isBusy = isSubmitting || busyId !== null || unroute.isPending;
 
   /* ------------------------------ adding -------------------------------- */
 
@@ -190,5 +197,6 @@ export function useDivisionAssignmentsPanel({
     requestDelete,
     confirmDelete,
     cancelConfirm,
+    unroute,
   };
 }

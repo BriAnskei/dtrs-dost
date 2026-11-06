@@ -1,5 +1,14 @@
 import { Type } from "class-transformer";
-import { IsDefined, IsEnum, IsUUID, ValidateIf, ValidateNested } from "class-validator";
+import {
+  ArrayMaxSize,
+  ArrayMinSize,
+  IsArray,
+  IsDefined,
+  IsEnum,
+  IsUUID,
+  ValidateIf,
+  ValidateNested,
+} from "class-validator";
 import { OfficeType } from "../entities/incoming-document-assignment.entity";
 import { DivisionNoticeOfActionDto } from "./notice-of-action-dto";
 
@@ -13,7 +22,12 @@ export class CreateIncomingDocumentAssignmentsDto {
   incomingDocumentRoutingId?: string;
 
   @IsDefined()
-  @ValidateNested()
+  @IsArray()
+  @ArrayMinSize(1, {
+    message: "At least one notice of action is required.",
+  })
+  @ArrayMaxSize(20)
+  @ValidateNested({ each: true })
   @Type(() => DivisionNoticeOfActionDto)
   noticesOfActions!: DivisionNoticeOfActionDto[];
 }

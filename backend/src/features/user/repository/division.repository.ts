@@ -24,13 +24,13 @@ export class DivisionRepository {
     return repo.save(division);
   }
 
-  async findOne(id: string): Promise<DivisionEntity | null> {
-    return this.repository.findOne({
-      where: {
-        id,
-      },
+  async findOne(id: string, manager?: EntityManager): Promise<DivisionEntity | null> {
+    return (manager?.getRepository(DivisionEntity) ?? this.repository).findOne({
+      where: { id },
     });
   }
+
+
 
   async findByName(division_name: string): Promise<DivisionEntity | null> {
     return this.repository.findOne({
