@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { getApiErrorMessage } from "../../../../../../../lib/api-error";
-import { IncomingDocumentService } from "../../../../service/incoming-document-service";
+import { getApiErrorMessage } from "../../../../../../lib/api-error";
+import { IncomingDocumentService } from "../../../service/incoming-document-service";
 export function useDeleteIncomingDocumentAssignment() {
   const queryClient = useQueryClient();
 
@@ -12,21 +12,23 @@ export function useDeleteIncomingDocumentAssignment() {
     }: {
       incomingDocumentId: string;
       assignmentId: string;
-      routingId: string;
+      routingId?: string;
     }) => IncomingDocumentService.deleteAssignment(incomingDocumentId, assignmentId),
 
     onSuccess: (_, { incomingDocumentId, routingId }) => {
-      toast.success("Assignment deleted successfully.");
-
       queryClient.invalidateQueries({
         queryKey: ["incoming-documents", "details", incomingDocumentId],
       });
       queryClient.invalidateQueries({
         queryKey: ["assigned-division-notice-counts", incomingDocumentId],
       });
-      queryClient.invalidateQueries({
-        queryKey: ["incoming-document-assignments", routingId],
-      });
+
+      if (routingId)
+        queryClient.invalidateQueries({
+          queryKey: ["incoming-document-assignments", routingId],
+        });
+
+      toast.success("Assignment deleted successfully.");
     },
 
     onError: (error) => {

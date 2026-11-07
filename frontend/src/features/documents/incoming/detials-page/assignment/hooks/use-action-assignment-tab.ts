@@ -44,7 +44,7 @@ const SEARCH_DEBOUNCE_MS = 400;
  * therefore go to the API; each combination is its own cached query.
  *
  * Everything the tab needs to render lives here (filters, search box, the
- * "Add new" modal, view flags), so the component is markup only.
+ * "Add new" and "Delete" modals, view flags), so the component is markup only.
  */
 export function useActionAssignmentsTab(incomingDocumentId: string) {
   const [status, setStatus] = useState<StatusFilter>("ALL");
@@ -52,10 +52,14 @@ export function useActionAssignmentsTab(incomingDocumentId: string) {
   const [sort, setSort] = useState<AssignmentSort>("newest");
   const [searchInput, setSearchInput] = useState("");
   const [isAddOpen, setIsAddOpen] = useState(false);
+  const [assignmentToDelete, setAssignmentToDelete] =
+    useState<IncomingDocumentAssignment | null>(null);
 
   const searchId = `${useId()}-search`;
   const searchRef = useRef<HTMLInputElement>(null);
   const addButtonRef = useRef<HTMLButtonElement>(null);
+  // The row's delete button that opened the modal, so focus can go back to it.
+  const deleteTriggerRef = useRef<HTMLElement | null>(null);
 
   const [debouncedSearch] = useDebounce(searchInput.trim(), SEARCH_DEBOUNCE_MS);
 
@@ -76,8 +80,8 @@ export function useActionAssignmentsTab(incomingDocumentId: string) {
   const query = useIncomingDocumentAssignments(incomingDocumentId, params);
   const { fetchNextPage, hasNextPage, isFetchingNextPage } = query;
 
-  // If your PaginatedResponse names the array something other than `items`
-  // (e.g. `data`), this is the only line to change.
+  // If your PaginatedResponse names the array something other than `data`
+  // (e.g. `items`), this is the only line to change.
   const items = useMemo(
     () => query.data?.pages.flatMap((page) => page.data) ?? [],
     [query.data],
@@ -143,15 +147,27 @@ export function useActionAssignmentsTab(incomingDocumentId: string) {
     addButtonRef.current?.focus(); // hand focus back to the trigger
   }, []);
 
-  /* ------------------------------- delete --------------------------------- */
+  /* ------------------------------ delete modal ---------------------------- */
 
-  // TODO: confirm (inline, like DivisionAssignmentsPanel) and call the delete mutation,
-  // then invalidate ["incoming-document-assignments", incomingDocumentId].
-  // The row button is already disabled for COMPLETE rows.
-  const deleteAssignment = useCallback(
-    (_assignment: IncomingDocumentAssignment) => {},
-    [],
-  );
+  // Only PENDING and ONGOING rows can be deleted. The row button is disabled
+  // for COMPLETE, and the modal hook guards it again.
+  const requestDelete = useCallback((assignment: IncomingDocumentAssignment) => {
+    if (assignment.status === "COMPLETE") return;
+    deleteTriggerRef.current = document.activeElement as HTMLElement | null;
+    setAssignmentToDelete(assignment);
+  }, []);
+
+  /** Cancel: hand focus back to the row button that opened the modal. */
+  const closeDelete = useCallback(() => {
+    setAssignmentToDelete(null);
+    deleteTriggerRef.current?.focus();
+  }, []);
+
+  /** Success: the row is about to disappear, so focus the list instead. */
+  const handleDeleted = useCallback(() => {
+    setAssignmentToDelete(null);
+    scrollRef.current?.focus();
+  }, [scrollRef]);
 
   /* ------------------------------ view flags ------------------------------ */
 
@@ -202,7 +218,11 @@ export function useActionAssignmentsTab(incomingDocumentId: string) {
     openAdd,
     closeAdd,
 
-    deleteAssignment,
+    /** The assignment awaiting delete confirmation, or null when the modal is closed. */
+    assignmentToDelete,
+    requestDelete,
+    closeDelete,
+    handleDeleted,
 
     fullError,
     showToolbar,

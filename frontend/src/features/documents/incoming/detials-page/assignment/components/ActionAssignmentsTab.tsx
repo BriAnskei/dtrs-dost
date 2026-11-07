@@ -33,6 +33,7 @@ import type {
   IncomingDocumentAssignment,
 } from "../types/incoming-document-assignment";
 import AddAssignmentModal from "./modal/AddAssignmentModal";
+import DeleteAssignmentModal from "./modal/DeleteAssignmentModal";
 
 interface ActionAssignmentsTabProps {
   incomingDocumentId: string;
@@ -342,7 +343,10 @@ export default function ActionAssignmentsTab({
     isAddOpen,
     openAdd,
     closeAdd,
-    deleteAssignment,
+    assignmentToDelete,
+    requestDelete,
+    closeDelete,
+    handleDeleted,
     fullError,
     showToolbar,
     showFooter,
@@ -381,7 +385,7 @@ export default function ActionAssignmentsTab({
       <>
         <ol className="divide-y divide-gray-200 dark:divide-white/8">
           {items.map((a) => (
-            <AssignmentRow key={a.id} a={a} onDelete={deleteAssignment} />
+            <AssignmentRow key={a.id} a={a} onDelete={requestDelete} />
           ))}
         </ol>
 
@@ -550,6 +554,15 @@ export default function ActionAssignmentsTab({
 
       {isAddOpen && (
         <AddAssignmentModal incomingDocumentId={incomingDocumentId} onClose={closeAdd} />
+      )}
+
+      {assignmentToDelete && (
+        <DeleteAssignmentModal
+          incomingDocumentId={incomingDocumentId}
+          assignment={assignmentToDelete}
+          onClose={closeDelete}
+          onDeleted={handleDeleted}
+        />
       )}
     </section>
   );
