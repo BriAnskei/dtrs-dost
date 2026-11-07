@@ -1,11 +1,12 @@
 import { ConflictException, NotFoundException } from "@nestjs/common";
 import { CommandHandler, ICommandHandler } from "@nestjs/cqrs";
-import { DataSource, EntityManager, QueryFailedError } from "typeorm";
+import { DataSource, EntityManager } from "typeorm";
 import { DivisionService } from "../../../../user/service/division.service";
 import {
   IncomingDocumentAssignmentEntity,
   OfficeType,
 } from "../../entities/incoming-document-assignment.entity";
+import { mapIncomingDocumentError } from "../../incoming-document/exceptions/incoming-document-error.mapper";
 import { IncomingDocumentsRepository } from "../../repository/incoming-document.repository";
 import { IncomingDocumentAssignmentsRepository } from "../../repository/incoming-document-assignment.repository";
 import { IncomingDocumentRoutingRepository } from "../../repository/incoming-document-routing-repository";
@@ -90,38 +91,10 @@ export class AssignIncomingDocumentToDivisionHandler
         );
       });
     } catch (error) {
-      // concurrent request with the same division id that is passedd will show an error constraint,
-      // thus it shoul return a conflict exception
-      if (
-        error instanceof QueryFailedError &&
-        (
-          error as QueryFailedError & {
-            driverError?: {
-              code?: string;
-              constraint?: string;
-            };
-          }
-        ).driverError?.code === "23505" &&
-        (
-          error as QueryFailedError & {
-            driverError?: {
-              code?: string;
-              constraint?: string;
-            };
-          }
-        ).driverError?.constraint === "uq_incoming_document_routing"
-      ) {
-        throw new ConflictException(
-          "This incoming document is already routed to this division.",
-        );
-      }
+      const mapped = mapIncomingDocumentError(error);
 
-      if (
-        error instanceof QueryFailedError &&
-        error.driverError?.code === "23503" &&
-        error.driverError?.constraint === "fk_idr_division"
-      ) {
-        throw new NotFoundException("Division does not exist.");
+      if (mapped) {
+        throw mapped;
       }
 
       throw error;

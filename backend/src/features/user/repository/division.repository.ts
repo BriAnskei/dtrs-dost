@@ -30,8 +30,6 @@ export class DivisionRepository {
     });
   }
 
-
-
   async findByName(division_name: string): Promise<DivisionEntity | null> {
     return this.repository.findOne({
       where: {
@@ -40,20 +38,24 @@ export class DivisionRepository {
     });
   }
 
-  async searchByName(search: string): Promise<DivisionEntity[] | null> {
+  async searchByName(search: string): Promise<DivisionEntity[]> {
+    const normalizedSearch = search.trim();
+
+    if (!normalizedSearch) {
+      return [];
+    }
+
     return this.repository.find({
-      where: search.trim()
-        ? {
-            division_name: ILike(`%${escapeLike(search)}%`),
-          }
-        : undefined,
+      where: {
+        division_name: ILike(`%${escapeLike(normalizedSearch)}%`),
+      },
       order: {
         division_name: "ASC",
+        id: "ASC",
       },
       take: 20,
     });
   }
-
   async findAllWithUsers(query: FindDivisionsQueryDto): Promise<{
     divisions: DivisionEntity[];
     nextCursor: string | null;

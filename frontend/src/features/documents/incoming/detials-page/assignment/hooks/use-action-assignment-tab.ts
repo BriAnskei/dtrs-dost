@@ -1,10 +1,19 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  type KeyboardEvent,
+  useCallback,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useDebounce } from "use-debounce";
 import { useInfiniteScrollSentinel } from "../../../../../../hooks/user-infinite-scroll-sentinel";
 import type { AssignmentStatus } from "../../../types/assignment-types";
 import type {
   AssignmentSort,
   GetIncomingDocumentAssignmentsParams,
+  IncomingDocumentAssignment,
   OfficeType,
 } from "../types/incoming-document-assignment";
 import { useIncomingDocumentAssignments } from "./api/use-incoming-document-assignments";
@@ -33,12 +42,20 @@ const SEARCH_DEBOUNCE_MS = 400;
  * The list is cursor-paginated and loaded by an infinite-scroll sentinel, so
  * only the loaded pages are in memory. Search, status, office and sort
  * therefore go to the API; each combination is its own cached query.
+ *
+ * Everything the tab needs to render lives here (filters, search box, the
+ * "Add new" modal, view flags), so the component is markup only.
  */
 export function useActionAssignmentsTab(incomingDocumentId: string) {
   const [status, setStatus] = useState<StatusFilter>("ALL");
   const [office, setOffice] = useState<OfficeFilter>("ALL");
   const [sort, setSort] = useState<AssignmentSort>("newest");
   const [searchInput, setSearchInput] = useState("");
+  const [isAddOpen, setIsAddOpen] = useState(false);
+
+  const searchId = `${useId()}-search`;
+  const searchRef = useRef<HTMLInputElement>(null);
+  const addButtonRef = useRef<HTMLButtonElement>(null);
 
   const [debouncedSearch] = useDebounce(searchInput.trim(), SEARCH_DEBOUNCE_MS);
 
@@ -80,6 +97,7 @@ export function useActionAssignmentsTab(incomingDocumentId: string) {
   });
 
   // A changed search/filter/sort is a different list: start from the top.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: `params` is the trigger, not a value read inside the effect.
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: 0 });
   }, [params, scrollRef]);
@@ -97,6 +115,58 @@ export function useActionAssignmentsTab(incomingDocumentId: string) {
     setOffice("ALL");
     setSearchInput("");
   }, []);
+
+  /* ------------------------------ search box ------------------------------ */
+
+  const clearSearch = useCallback(() => {
+    setSearchInput("");
+    searchRef.current?.focus();
+  }, []);
+
+  /** Escape empties the box instead of bubbling up. */
+  const handleSearchKeyDown = useCallback(
+    (e: KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === "Escape" && searchInput) {
+        e.preventDefault();
+        setSearchInput("");
+      }
+    },
+    [searchInput],
+  );
+
+  /* ------------------------------ add modal ------------------------------- */
+
+  const openAdd = useCallback(() => setIsAddOpen(true), []);
+
+  const closeAdd = useCallback(() => {
+    setIsAddOpen(false);
+    addButtonRef.current?.focus(); // hand focus back to the trigger
+  }, []);
+
+  /* ------------------------------- delete --------------------------------- */
+
+  // TODO: confirm (inline, like DivisionAssignmentsPanel) and call the delete mutation,
+  // then invalidate ["incoming-document-assignments", incomingDocumentId].
+  // The row button is already disabled for COMPLETE rows.
+  const deleteAssignment = useCallback(
+    (_assignment: IncomingDocumentAssignment) => {},
+    [],
+  );
+
+  /* ------------------------------ view flags ------------------------------ */
+
+  const fullError = query.isError && items.length === 0;
+
+  // The toolbar stays put while a filter change reloads the list. It's hidden
+  // only when the document has no assignments at all (nothing to filter).
+  const showToolbar =
+    hasActiveFilters || (!query.isLoading && !fullError && items.length > 0);
+
+  const showFooter = !query.isLoading && !fullError && items.length > 0;
+
+  const countNoun = hasActiveFilters ? "match" : "assignment";
+  const countLabel =
+    items.length === 1 ? countNoun : hasActiveFilters ? "matches" : "assignments";
 
   return {
     query,
@@ -121,5 +191,23 @@ export function useActionAssignmentsTab(incomingDocumentId: string) {
     toggleSort,
     hasActiveFilters,
     clearFilters,
+
+    searchId,
+    searchRef,
+    clearSearch,
+    handleSearchKeyDown,
+
+    addButtonRef,
+    isAddOpen,
+    openAdd,
+    closeAdd,
+
+    deleteAssignment,
+
+    fullError,
+    showToolbar,
+    showFooter,
+    /** "assignment(s)" or "match(es)", already pluralised for `items.length`. */
+    countLabel,
   };
 }

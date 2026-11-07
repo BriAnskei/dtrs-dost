@@ -2,8 +2,8 @@ import { AlertCircle, X } from "lucide-react";
 import { useEffect, useId, useRef } from "react";
 import Modal from "../../../../../../components/Modal";
 import DivisionCombobox from "../../../../../user-management/components/DivisionCombobox";
-import { secondaryButton } from "../../detial-panel-form-style-constant";
 import type { IncomingDocumentRow } from "../../../types/incoming-document-row.type";
+import { secondaryButton } from "../../detial-panel-form-style-constant";
 import {
   MAX_NOTICES,
   useAssignDivisionModal,

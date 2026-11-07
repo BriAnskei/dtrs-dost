@@ -42,7 +42,7 @@ import { GetIncomingDocumentAssignmentsByRoutingIdQuery } from "../query/get-inc
 import { GetIncomingDocumentDetailsQuery } from "../query/get-incoming-document-detials/get-incoming-document-details.query";
 import { GetIncomingDocumentFileStreamQuery } from "../query/get-incoming-file-stream/get-incoming-document-file-stream.query";
 import { GetReceiverQueueDetailsQuery } from "../query/get-receiver-queue-details/get-receiver-queue-details.query";
-import { IncomingDocumentAssignmentResponse } from "../types/get-incoming-document-assignment.type";
+import { SearchRoutedDivisionQuery } from "../query/search-routed-division/search-routed-division.query";
 
 @Controller("incoming-documents")
 export class IncomingDocumentController {
@@ -106,6 +106,14 @@ export class IncomingDocumentController {
   @Roles(Role.SuperAdmin, Role.Admin)
   findAll(@Query() query: FindIncomingDocumentsQueryDto) {
     return this.queryBus.execute(new FindIncomingDocumentsQuery(query));
+  }
+
+  @Get(":id/routed-divisions/search")
+  searchRoutedDivisions(
+    @Param("id", ParseUUIDPipe) id: string,
+    @Query("search") search = "",
+  ) {
+    return this.queryBus.execute(new SearchRoutedDivisionQuery(id, search));
   }
 
   // reciever viewing handler, implemented here to either view, incoming(approved),

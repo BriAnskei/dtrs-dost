@@ -11,7 +11,7 @@ import {
   Trash2,
   X,
 } from "lucide-react";
-import { useId, useRef } from "react";
+import { type ReactNode, useId } from "react";
 import Skeleton, { SkeletonTheme } from "react-loading-skeleton";
 import { THIN_SCROLLBAR } from "../../../../../../contant/ThinScrollBar";
 import { formatDateTime } from "../../../../../../utils/dateFormatter";
@@ -32,6 +32,7 @@ import type {
   AssignmentUser,
   IncomingDocumentAssignment,
 } from "../types/incoming-document-assignment";
+import AddAssignmentModal from "./modal/AddAssignmentModal";
 
 interface ActionAssignmentsTabProps {
   incomingDocumentId: string;
@@ -262,6 +263,7 @@ function ListSkeleton({ rows, label }: { rows: number; label: string }) {
         className="divide-y divide-gray-200 dark:divide-white/8"
       >
         {Array.from({ length: rows }, (_, i) => (
+          // biome-ignore lint/suspicious/noArrayIndexKey: static placeholder rows, never reordered.
           <RowSkeleton key={i} />
         ))}
       </div>
@@ -311,10 +313,6 @@ export default function ActionAssignmentsTab({
   incomingDocumentId,
   maxListHeight = "560px",
 }: ActionAssignmentsTabProps) {
-  const idPrefix = useId();
-  const searchRef = useRef<HTMLInputElement>(null);
-  const searchId = `${idPrefix}-search`;
-
   const {
     query,
     items,
@@ -336,26 +334,22 @@ export default function ActionAssignmentsTab({
     setSearchInput,
     search,
     isPlaceholderData,
+    searchId,
+    searchRef,
+    clearSearch,
+    handleSearchKeyDown,
+    addButtonRef,
+    isAddOpen,
+    openAdd,
+    closeAdd,
+    deleteAssignment,
+    fullError,
+    showToolbar,
+    showFooter,
+    countLabel,
   } = useActionAssignmentsTab(incomingDocumentId);
 
-  // TODO: open the "add notice of action" flow (e.g. DetailPanel + NoticeOfActionEditor
-  // with a target-office picker: Main office or a division), then invalidate
-  // ["incoming-document-assignments", incomingDocumentId] after it succeeds.
-  const handleAdd = () => {};
-
-  // TODO: confirm (inline, like DivisionAssignmentsPanel) and call the delete mutation,
-  // then invalidate ["incoming-document-assignments", incomingDocumentId].
-  // The button is already disabled for COMPLETE rows.
-  const handleDelete = (_assignment: IncomingDocumentAssignment) => {};
-
-  const fullError = query.isError && items.length === 0;
-
-  // The toolbar stays put while a filter change reloads the list. It's hidden
-  // only when the document has no assignments at all (nothing to filter).
-  const showToolbar =
-    hasActiveFilters || (!query.isLoading && !fullError && items.length > 0);
-
-  let content;
+  let content: ReactNode;
   if (query.isLoading) {
     content = <ListSkeleton rows={3} label="Loading assignments" />;
   } else if (fullError) {
@@ -387,7 +381,7 @@ export default function ActionAssignmentsTab({
       <>
         <ol className="divide-y divide-gray-200 dark:divide-white/8">
           {items.map((a) => (
-            <AssignmentRow key={a.id} a={a} onDelete={handleDelete} />
+            <AssignmentRow key={a.id} a={a} onDelete={deleteAssignment} />
           ))}
         </ol>
 
@@ -414,10 +408,6 @@ export default function ActionAssignmentsTab({
     );
   }
 
-  const showFooter = !query.isLoading && !fullError && items.length > 0;
-  const noun = hasActiveFilters ? "match" : "assignment";
-  const plural = items.length === 1 ? noun : hasActiveFilters ? "matches" : "assignments";
-
   return (
     <section className="space-y-4" aria-label="Action assignments">
       <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-white/8 dark:bg-white/3">
@@ -430,13 +420,19 @@ export default function ActionAssignmentsTab({
               or to a specific division.
             </p>
 
-            <button type="button" onClick={handleAdd} className={primaryButton}>
+            <button
+              ref={addButtonRef}
+              type="button"
+              onClick={openAdd}
+              className={primaryButton}
+            >
               <Plus className="h-4 w-4" aria-hidden="true" />
               Add new
             </button>
           </div>
 
           {showToolbar && (
+            // biome-ignore lint/a11y/useSemanticElements: `<search>` needs @types/react 19+; swap it in if you're on those types.
             <div
               role="search"
               aria-label="Filter assignments"
@@ -456,12 +452,7 @@ export default function ActionAssignmentsTab({
                   type="search"
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Escape" && searchInput) {
-                      e.preventDefault();
-                      setSearchInput("");
-                    }
-                  }}
+                  onKeyDown={handleSearchKeyDown}
                   placeholder="Search notice of action…"
                   autoComplete="off"
                   className={`h-9 w-full rounded-lg border border-gray-200 bg-transparent pl-9 pr-9 text-theme-sm text-gray-800 placeholder:text-gray-400 dark:border-white/8 dark:text-white/90 [&::-webkit-search-cancel-button]:hidden ${fieldFocus}`}
@@ -470,10 +461,7 @@ export default function ActionAssignmentsTab({
                   <button
                     type="button"
                     aria-label="Clear search"
-                    onClick={() => {
-                      setSearchInput("");
-                      searchRef.current?.focus();
-                    }}
+                    onClick={clearSearch}
                     className={`absolute right-2 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 ${fieldFocus}`}
                   >
                     <X className="h-4 w-4" aria-hidden="true" />
@@ -522,10 +510,12 @@ export default function ActionAssignmentsTab({
           can scroll it. Previous results stay visible (dimmed) while a new
           search/filter loads.
         */}
+        {/* biome-ignore lint/a11y/useSemanticElements: scroll container is typed as HTMLDivElement by useInfiniteScrollSentinel. */}
         <div
           ref={scrollRef}
           role="region"
           aria-label="Action assignments list"
+          // biome-ignore lint/a11y/noNoninteractiveTabindex: a scrollable region must be keyboard-focusable (WCAG 2.1.1).
           tabIndex={0}
           aria-busy={isPlaceholderData}
           className={`overflow-y-auto transition-opacity ${THIN_SCROLLBAR} ${fieldFocus} ${
@@ -550,13 +540,17 @@ export default function ActionAssignmentsTab({
                   {items.length}
                   {hasMore ? "+" : ""}
                 </span>{" "}
-                {plural}
+                {countLabel}
                 {!hasMore && " (all loaded)"}
               </>
             )}
           </div>
         )}
       </div>
+
+      {isAddOpen && (
+        <AddAssignmentModal incomingDocumentId={incomingDocumentId} onClose={closeAdd} />
+      )}
     </section>
   );
 }

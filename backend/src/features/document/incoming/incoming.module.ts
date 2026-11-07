@@ -24,6 +24,7 @@ import { GetIncomingDocumentAssignmentsByRoutingIdHandler } from "./query/get-in
 import { GetIncomingDocumentDetailsHandler } from "./query/get-incoming-document-detials/get-incoming-document-detials.handler";
 import { GetIncomingDocumentFileStreamHandler } from "./query/get-incoming-file-stream/get-incoming-document-file-stream.handler";
 import { GetReceiverQueueDetailsHandler } from "./query/get-receiver-queue-details/get-incoming-document-by-queue.handler";
+import { SearchRoutedDivisionHandler } from "./query/search-routed-division/search-routed-division.handler";
 import { IncomingDocumentsRepository } from "./repository/incoming-document.repository";
 import { IncomingDocumentAssignmentsRepository } from "./repository/incoming-document-assignment.repository";
 import { IncomingDocumentAssignmentCountRepository } from "./repository/incoming-document-assignment-counts.repository";
@@ -76,6 +77,7 @@ import { AssignmentCounterService } from "./services/assignment-counter.service"
     GetIncomingDocumentAssignmentsByRoutingIdHandler,
     GetIncomingDocumentAssignmentsHandler,
     DeleteIncomingDocumentRoutingHandler,
+    SearchRoutedDivisionHandler,
   ],
 })
 export class IncomingDocumentModule {}

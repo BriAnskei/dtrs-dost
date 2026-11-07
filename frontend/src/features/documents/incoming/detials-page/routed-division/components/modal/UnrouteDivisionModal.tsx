@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import Modal from "../../../../../../../components/Modal";
 import { secondaryButton } from "../../../../shared/detial-panel-form-style-constant";
 
@@ -41,6 +41,19 @@ export default function UnrouteDivisionModal({
   onConfirm,
   onClose,
 }: UnrouteDivisionModalProps) {
+  // Ref for the safe, initially focused button. Only one footer renders at a
+  // time ("Cancel" or "Got it"), so a single ref covers both states.
+  const initialFocusRef = useRef<HTMLButtonElement>(null);
+
+  // Move focus into the dialog when it opens (or switches state). Done
+  // manually instead of with `autoFocus` to satisfy jsx-a11y/no-autofocus.
+  // The frame delay lets the Modal finish mounting its content first.
+  useEffect(() => {
+    if (!isOpen) return;
+    const id = requestAnimationFrame(() => initialFocusRef.current?.focus());
+    return () => cancelAnimationFrame(id);
+  }, [isOpen]);
+
   // The shell doesn't handle Escape itself. Capture it here so it also
   // doesn't reach the detail panel underneath and close that too.
   useEffect(() => {
@@ -115,7 +128,7 @@ export default function UnrouteDivisionModal({
     <>
       <button
         type="button"
-        autoFocus
+        ref={initialFocusRef}
         onClick={onClose}
         disabled={isPending}
         className={secondaryButton}
@@ -132,7 +145,12 @@ export default function UnrouteDivisionModal({
       </button>
     </>
   ) : (
-    <button type="button" autoFocus onClick={onClose} className={secondaryButton}>
+    <button
+      type="button"
+      ref={initialFocusRef}
+      onClick={onClose}
+      className={secondaryButton}
+    >
       Got it
     </button>
   );

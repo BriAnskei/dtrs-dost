@@ -1,6 +1,5 @@
 import { Plus, X } from "lucide-react";
 import { useEffect, useRef } from "react";
-import type { NoticeDraft } from "../hooks/use-notice-drafts";
 import {
   errorClass,
   inputBorder,
@@ -8,6 +7,7 @@ import {
   labelClass,
   secondaryButton,
 } from "../detial-panel-form-style-constant";
+import type { NoticeDraft } from "../hooks/use-notice-drafts";
 
 interface NoticeOfActionEditorProps {
   notices: NoticeDraft[];

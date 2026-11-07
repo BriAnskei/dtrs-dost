@@ -1,4 +1,4 @@
-export enum OfficeType {
+export enum OfficeTypeEnum {
   MAIN = "MAIN",
   DIVISION = "DIVISION",
 }

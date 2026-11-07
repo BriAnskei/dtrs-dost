@@ -5,12 +5,40 @@ import { useSearchDivisions } from "../hooks/use-division-search";
 import type { DivisionName } from "../types/division-name.type";
 
 const MIN_SEARCH_LENGTH = 2;
-const CREATE_OPTION_ID = "division-option-create";
+
+/** The least the combobox needs from an option, so other sources can plug in. */
+export interface DivisionOption {
+  id: string;
+  division_name: string;
+}
+
+/** What a search hook hands back. `useSearchDivisions` already fits this. */
+export interface DivisionSearchState<T extends DivisionOption = DivisionName> {
+  data: T[] | undefined;
+  isFetching: boolean;
+  isDebouncing: boolean;
+  /** Optional: when true the empty state becomes "Couldn't load" + Retry. */
+  loadError?: boolean;
+  retry?: () => void;
+}
+
+export type DivisionSearchHook<T extends DivisionOption = DivisionName, S = undefined> = (
+  query: string,
+  scope: S,
+) => DivisionSearchState<T>;
 
 /** Mirrors the backend rule: names match case-insensitively, ignoring outer spaces. */
 const normalizeName = (s: string) => s.trim().toLowerCase();
 
-export default function DivisionCombobox({
+export default function DivisionCombobox<
+  T extends DivisionOption = DivisionName,
+  S = undefined,
+>({
+  id = "division",
+  useSearch = useSearchDivisions as unknown as DivisionSearchHook<T, S>,
+  searchScope,
+  minSearchLength = MIN_SEARCH_LENGTH,
+  emptyMessage,
   value,
   onChange,
   onSelect,
@@ -20,10 +48,27 @@ export default function DivisionCombobox({
   required = false,
   disabled = false,
 }: {
+  /**
+   * Base for every generated DOM id. Defaults to "division" (the ids this
+   * component has always used); pass a unique one if two can be on screen.
+   */
+  id?: string;
+  /**
+   * Search source (a hook, so it must keep a stable identity). Defaults to
+   * `useSearchDivisions`, i.e. every division. Pass another to search a
+   * narrower set, such as the divisions a document is routed to.
+   */
+  useSearch?: DivisionSearchHook<T, S>;
+  /** Handed to `useSearch` as its second argument (e.g. a document id). */
+  searchScope?: S;
+  /** Characters needed before suggestions show. Default 2; use 0 to list on focus. */
+  minSearchLength?: number;
+  /** Replaces the "No matching division" text when the box is empty and nothing came back. */
+  emptyMessage?: string;
   value: string | undefined;
   onChange?: (division: string | null) => void;
   /** Fires with the full division on pick, and with null as soon as the user edits the text. */
-  onSelect?: (division: DivisionName | null) => void;
+  onSelect?: (division: T | null) => void;
   error?: string;
   /**
    * Strict mode: typed text is never a value, only a picked suggestion is.
@@ -49,10 +94,16 @@ export default function DivisionCombobox({
 
   const enhanced = requireSelection || allowCreate;
 
-  const { data: divisions, isFetching, isDebouncing } = useSearchDivisions(query);
+  const {
+    data: divisions,
+    isFetching,
+    isDebouncing,
+    loadError = false,
+    retry,
+  } = useSearch(query, searchScope as S);
   const results = divisions ?? [];
   const trimmed = query.trim();
-  const canSearch = trimmed.length >= MIN_SEARCH_LENGTH;
+  const canSearch = trimmed.length >= minSearchLength;
   const isSettled = !isDebouncing && !isFetching;
   const isSearching = canSearch && !isSettled;
 
@@ -71,7 +122,7 @@ export default function DivisionCombobox({
     open &&
     canSearch &&
     results.length === 0 &&
-    (isSearching || requireSelection);
+    (isSearching || requireSelection || loadError);
 
   // Strict mode highlights the top match so Enter picks it. Create mode only
   // highlights the Create row when it is the sole item, so Enter can't silently
@@ -83,13 +134,17 @@ export default function DivisionCombobox({
     (requireSelection || (allowCreate && results.length === 0));
   const highlightedIndex = activeIndex !== -1 ? activeIndex : autoHighlight ? 0 : -1;
 
+  const listboxId = `${id}-listbox`;
+  const messageId = `${id}-message`;
+  const createOptionId = `${id}-option-create`;
+
   const activeOptionId =
     highlightedIndex < 0
       ? undefined
       : highlightedIndex < results.length
-        ? `division-option-${results[highlightedIndex].id}`
+        ? `${id}-option-${results[highlightedIndex].id}`
         : showCreateRow && highlightedIndex === results.length
-          ? CREATE_OPTION_ID
+          ? createOptionId
           : undefined;
 
   // Strict mode: the specific message wins over the parent's generic error.
@@ -127,7 +182,7 @@ export default function DivisionCombobox({
     document.getElementById(activeOptionId)?.scrollIntoView({ block: "nearest" });
   }, [activeOptionId]);
 
-  function selectDivision(division: DivisionName) {
+  function selectDivision(division: T) {
     setQuery(division.division_name);
     setIsSelected(true);
     onChange?.(division.division_name);
@@ -203,7 +258,7 @@ export default function DivisionCombobox({
   return (
     <div className="flex flex-col gap-1 relative" ref={rootRef}>
       <label
-        htmlFor="division"
+        htmlFor={id}
         className="text-theme-xs font-medium text-gray-600 dark:text-gray-400"
       >
         Division {required && <span className="text-danger">*</span>}
@@ -212,14 +267,14 @@ export default function DivisionCombobox({
       <div className="relative">
         <input
           ref={inputRef}
-          id="division"
+          id={id}
           role="combobox"
           aria-expanded={showListbox}
-          aria-controls="division-listbox"
+          aria-controls={listboxId}
           aria-autocomplete="list"
           aria-required={required || requireSelection || undefined}
           aria-invalid={Boolean(message)}
-          aria-describedby={message || creationHint ? "division-message" : undefined}
+          aria-describedby={message || creationHint ? messageId : undefined}
           aria-activedescendant={activeOptionId}
           autoComplete="off"
           type="text"
@@ -287,7 +342,7 @@ export default function DivisionCombobox({
 
         {showListbox && (
           <div
-            id="division-listbox"
+            id={listboxId}
             role="listbox"
             aria-busy={!isSettled}
             // Keep focus on the input while clicking options or dragging the scrollbar.
@@ -296,10 +351,10 @@ export default function DivisionCombobox({
               isSettled ? "" : "opacity-60"
             }`}
           >
-            {results.map((d: DivisionName, i: number) => (
+            {results.map((d: T, i: number) => (
               <div
                 key={d.id}
-                id={`division-option-${d.id}`}
+                id={`${id}-option-${d.id}`}
                 role="option"
                 tabIndex={-1}
                 aria-selected={query === d.division_name}
@@ -321,7 +376,7 @@ export default function DivisionCombobox({
 
             {showCreateRow && (
               <div
-                id={CREATE_OPTION_ID}
+                id={createOptionId}
                 role="option"
                 tabIndex={-1}
                 aria-selected={false}
@@ -357,8 +412,24 @@ export default function DivisionCombobox({
             role="status"
             className="absolute z-10 mt-1 flex w-full items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-theme-sm text-gray-500 shadow-lg dark:border-white/8 dark:bg-gray-900 dark:text-gray-400"
           >
-            {isSettled ? (
-              "No matching division. Check the spelling or try another name."
+            {loadError ? (
+              <>
+                Couldn't load divisions.
+                <button
+                  type="button"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={retry}
+                  className="rounded font-medium text-primary hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-secondary/40"
+                >
+                  Retry
+                </button>
+              </>
+            ) : isSettled ? (
+              trimmed === "" && emptyMessage ? (
+                emptyMessage
+              ) : (
+                "No matching division. Check the spelling or try another name."
+              )
             ) : (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
@@ -375,13 +446,13 @@ export default function DivisionCombobox({
       </span>
 
       {message ? (
-        <span id="division-message" role="alert" className="text-theme-xs text-danger">
+        <span id={messageId} role="alert" className="text-theme-xs text-danger">
           {message}
         </span>
       ) : (
         creationHint && (
           <span
-            id="division-message"
+            id={messageId}
             role="status"
             className={`text-theme-xs ${
               creationHint.isNew ? "text-secondary" : "text-gray-500 dark:text-gray-400"

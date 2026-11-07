@@ -1,8 +1,9 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { EntityManager, Repository } from "typeorm";
-
+import { escapeLike } from "../../../../util/escapeLike";
 import { IncomingDocumentRoutingEntity } from "../entities/incoming-document-routing.entity";
+import { RoutedDivisionSearchResult } from "../types/incoming-document-routing.type";
 
 @Injectable()
 export class IncomingDocumentRoutingRepository {
@@ -98,5 +99,32 @@ export class IncomingDocumentRoutingRepository {
     const result = await manager.getRepository(IncomingDocumentRoutingEntity).delete(id);
 
     return (result.affected ?? 0) > 0;
+  }
+
+  async searchRoutedDivisions(
+    incomingDocumentId: string,
+    search: string,
+  ): Promise<RoutedDivisionSearchResult[]> {
+    const searchTerm = search.trim();
+
+    if (!searchTerm) {
+      return [];
+    }
+
+    return this.repository
+      .createQueryBuilder("routing")
+      .innerJoin("routing.division", "division")
+      .select("routing.id", "routing_id")
+      .addSelect("division.id", "division_id")
+      .addSelect("division.division_name", "division_name")
+      .where("routing.incoming_document_id = :incomingDocumentId", {
+        incomingDocumentId,
+      })
+      .andWhere("division.division_name ILIKE :search ESCAPE '\\'", {
+        search: `%${escapeLike(searchTerm)}%`,
+      })
+      .orderBy("division.division_name", "ASC")
+      .take(20)
+      .getRawMany<RoutedDivisionSearchResult>();
   }
 }

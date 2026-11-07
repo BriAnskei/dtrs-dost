@@ -1,8 +1,8 @@
-import type { OfficeType } from "../enum/office-type.enum";
+import type { OfficeTypeEnum } from "../enum/office-type.enum";
 import type { NoticeOfActionDto } from "./notice-of-action-dto";
 
 export interface CreateIncomingDocumentAssignmentsDto {
-  officeType: OfficeType;
+  officeType: OfficeTypeEnum;
   incomingDocumentRoutingId?: string;
   noticesOfActions: NoticeOfActionDto[];
 }

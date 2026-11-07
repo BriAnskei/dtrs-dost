@@ -1,8 +1,8 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { getApiErrorMessage } from "../../../../../../../lib/api-error";
-import { IncomingDocumentService } from "../../../../service/incoming-document-service";
-import type { CreateIncomingDocumentAssignmentsDto } from "../../../../types/create-incoming-document-assignments-dto";
+import { getApiErrorMessage } from "../../../../../../lib/api-error";
+import { IncomingDocumentService } from "../../../service/incoming-document-service";
+import type { CreateIncomingDocumentAssignmentsDto } from "../../../types/create-incoming-document-assignments-dto";
 
 interface CreateAssignmentsVariables {
   incomingDocumentId: string;
@@ -21,6 +21,10 @@ export function useCreateIncomingDocumentAssignments() {
       );
 
       return Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: ["incoming-document-assignments", incomingDocumentId],
+        }),
+
         queryClient.invalidateQueries({
           queryKey: ["incoming-documents", "details", incomingDocumentId],
         }),

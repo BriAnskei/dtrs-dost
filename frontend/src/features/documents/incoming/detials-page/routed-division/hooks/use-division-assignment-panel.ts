@@ -1,11 +1,11 @@
 import { useCallback, useMemo, useState } from "react";
-import { OfficeType } from "../../../enum/office-type.enum";
+import { OfficeTypeEnum } from "../../../enum/office-type.enum";
+import { useCreateIncomingDocumentAssignments } from "../../../shared/hooks/api/use-create-incoming-document-assignments";
 import { useNoticeDrafts } from "../../../shared/hooks/use-notice-drafts";
 import type { AssignedDivisionNoticeCount } from "../../../types/assigned-division-notice-count-response";
 import type { AssignmentStatus } from "../../../types/assignment-types";
 import type { NoticeOfActionDto } from "../../../types/notice-of-action-dto";
 import type { RoutedDivisionAssignment } from "../../../types/routed-division-assignments.type";
-import { useCreateIncomingDocumentAssignments } from "./api/use-create-incoming-document-assignments";
 import { useDeleteIncomingDocumentAssignment } from "./api/use-delete-incoming-document-assignment";
 import { useIncomingDocumentAssignmentsByRoutingId } from "./api/use-incoming-document-assignments-by-routing-id";
 import { useUnrouteDivision } from "./use-unroute-division";
@@ -64,7 +64,7 @@ export function useDivisionAssignmentsPanel({
           incomingDocumentId,
           dto: {
             // This panel only ever manages division routings.
-            officeType: OfficeType.DIVISION,
+            officeType: OfficeTypeEnum.DIVISION,
             incomingDocumentRoutingId: routingId,
             noticesOfActions: notices,
           },
