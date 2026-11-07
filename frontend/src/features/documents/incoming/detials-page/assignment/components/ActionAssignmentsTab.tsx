@@ -24,6 +24,7 @@ import {
 import type { AssignmentStatus } from "../../../types/assignment-types";
 import { SKELETON_BASE, SKELETON_HIGHLIGHT } from "../../constant";
 import {
+  canCompleteHere,
   OFFICE_FILTERS,
   STATUS_FILTERS,
   useActionAssignmentsTab,
@@ -32,6 +33,7 @@ import type {
   AssignmentUser,
   IncomingDocumentAssignment,
 } from "../types/incoming-document-assignment";
+import CompleteAssignmentPanel from "./CompleteAssignmentPanel";
 import AddAssignmentModal from "./modal/AddAssignmentModal";
 import DeleteAssignmentModal from "./modal/DeleteAssignmentModal";
 
@@ -165,15 +167,30 @@ function OfficePill({ a }: { a: IncomingDocumentAssignment }) {
 
 function AssignmentRow({
   a,
+  incomingDocumentId,
+  isCompleting,
   onDelete,
+  onComplete,
+  onCancelComplete,
+  onCompleted,
 }: {
   a: IncomingDocumentAssignment;
+  incomingDocumentId: string;
+  /** True while this row's inline Complete panel is open. */
+  isCompleting: boolean;
   onDelete: (a: IncomingDocumentAssignment) => void;
+  onComplete: (a: IncomingDocumentAssignment) => void;
+  onCancelComplete: () => void;
+  onCompleted: () => void;
 }) {
   const { icon: Icon, className } = STATUS_ICON[a.status];
   const isComplete = a.status === "COMPLETE";
   // Only pending and ongoing notices can be deleted.
   const canDelete = !isComplete;
+  // Only ongoing MAIN notices are completed from this tab.
+  const canComplete = canCompleteHere(a);
+  const showPanel = isCompleting && canComplete;
+  const panelId = `complete-panel-${a.id}`;
 
   return (
     <li className="flex gap-3 px-4 py-5 sm:px-6">
@@ -198,6 +215,19 @@ function AssignmentRow({
           </div>
           <div className="flex shrink-0 items-center gap-2">
             <AssignmentStatusText status={a.status} />
+            {canComplete && (
+              <button
+                type="button"
+                onClick={() => (isCompleting ? onCancelComplete() : onComplete(a))}
+                aria-expanded={showPanel}
+                aria-controls={showPanel ? panelId : undefined}
+                aria-label={`Complete notice of action: ${a.notice_of_action}`}
+                className="inline-flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-theme-xs font-medium text-success-700 transition hover:bg-success-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-secondary/40 dark:text-success-400 dark:hover:bg-success-500/10"
+              >
+                <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
+                Complete
+              </button>
+            )}
             <button
               type="button"
               onClick={() => onDelete(a)}
@@ -214,6 +244,16 @@ function AssignmentRow({
             </button>
           </div>
         </div>
+
+        {showPanel && (
+          <CompleteAssignmentPanel
+            incomingDocumentId={incomingDocumentId}
+            assignment={a}
+            panelId={panelId}
+            onCancel={onCancelComplete}
+            onCompleted={onCompleted}
+          />
+        )}
 
         {isComplete && a.action_taken && (
           <p className="wrap-break-word whitespace-pre-line rounded-lg bg-gray-50 px-3 py-2.5 text-theme-sm text-gray-800 dark:bg-white/3 dark:text-white/90">
@@ -347,6 +387,10 @@ export default function ActionAssignmentsTab({
     requestDelete,
     closeDelete,
     handleDeleted,
+    completingId,
+    requestComplete,
+    closeComplete,
+    handleCompleted,
     fullError,
     showToolbar,
     showFooter,
@@ -385,7 +429,16 @@ export default function ActionAssignmentsTab({
       <>
         <ol className="divide-y divide-gray-200 dark:divide-white/8">
           {items.map((a) => (
-            <AssignmentRow key={a.id} a={a} onDelete={requestDelete} />
+            <AssignmentRow
+              key={a.id}
+              a={a}
+              incomingDocumentId={incomingDocumentId}
+              isCompleting={completingId === a.id}
+              onDelete={requestDelete}
+              onComplete={requestComplete}
+              onCancelComplete={closeComplete}
+              onCompleted={handleCompleted}
+            />
           ))}
         </ol>
 

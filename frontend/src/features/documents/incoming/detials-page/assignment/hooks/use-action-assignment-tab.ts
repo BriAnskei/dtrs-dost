@@ -36,6 +36,11 @@ export const OFFICE_FILTERS: readonly { id: OfficeFilter; label: string }[] = [
 
 const SEARCH_DEBOUNCE_MS = 400;
 
+/** Only MAIN notices that are ONGOING can be completed from the admin tab. */
+export function canCompleteHere(a: IncomingDocumentAssignment) {
+  return a.office_type === "MAIN" && a.status === "ONGOING";
+}
+
 /**
  * State for the Action Assignments tab.
  *
@@ -44,7 +49,8 @@ const SEARCH_DEBOUNCE_MS = 400;
  * therefore go to the API; each combination is its own cached query.
  *
  * Everything the tab needs to render lives here (filters, search box, the
- * "Add new" and "Delete" modals, view flags), so the component is markup only.
+ * "Add new" and "Delete" modals, the inline "Complete" panel, view flags), so
+ * the component is markup only.
  */
 export function useActionAssignmentsTab(incomingDocumentId: string) {
   const [status, setStatus] = useState<StatusFilter>("ALL");
@@ -54,12 +60,16 @@ export function useActionAssignmentsTab(incomingDocumentId: string) {
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [assignmentToDelete, setAssignmentToDelete] =
     useState<IncomingDocumentAssignment | null>(null);
+  // Id of the row whose inline "Complete" panel is open. One at a time.
+  const [completingId, setCompletingId] = useState<string | null>(null);
 
   const searchId = `${useId()}-search`;
   const searchRef = useRef<HTMLInputElement>(null);
   const addButtonRef = useRef<HTMLButtonElement>(null);
   // The row's delete button that opened the modal, so focus can go back to it.
   const deleteTriggerRef = useRef<HTMLElement | null>(null);
+  // The row's Complete button that opened the panel, so focus can go back to it.
+  const completeTriggerRef = useRef<HTMLElement | null>(null);
 
   const [debouncedSearch] = useDebounce(searchInput.trim(), SEARCH_DEBOUNCE_MS);
 
@@ -169,6 +179,27 @@ export function useActionAssignmentsTab(incomingDocumentId: string) {
     scrollRef.current?.focus();
   }, [scrollRef]);
 
+  /* ------------------------- inline complete panel ------------------------ */
+
+  // Opening a panel on another row replaces the current one (and its draft).
+  const requestComplete = useCallback((assignment: IncomingDocumentAssignment) => {
+    if (!canCompleteHere(assignment)) return;
+    completeTriggerRef.current = document.activeElement as HTMLElement | null;
+    setCompletingId(assignment.id);
+  }, []);
+
+  /** Cancel: hand focus back to the Complete button that opened the panel. */
+  const closeComplete = useCallback(() => {
+    setCompletingId(null);
+    completeTriggerRef.current?.focus();
+  }, []);
+
+  /** Success: the row becomes COMPLETE and loses its button, so focus the list. */
+  const handleCompleted = useCallback(() => {
+    setCompletingId(null);
+    scrollRef.current?.focus();
+  }, [scrollRef]);
+
   /* ------------------------------ view flags ------------------------------ */
 
   const fullError = query.isError && items.length === 0;
@@ -223,6 +254,12 @@ export function useActionAssignmentsTab(incomingDocumentId: string) {
     requestDelete,
     closeDelete,
     handleDeleted,
+
+    /** Id of the row with its inline Complete panel open, or null. */
+    completingId,
+    requestComplete,
+    closeComplete,
+    handleCompleted,
 
     fullError,
     showToolbar,

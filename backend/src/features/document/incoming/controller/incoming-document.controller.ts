@@ -7,6 +7,7 @@ import {
   HttpStatus,
   Param,
   ParseUUIDPipe,
+  Patch,
   Post,
   Query,
   Req,
@@ -24,12 +25,14 @@ import { Roles } from "../../../../auth/authorization/decorator/roles.decorator"
 import { Role } from "../../../../auth/authorization/enum/roles.enum";
 import { ParsePdfFilePipe } from "../../../../common/pipes/parse-pdf-file-pipe";
 import { AssignIncomingDocumentToDivisionCommand } from "../command/assign-incoming-document-to-division/assign-incoming-document-to-division.command";
+import { CompleteIncomingDocumentAssignmentCommand } from "../command/complete-incoming-document-assignment/complete-incoming-document-assignment.command";
 import { CreateIncomingDocumentCommand } from "../command/create-incoming-document/create-incoming-document.command";
 import { CreateIncomingDocumentAssignmentsCommand } from "../command/create-incoming-document-assigments/create-incoming-document-assigments.command";
 import { CreateIncomingFromQueueCommand } from "../command/create-incoming-from-queue/create-incoming-from-queue.command";
 import { DeleteIncomingDocumentAssignmentCommand } from "../command/delete-incoming-document-assignment/delete-incoming-document-assignment.command";
 import { DeleteIncomingDocumentRoutingCommand } from "../command/delete-incoming-document-routing/delete-incoming-document-routing.command";
 import { AssignIncomingDocumentToDivisionDto } from "../dto/assign-incoming-document-to-division";
+import { CompleteIncomingDocumentAssignmentDto } from "../dto/complete-incoming-document-assignment-dto";
 import { CreateIncomingDocumentDto } from "../dto/create-incoming-document.dto";
 import { CreateIncomingDocumentAssignmentsDto } from "../dto/create-incoming-document-assignments-dto";
 import { FindIncomingDocumentsQueryDto } from "../dto/find-incoming-documents-query.dto";
@@ -92,6 +95,7 @@ export class IncomingDocumentController {
   }
 
   @Post(":incomingDocumentId/assignments")
+  @Roles(Role.SuperAdmin, Role.Admin)
   createAssignments(
     @Param("incomingDocumentId", ParseUUIDPipe) incomingDocumentId: string,
     @Body() dto: CreateIncomingDocumentAssignmentsDto,
@@ -109,6 +113,7 @@ export class IncomingDocumentController {
   }
 
   @Get(":id/routed-divisions/search")
+  @Roles(Role.SuperAdmin, Role.Admin)
   searchRoutedDivisions(
     @Param("id", ParseUUIDPipe) id: string,
     @Query("search") search = "",
@@ -120,6 +125,7 @@ export class IncomingDocumentController {
   // invalidation reponse(invalidated). it is implemented here to avoid CD
   // see module for queue and incoming for more info.
   @Get("receiver-queue/:queueId")
+  @Roles(Role.ReceiverOfficer)
   getReceiverQueueDetails(@Param("queueId", ParseUUIDPipe) queueId: string) {
     return this.queryBus.execute(new GetReceiverQueueDetailsQuery(queueId));
   }
@@ -183,6 +189,23 @@ export class IncomingDocumentController {
   ) {
     return this.queryBus.execute(
       new GetIncomingDocumentAssignmentsQuery(incomingDocumentId, filters),
+    );
+  }
+
+  @Patch("assignments/:assignmentId/complete")
+  @Roles(Role.Admin, Role.Division, Role.SuperAdmin)
+  async completeAssignment(
+    @Param("assignmentId", ParseUUIDPipe) assignmentId: string,
+    @Body() dto: CompleteIncomingDocumentAssignmentDto,
+    @Req() req: AuthenticatedRequest,
+  ): Promise<void> {
+    return this.commandBus.execute(
+      new CompleteIncomingDocumentAssignmentCommand(
+        assignmentId,
+        req.user.id,
+        req.user.role_id,
+        dto,
+      ),
     );
   }
 

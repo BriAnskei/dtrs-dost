@@ -39,6 +39,17 @@ function PdfViewerImpl({ file, highlights, selectedId, onFieldClick }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [containerW, setContainerW] = useState(0);
   const [zoomIdx, setZoomIdx] = useState(1);
+  const isMobile = useMemo(
+    () => window.matchMedia("(max-width: 640px)").matches,
+    [],
+  );
+  const maxZoomIdx = isMobile ? 1 : ZOOMS.length - 1; // mobile caps at 1×
+
+  // Clamp zoom when crossing the mobile breakpoint.
+  useEffect(() => {
+    setZoomIdx((z) => (z > maxZoomIdx ? maxZoomIdx : z));
+  }, [maxZoomIdx]);
+
   const [showAll, setShowAll] = useState(true);
   const [showBorders, setShowBorders] = useState(false); // marker style by default
   const [currentPage, setCurrentPage] = useState(1);
@@ -211,7 +222,7 @@ function PdfViewerImpl({ file, highlights, selectedId, onFieldClick }: Props) {
           <button
             type="button"
             className={btn}
-            disabled={zoomIdx === ZOOMS.length - 1}
+            disabled={zoomIdx === maxZoomIdx}
             onClick={() => setZoomIdx((z) => z + 1)}
             aria-label="Zoom in"
           >
@@ -223,7 +234,7 @@ function PdfViewerImpl({ file, highlights, selectedId, onFieldClick }: Props) {
       <div
         ref={scrollRef}
         onScroll={onScroll}
-        className="custom-scrollbar relative flex-1 overflow-auto bg-gray-100 p-4 dark:bg-gray-900"
+        className="custom-scrollbar relative flex-1 overflow-auto overscroll-contain bg-gray-100 p-4 dark:bg-gray-900"
       >
         {error && <p className="text-theme-sm text-danger">{error}</p>}
         {!error && !pdf && (

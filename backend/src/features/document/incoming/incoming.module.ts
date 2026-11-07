@@ -5,6 +5,7 @@ import { UserModule } from "../../user/user.module";
 import { DocumentFileModule } from "../document-file/document-file.module";
 import { ExtractedDocumentQueueModule } from "../extracted-document-queue/extracted-document-queue.module";
 import { AssignIncomingDocumentToDivisionHandler } from "./command/assign-incoming-document-to-division/assign-incoming-document-to-division.handler";
+import { CompleteIncomingDocumentAssignmentHandler } from "./command/complete-incoming-document-assignment/complete-incoming-document-assignment.handler";
 import { CreateIncomingDocumentHandler } from "./command/create-incoming-document/create-incoming-document.handler";
 import { CreateIncomingDocumentAssignmentsHandler } from "./command/create-incoming-document-assigments/create-incoming-document-assigments.handler";
 import { CreateIncomingFromQueueHandler } from "./command/create-incoming-from-queue/create-incoming-from-queue.handler";
@@ -66,6 +67,7 @@ import { AssignmentCounterService } from "./services/assignment-counter.service"
     CreateIncomingFromQueueHandler,
     CreateIncomingDocumentAssignmentsHandler,
     AssignIncomingDocumentToDivisionHandler,
+    CompleteIncomingDocumentAssignmentHandler,
     DeleteIncomingDocumentAssignmentHandler,
 
     // Query handlers

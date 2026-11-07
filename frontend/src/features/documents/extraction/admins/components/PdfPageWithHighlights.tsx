@@ -15,8 +15,8 @@ interface Props {
   setRef: (el: HTMLDivElement | null) => void;
 }
 
-// Cap DPR so high-DPI pages don't balloon memory.
-const MAX_DPR = 2;
+// Cap DPR so high-DPI pages don't balloon memory. Mobile uses 1 to keep canvas size sane.
+const MAX_DPR = window.innerWidth < 640 ? 1 : 2;
 
 // Marker-style fill: multiply blend keeps the text underneath fully readable.
 const HL_FILL = {
@@ -112,7 +112,7 @@ function PdfPageWithHighlightsImpl({
       <canvas
         ref={canvasRef}
         style={{ width: cssWidth, height: cssHeight }}
-        className="block"
+        className="block select-none"
       />
       {/* Percent-positioned overlay: lives inside the page, so it scrolls and zooms with it */}
       <div className="absolute inset-0">

@@ -282,6 +282,30 @@ export class IncomingDocumentAssignmentsRepository {
     });
   }
 
+  async complete(
+    assignmentId: string,
+    actionTaken: string,
+    actionTakenById: string,
+    manager: EntityManager,
+  ): Promise<boolean> {
+    const result = await manager
+      .createQueryBuilder()
+      .update(IncomingDocumentAssignmentEntity)
+      .set({
+        status: AssignmentStatus.COMPLETE,
+        action_taken: actionTaken,
+        action_taken_at: () => "CURRENT_TIMESTAMP",
+        action_taken_by_id: actionTakenById,
+      })
+      .where("id = :assignmentId", { assignmentId })
+      .andWhere("status IN (:...statuses)", {
+        statuses: [AssignmentStatus.PENDING, AssignmentStatus.ONGOING],
+      })
+      .execute();
+
+    return (result.affected ?? 0) > 0;
+  }
+
   async delete(id: string, manager?: EntityManager): Promise<boolean> {
     const repo =
       manager?.getRepository(IncomingDocumentAssignmentEntity) ?? this.repository;

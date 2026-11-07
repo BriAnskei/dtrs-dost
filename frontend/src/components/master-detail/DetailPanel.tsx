@@ -20,7 +20,13 @@ import { THIN_SCROLLBAR } from "../../contant/ThinScrollBar";
 /*  the same:  <DetailSection>, <DetailFieldGrid>, <DetailField>.             */
 /* -------------------------------------------------------------------------- */
 
-const EXIT_MS = 200;
+/**
+ * Keep these in sync with the `duration-*` classes used below:
+ * OPEN_MS -> `duration-500`, EXIT_MS -> `duration-300`.
+ * Exit is faster than enter on purpose (dismissals should feel snappy).
+ */
+const OPEN_MS = 500;
+const EXIT_MS = 300;
 
 type PanelSize = "md" | "lg" | "xl";
 
@@ -52,6 +58,12 @@ export interface DetailPanelProps {
   backdropCloses?: boolean;
   /** Block every close path (backdrop, Esc, X) while busy. Default `false`. */
   closeDisabled?: boolean;
+  /**
+   * Mount the body only after the slide-in finishes, then fade it in.
+   * Turn this on when the body is expensive to render (big tables, PDF or
+   * image previews) and the slide stutters. Default `false`.
+   */
+  deferBody?: boolean;
 }
 
 export default function DetailPanel({
@@ -64,6 +76,7 @@ export default function DetailPanel({
   footer,
   backdropCloses = true,
   closeDisabled = false,
+  deferBody = false,
 }: DetailPanelProps) {
   const titleId = useId();
   const panelRef = useRef<HTMLElement>(null);
@@ -71,6 +84,7 @@ export default function DetailPanel({
   // `mounted` keeps the DOM alive for the exit animation; `visible` drives the transition.
   const [mounted, setMounted] = useState(isOpen);
   const [visible, setVisible] = useState(false);
+  const [bodyReady, setBodyReady] = useState(!deferBody);
 
   useEffect(() => {
     if (isOpen) {
@@ -90,16 +104,40 @@ export default function DetailPanel({
     return () => window.clearTimeout(t);
   }, [isOpen]);
 
+  // Optionally hold the body back until the slide-in has finished.
+  useEffect(() => {
+    if (!deferBody) {
+      setBodyReady(true);
+      return;
+    }
+    if (!visible) {
+      setBodyReady(false);
+      return;
+    }
+    const t = window.setTimeout(() => setBodyReady(true), OPEN_MS);
+    return () => window.clearTimeout(t);
+  }, [visible, deferBody]);
+
   // Scroll lock + focus management: focus the panel on open, restore focus on close.
   useEffect(() => {
     if (!mounted) return;
     const previouslyFocused = document.activeElement as HTMLElement | null;
-    const previousOverflow = document.body.style.overflow;
+    const { overflow, paddingRight } = document.body.style;
+
+    // Compensate for the vanishing scrollbar so the page behind doesn't shift.
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
     document.body.style.overflow = "hidden";
-    panelRef.current?.focus();
+    if (scrollbarWidth > 0) {
+      document.body.style.paddingRight = `${scrollbarWidth}px`;
+    }
+
+    // preventScroll stops the browser from jumping while the panel is sliding in.
+    panelRef.current?.focus({ preventScroll: true });
+
     return () => {
-      document.body.style.overflow = previousOverflow;
-      previouslyFocused?.focus?.();
+      document.body.style.overflow = overflow;
+      document.body.style.paddingRight = paddingRight;
+      previouslyFocused?.focus?.({ preventScroll: true });
     };
   }, [mounted]);
 
@@ -140,16 +178,18 @@ export default function DetailPanel({
 
   return createPortal(
     <div className="fixed inset-0 z-99999">
+      {/* Backdrop: opacity only (no backdrop-blur) so it animates on the GPU. */}
       <button
         type="button"
         tabIndex={-1}
         aria-label="Close details"
         onClick={backdropCloses && !closeDisabled ? onClose : undefined}
-        className={`absolute inset-0 cursor-default bg-black/40 backdrop-blur-sm transition-opacity duration-200 motion-reduce:transition-none ${
-          visible ? "opacity-100" : "opacity-0"
+        className={`absolute inset-0 cursor-default bg-black/40 transition-opacity will-change-[opacity] motion-reduce:duration-150 ${
+          visible ? "opacity-100 duration-500 ease-out" : "opacity-0 duration-300 ease-in"
         }`}
       />
 
+      {/* Panel: slower, decelerating open; snappier close. */}
       <aside
         ref={panelRef}
         role="dialog"
@@ -157,8 +197,10 @@ export default function DetailPanel({
         aria-labelledby={titleId}
         tabIndex={-1}
         onKeyDown={handleKeyDown}
-        className={`absolute inset-y-0 right-0 flex w-full ${PANEL_SIZE[size]} flex-col border-l border-gray-200 bg-white shadow-2xl outline-none transition-transform duration-200 ease-out motion-reduce:transition-none dark:border-white/8 dark:bg-gray-900 ${
-          visible ? "translate-x-0" : "translate-x-full"
+        className={`absolute inset-y-0 right-0 flex w-full ${PANEL_SIZE[size]} flex-col border-l border-gray-200 bg-white shadow-2xl outline-none transition-transform will-change-transform motion-reduce:duration-150 dark:border-white/8 dark:bg-gray-900 ${
+          visible
+            ? "translate-x-0 duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]"
+            : "translate-x-full duration-300 ease-in"
         }`}
       >
         <header className="flex items-start justify-between gap-4 border-b border-gray-100 px-5 py-3 dark:border-white/8 sm:px-6">
@@ -187,7 +229,13 @@ export default function DetailPanel({
         </header>
 
         <div className={`flex-1 overflow-y-auto px-5 py-5 sm:px-6 ${THIN_SCROLLBAR}`}>
-          {body}
+          <div
+            className={`transition-opacity duration-150 ease-out motion-reduce:transition-none ${
+              bodyReady ? "opacity-100" : "opacity-0"
+            }`}
+          >
+            {bodyReady ? body : null}
+          </div>
         </div>
 
         {footer && (
