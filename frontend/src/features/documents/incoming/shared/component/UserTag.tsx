@@ -1,8 +1,9 @@
 import UserAvatar from "../../../../../components/common/UserAvatar";
+import type { AssignmentUser } from "../types/assignment-user-types";
 
 interface UserTagProps {
   /** `null` when the user was removed (the entity's foreign keys are SET NULL). */
-  person: { name: string; position: string | null } | null;
+  person: AssignmentUser | null;
   /** `xs`: inline, one line. `md`: avatar plus name, optionally with position below. */
   size?: "xs" | "md";
   showPosition?: boolean;
@@ -14,9 +15,9 @@ export default function UserTag({
   person,
   size = "xs",
   showPosition = false,
-  unknownLabel = "Unknown user",
+  unknownLabel = "Deleted user",
 }: UserTagProps) {
-  const name = person ? person.name : unknownLabel;
+  const name = person ? person.full_name : unknownLabel;
   const position = person?.position || null;
 
   const nameClass = !person
@@ -30,7 +31,7 @@ export default function UserTag({
       className="inline-flex min-w-0 items-center gap-2 align-middle"
       title={position ? `${name} · ${position}` : name}
     >
-      <UserAvatar name={person?.name ?? null} size={size} />
+      <UserAvatar name={person?.full_name ?? null} size={size} />
       <span className="min-w-0">
         <span className={`block truncate ${nameClass}`}>{name}</span>
         {showPosition && position && (

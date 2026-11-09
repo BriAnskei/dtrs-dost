@@ -1,10 +1,5 @@
+import type { AssignmentUser } from "../shared/types/assignment-user-types";
 import type { AssignmentStatus } from "./assignment-types";
-
-/** A user reference on an assignment. `position` is optional on the user entity. */
-export interface AssignmentUser {
-  name: string;
-  position: string | null;
-}
 
 export interface RoutedDivisionAssignment {
   id: string;

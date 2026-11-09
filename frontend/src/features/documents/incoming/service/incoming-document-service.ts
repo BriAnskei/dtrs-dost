@@ -5,7 +5,7 @@ import type {
   IncomingDocumentAssignment,
 } from "../detials-page/assignment/types/incoming-document-assignment";
 import type { RoutedDivisionSearchResult } from "../detials-page/assignment/types/routed-division-search.type";
-import type { CompleteIncomingDocumentAssignmentDto } from "../shared/types/incoming-document-assignment";
+import type { CompleteIncomingDocumentAssignmentDto } from "../shared/types/complete-assignment";
 import type { AssignIncomingDocumentToDivisionDto } from "../types/assign-incoming-document-to-dto-division.type";
 import type { AssignedDivisionNoticeCount } from "../types/assigned-division-notice-count-response";
 import type { CreateIncomingDocumentAssignmentsDto } from "../types/create-incoming-document-assignments-dto";

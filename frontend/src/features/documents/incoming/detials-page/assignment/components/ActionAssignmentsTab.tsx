@@ -1,77 +1,45 @@
-import {
-  ArrowDownUp,
-  Building2,
-  CheckCircle2,
-  CircleDashed,
-  Clock,
-  GitBranch,
-  type LucideIcon,
-  Plus,
-  Search,
-  Trash2,
-  X,
-} from "lucide-react";
+import { ArrowDownUp, Plus, Search, X } from "lucide-react";
 import { type ReactNode, useId } from "react";
-import Skeleton, { SkeletonTheme } from "react-loading-skeleton";
+import { SkeletonTheme } from "react-loading-skeleton";
 import { THIN_SCROLLBAR } from "../../../../../../contant/ThinScrollBar";
-import { formatDateTime } from "../../../../../../utils/dateFormatter";
-import AssignmentStatusText from "../../../shared/component/AssignmentStatusText";
-import UserTag from "../../../shared/component/UserTag";
+import AssignmentRow, {
+  AssignmentRowSkeleton,
+} from "../../../shared/component/AssignmentRow";
 import {
   primaryButton,
   secondaryButton,
 } from "../../../shared/detial-panel-form-style-constant";
-import type { AssignmentStatus } from "../../../types/assignment-types";
 import { SKELETON_BASE, SKELETON_HIGHLIGHT } from "../../constant";
 import {
-  canCompleteHere,
   OFFICE_FILTERS,
   STATUS_FILTERS,
   useActionAssignmentsTab,
 } from "../hooks/use-action-assignment-tab";
-import type {
-  AssignmentUser,
-  IncomingDocumentAssignment,
-} from "../types/incoming-document-assignment";
-import CompleteAssignmentPanel from "./CompleteAssignmentPanel";
 import AddAssignmentModal from "./modal/AddAssignmentModal";
 import DeleteAssignmentModal from "./modal/DeleteAssignmentModal";
 
 interface ActionAssignmentsTabProps {
   incomingDocumentId: string;
-  /** Max height of the scrollable list, like TableShell's `maxTableHeight`. */
+  /**
+   * Height of the scrollable list. Applied as a fixed height (not a max-height),
+   * the same way TableShell applies `maxTableHeight` in the Routed Divisions tab,
+   * so both tabs keep the same size regardless of how many rows are loaded.
+   */
   maxListHeight?: string;
 }
 
 const fieldFocus =
   "focus:outline-none focus-visible:ring-2 focus-visible:ring-secondary/40";
 
-const COMPLETED_NOTICE_HINT =
-  "Completed notices can't be deleted because their action is already recorded.";
-
-/**
- * One distinct icon shape per status (not just a colour change), always shown
- * next to the text label, so status never depends on colour alone.
- */
-const STATUS_ICON: Record<AssignmentStatus, { icon: LucideIcon; className: string }> = {
-  PENDING: {
-    icon: CircleDashed,
-    className: "text-gray-400 dark:text-gray-500",
-  },
-  ONGOING: {
-    icon: Clock,
-    className: "text-warning-600 dark:text-warning-400",
-  },
-  COMPLETE: {
-    icon: CheckCircle2,
-    className: "text-success-600 dark:text-success-400",
-  },
-};
-
 /* -------------------------------------------------------------------------- */
 /*  Small pieces                                                              */
 /* -------------------------------------------------------------------------- */
 
+/**
+ * Mobile: 44px tall with 16px text (taller tap target, and iOS Safari doesn't
+ * zoom the page when a field under 16px gets focus). sm and up: the original
+ * 36px / theme-sm size.
+ */
 function FilterSelect<T extends string>({
   label,
   options,
@@ -93,7 +61,7 @@ function FilterSelect<T extends string>({
         id={id}
         value={value}
         onChange={(e) => onChange(e.target.value as T)}
-        className={`h-9 w-full rounded-lg border bg-transparent px-3 text-theme-sm dark:bg-gray-900 sm:w-auto ${fieldFocus} ${
+        className={`h-11 w-full rounded-lg border bg-transparent px-3 text-base dark:bg-gray-900 sm:h-9 sm:w-auto sm:text-theme-sm ${fieldFocus} ${
           value === options[0].id
             ? "border-gray-200 text-gray-600 dark:border-white/8 dark:text-gray-300"
             : "border-primary/50 text-gray-800 dark:text-white/90"
@@ -109,191 +77,6 @@ function FilterSelect<T extends string>({
   );
 }
 
-function MetaLabel({ children }: { children: string }) {
-  return (
-    <p className="mb-1.5 text-theme-xs font-medium uppercase tracking-wide text-gray-400 dark:text-gray-500">
-      {children}
-    </p>
-  );
-}
-
-function PersonMeta({
-  label,
-  person,
-  at,
-}: {
-  label: string;
-  person: AssignmentUser | null;
-  at: string | null;
-}) {
-  return (
-    <div className="min-w-0">
-      <MetaLabel>{label}</MetaLabel>
-      {/* UserTag expects `name`; the API gives `full_name`. null renders "Unknown user". */}
-      <UserTag
-        person={person ? { name: person.full_name, position: person.position } : null}
-        size="md"
-        showPosition
-      />
-      {at && (
-        <time
-          dateTime={at}
-          className="mt-1.5 block text-theme-xs text-gray-500 dark:text-gray-400"
-        >
-          {formatDateTime(at)}
-        </time>
-      )}
-    </div>
-  );
-}
-
-/** MAIN = assigned to the main office; DIVISION = assigned to a specific division. */
-function OfficePill({ a }: { a: IncomingDocumentAssignment }) {
-  const isMain = a.office_type === "MAIN";
-  const Icon = isMain ? Building2 : GitBranch;
-  return (
-    <span
-      className={`inline-flex max-w-full items-center gap-1.5 text-theme-xs font-medium ${
-        isMain ? "text-gray-600 dark:text-gray-300" : "text-blue-600 dark:text-blue-300"
-      }`}
-    >
-      <Icon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-      <span className="truncate">
-        {isMain ? "Main office" : (a.division_name ?? "Unknown division")}
-      </span>
-    </span>
-  );
-}
-
-function AssignmentRow({
-  a,
-  incomingDocumentId,
-  isCompleting,
-  onDelete,
-  onComplete,
-  onCancelComplete,
-  onCompleted,
-}: {
-  a: IncomingDocumentAssignment;
-  incomingDocumentId: string;
-  /** True while this row's inline Complete panel is open. */
-  isCompleting: boolean;
-  onDelete: (a: IncomingDocumentAssignment) => void;
-  onComplete: (a: IncomingDocumentAssignment) => void;
-  onCancelComplete: () => void;
-  onCompleted: () => void;
-}) {
-  const { icon: Icon, className } = STATUS_ICON[a.status];
-  const isComplete = a.status === "COMPLETE";
-  // Only pending and ongoing notices can be deleted.
-  const canDelete = !isComplete;
-  // Only ongoing MAIN notices are completed from this tab.
-  const canComplete = canCompleteHere(a);
-  const showPanel = isCompleting && canComplete;
-  const panelId = `complete-panel-${a.id}`;
-
-  return (
-    <li className="flex gap-3 px-4 py-5 sm:px-6">
-      <span
-        className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center ${className}`}
-      >
-        <Icon className="h-5 w-5" aria-hidden="true" />
-      </span>
-
-      <div className="min-w-0 flex-1 space-y-3">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0 space-y-1.5">
-            <OfficePill a={a} />
-            <p className="wrap-break-word text-theme-sm font-medium text-gray-800 dark:text-white/90">
-              {a.notice_of_action}
-            </p>
-            {a.notice_description && (
-              <p className="wrap-break-word whitespace-pre-line text-theme-xs text-gray-500 dark:text-gray-400">
-                {a.notice_description}
-              </p>
-            )}
-          </div>
-          <div className="flex shrink-0 items-center gap-2">
-            <AssignmentStatusText status={a.status} />
-            {canComplete && (
-              <button
-                type="button"
-                onClick={() => (isCompleting ? onCancelComplete() : onComplete(a))}
-                aria-expanded={showPanel}
-                aria-controls={showPanel ? panelId : undefined}
-                aria-label={`Complete notice of action: ${a.notice_of_action}`}
-                className="inline-flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-theme-xs font-medium text-success-700 transition hover:bg-success-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-secondary/40 dark:text-success-400 dark:hover:bg-success-500/10"
-              >
-                <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
-                Complete
-              </button>
-            )}
-            <button
-              type="button"
-              onClick={() => onDelete(a)}
-              disabled={!canDelete}
-              title={canDelete ? undefined : COMPLETED_NOTICE_HINT}
-              aria-label={
-                canDelete
-                  ? `Delete notice of action: ${a.notice_of_action}`
-                  : `Can't delete completed notice of action: ${a.notice_of_action}`
-              }
-              className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition hover:bg-error-50 hover:text-error-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-secondary/40 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-gray-400 dark:hover:bg-error-500/10 dark:hover:text-error-400"
-            >
-              <Trash2 className="h-4 w-4" aria-hidden="true" />
-            </button>
-          </div>
-        </div>
-
-        {showPanel && (
-          <CompleteAssignmentPanel
-            incomingDocumentId={incomingDocumentId}
-            assignment={a}
-            panelId={panelId}
-            onCancel={onCancelComplete}
-            onCompleted={onCompleted}
-          />
-        )}
-
-        {isComplete && a.action_taken && (
-          <p className="wrap-break-word whitespace-pre-line rounded-lg bg-gray-50 px-3 py-2.5 text-theme-sm text-gray-800 dark:bg-white/3 dark:text-white/90">
-            {a.action_taken}
-          </p>
-        )}
-
-        <div className="grid gap-x-6 gap-y-3 sm:grid-cols-2">
-          <PersonMeta label="Assigned by" person={a.assigned_by} at={a.created_at} />
-          {isComplete && (
-            <PersonMeta
-              label="Action taken by"
-              person={a.action_taken_by}
-              at={a.action_taken_at}
-            />
-          )}
-        </div>
-      </div>
-    </li>
-  );
-}
-
-/** Same shape as AssignmentRow so the layout doesn't jump when data arrives. */
-function RowSkeleton() {
-  return (
-    <div className="flex gap-3 px-4 py-5 sm:px-6">
-      <Skeleton width={36} height={36} borderRadius={8} />
-      <div className="min-w-0 flex-1 space-y-2">
-        <Skeleton width={128} height={20} borderRadius={999} />
-        <Skeleton width="65%" height={16} />
-        <Skeleton width="40%" height={12} />
-        <div className="grid gap-3 pt-2 sm:grid-cols-2">
-          <Skeleton height={36} />
-          <Skeleton height={36} className="hidden sm:block" />
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function ListSkeleton({ rows, label }: { rows: number; label: string }) {
   return (
     <SkeletonTheme baseColor={SKELETON_BASE} highlightColor={SKELETON_HIGHLIGHT}>
@@ -305,7 +88,7 @@ function ListSkeleton({ rows, label }: { rows: number; label: string }) {
       >
         {Array.from({ length: rows }, (_, i) => (
           // biome-ignore lint/suspicious/noArrayIndexKey: static placeholder rows, never reordered.
-          <RowSkeleton key={i} />
+          <AssignmentRowSkeleton key={i} />
         ))}
       </div>
     </SkeletonTheme>
@@ -481,7 +264,7 @@ export default function ActionAssignmentsTab({
               ref={addButtonRef}
               type="button"
               onClick={openAdd}
-              className={primaryButton}
+              className={`${primaryButton} min-h-11 w-full justify-center sm:min-h-0 sm:w-auto`}
             >
               <Plus className="h-4 w-4" aria-hidden="true" />
               Add new
@@ -512,21 +295,26 @@ export default function ActionAssignmentsTab({
                   onKeyDown={handleSearchKeyDown}
                   placeholder="Search notice of action…"
                   autoComplete="off"
-                  className={`h-9 w-full rounded-lg border border-gray-200 bg-transparent pl-9 pr-9 text-theme-sm text-gray-800 placeholder:text-gray-400 dark:border-white/8 dark:text-white/90 [&::-webkit-search-cancel-button]:hidden ${fieldFocus}`}
+                  className={`h-11 w-full rounded-lg border border-gray-200 bg-transparent pl-9 pr-10 text-base text-gray-800 placeholder:text-gray-400 dark:border-white/8 dark:text-white/90 sm:h-9 sm:pr-9 sm:text-theme-sm [&::-webkit-search-cancel-button]:hidden ${fieldFocus}`}
                 />
                 {searchInput && (
                   <button
                     type="button"
                     aria-label="Clear search"
                     onClick={clearSearch}
-                    className={`absolute right-2 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 ${fieldFocus}`}
+                    className={`absolute right-1.5 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 sm:right-2 sm:h-6 sm:w-6 ${fieldFocus}`}
                   >
                     <X className="h-4 w-4" aria-hidden="true" />
                   </button>
                 )}
               </div>
 
-              <div className="flex flex-wrap items-center gap-2">
+              {/*
+                Mobile: compact 2-column grid. Row 1 is the two filters side by
+                side, row 2 is Sort (+ "Clear all" when filters are active).
+                sm and up: the original inline flex row.
+              */}
+              <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:flex-wrap sm:items-center">
                 <FilterSelect
                   label="Filter by status"
                   options={STATUS_FILTERS}
@@ -542,7 +330,9 @@ export default function ActionAssignmentsTab({
                 <button
                   type="button"
                   onClick={toggleSort}
-                  className={`${secondaryButton} !h-9 !px-3 whitespace-nowrap`}
+                  className={`${secondaryButton} w-full justify-center !h-11 !px-3 whitespace-nowrap sm:col-span-1 sm:w-auto sm:!h-9 ${
+                    hasActiveFilters ? "" : "col-span-2"
+                  }`}
                 >
                   <ArrowDownUp className="h-4 w-4" aria-hidden="true" />
                   {sort === "newest" ? "Newest first" : "Oldest first"}
@@ -552,7 +342,7 @@ export default function ActionAssignmentsTab({
                   <button
                     type="button"
                     onClick={clearFilters}
-                    className={`rounded px-1 text-theme-sm font-medium text-primary hover:underline ${fieldFocus}`}
+                    className={`flex h-11 items-center justify-center rounded px-1 text-theme-sm font-medium text-primary hover:underline sm:h-auto ${fieldFocus}`}
                   >
                     Clear all
                   </button>
@@ -563,9 +353,13 @@ export default function ActionAssignmentsTab({
         </div>
 
         {/*
-          Scroll area: capped height, thin scrollbar. Focusable so keyboard users
-          can scroll it. Previous results stay visible (dimmed) while a new
-          search/filter loads.
+          Scroll area: fixed height (same as the Routed Divisions table), thin
+          scrollbar. Focusable so keyboard users can scroll it. Previous results
+          stay visible (dimmed) while a new search/filter loads.
+
+          FIX: `relative` makes this the containing block for any `sr-only`
+          (position: absolute) element inside a row, so it is clipped by this
+          scroll area instead of stretching the page's scroll height.
         */}
         {/* biome-ignore lint/a11y/useSemanticElements: scroll container is typed as HTMLDivElement by useInfiniteScrollSentinel. */}
         <div
@@ -575,10 +369,10 @@ export default function ActionAssignmentsTab({
           // biome-ignore lint/a11y/noNoninteractiveTabindex: a scrollable region must be keyboard-focusable (WCAG 2.1.1).
           tabIndex={0}
           aria-busy={isPlaceholderData}
-          className={`overflow-y-auto transition-opacity ${THIN_SCROLLBAR} ${fieldFocus} ${
+          className={`relative overflow-y-auto transition-opacity ${THIN_SCROLLBAR} ${fieldFocus} ${
             isPlaceholderData ? "opacity-60" : ""
           }`}
-          style={{ maxHeight: maxListHeight, overflowAnchor: "none" }}
+          style={{ height: maxListHeight, overflowAnchor: "none" }}
         >
           {content}
         </div>

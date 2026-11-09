@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { getApiErrorMessage } from "../../../../../../lib/api-error";
 import { IncomingDocumentService } from "../../../service/incoming-document-service";
-import type { CompleteIncomingDocumentAssignmentDto } from "../../types/incoming-document-assignment";
+import type { CompleteIncomingDocumentAssignmentDto } from "../../types/complete-assignment";
 
 interface CompleteAssignmentParams {
   assignmentId: string;

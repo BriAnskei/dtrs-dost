@@ -1,13 +1,9 @@
+import type { AssignmentUser } from "../../../shared/types/assignment-user-types";
 import type { AssignmentStatus } from "../../../types/assignment-types";
 
 export type OfficeType = "MAIN" | "DIVISION";
 
 export type AssignmentSort = "newest" | "oldest";
-
-export interface AssignmentUser {
-  full_name: string;
-  position: string | null;
-}
 
 export interface IncomingDocumentAssignment {
   id: string;

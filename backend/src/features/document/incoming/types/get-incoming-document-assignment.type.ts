@@ -1,6 +1,7 @@
 import type { AssignmentSort } from "../dto/get-incoming-document-assignments-dto";
 import type { OfficeType } from "../entities/incoming-document-assignment.entity";
 import type { AssignmentStatus } from "../enums/assignment-status.enum";
+import { AssignmentUserResponse } from "./assignment-user-response";
 
 export interface GetIncomingDocumentAssignmentsFilters {
   limit: number;
@@ -15,11 +16,6 @@ export interface IncomingDocumentAssignmentCursor {
   id: string;
   sort: AssignmentSort;
   sortValue: string;
-}
-
-export interface AssignmentUserResponse {
-  full_name: string;
-  position: string | null;
 }
 
 export interface IncomingDocumentAssignmentResponse {

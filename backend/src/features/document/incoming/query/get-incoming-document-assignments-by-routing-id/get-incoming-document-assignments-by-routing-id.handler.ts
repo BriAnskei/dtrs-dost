@@ -33,7 +33,7 @@ export class GetIncomingDocumentAssignmentsByRoutingIdHandler
 
       created_by: assignment.created_by
         ? {
-            name: assignment.created_by.full_name,
+            full_name: assignment.created_by.full_name,
             position: assignment.created_by.position,
           }
         : null,
@@ -43,7 +43,7 @@ export class GetIncomingDocumentAssignmentsByRoutingIdHandler
 
       action_taken_by: assignment.action_taken_by
         ? {
-            name: assignment.action_taken_by.full_name,
+            full_name: assignment.action_taken_by.full_name,
             position: assignment.action_taken_by.position,
           }
         : null,
