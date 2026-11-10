@@ -36,7 +36,10 @@ import React from "react";
 import { describe, expect, it, vi } from "vitest";
 
 import ExtractedQueueTable from "../queue-list/components/ExtractedQueueTable";
-import type { ExtractedDocumentQueue, ExtractedDocumentQueueSort } from "../types/extracted-document-queue.types";
+import type {
+  ExtractedDocumentQueue,
+  ExtractedDocumentQueueSort,
+} from "../types/extracted-document-queue.types";
 
 /* ─── Mocks ─────────────────────────────────────────────────────────────────── */
 
@@ -84,7 +87,9 @@ function makeHookReturn(overrides: Partial<TableHookReturn> = {}): TableHookRetu
 }
 
 /** A minimal queue row; caller overrides the bits under test. */
-function makeQueue(overrides: Partial<ExtractedDocumentQueue> = {}): ExtractedDocumentQueue {
+function makeQueue(
+  overrides: Partial<ExtractedDocumentQueue> = {},
+): ExtractedDocumentQueue {
   return {
     id: "q-1",
     document_file_id: "df-1",
@@ -135,9 +140,7 @@ describe("ExtractedQueueTable", () => {
         makeQueue({ id: "a", file_name: "alpha.pdf" }),
         makeQueue({ id: "b", file_name: "beta.pdf" }),
       ];
-      vi.mocked(useExtractedQueueTable).mockReturnValue(
-        makeHookReturn({ queues: rows }),
-      );
+      vi.mocked(useExtractedQueueTable).mockReturnValue(makeHookReturn({ queues: rows }));
 
       const { container } = render(<ExtractedQueueTable />);
 

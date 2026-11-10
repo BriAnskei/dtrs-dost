@@ -23,9 +23,9 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { buildIncomingDraft } from "../helpers/incoming-helpers";
 import { FIELD_LABELS } from "../constans";
-import type { ResultRow, FieldKey } from "../types/extraction-types";
+import { buildIncomingDraft } from "../helpers/incoming-helpers";
+import type { FieldKey, ResultRow } from "../types/extraction-types";
 
 /* ── Test helpers ────────────────────────────────────────────────────────── */
 

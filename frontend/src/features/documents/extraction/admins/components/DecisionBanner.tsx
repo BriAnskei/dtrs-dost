@@ -24,10 +24,7 @@ interface Props {
   minEffective: number | null;
 }
 
-export default function DecisionBanner({
-  decision,
-  minEffective,
-}: Props) {
+export default function DecisionBanner({ decision, minEffective }: Props) {
   const s = STYLE[decision];
   return (
     <div className={`rounded-xl border p-4 ${s.box}`}>

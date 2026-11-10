@@ -93,11 +93,15 @@ describe("mapUserResponseToSystemUser", () => {
      * The API returns snake_case role strings; the UI uses Title Case.
      * Covers the three assignable roles plus the Super Admin fallback.
      */
-    expect(mapUserResponseToSystemUser({ ...MINIMAL_USER, role: "admin" }).role).toBe("Admin");
-    expect(mapUserResponseToSystemUser({ ...MINIMAL_USER, role: "receiver_officer" }).role).toBe(
-      "Receiver",
+    expect(mapUserResponseToSystemUser({ ...MINIMAL_USER, role: "admin" }).role).toBe(
+      "Admin",
     );
-    expect(mapUserResponseToSystemUser({ ...MINIMAL_USER, role: "division" }).role).toBe("Division");
+    expect(
+      mapUserResponseToSystemUser({ ...MINIMAL_USER, role: "receiver_officer" }).role,
+    ).toBe("Receiver");
+    expect(mapUserResponseToSystemUser({ ...MINIMAL_USER, role: "division" }).role).toBe(
+      "Division",
+    );
     expect(
       mapUserResponseToSystemUser({ ...MINIMAL_USER, role: "super_admin" }).role,
     ).toBe("Super Admin");

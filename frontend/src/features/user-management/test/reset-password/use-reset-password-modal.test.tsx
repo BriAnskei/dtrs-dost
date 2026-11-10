@@ -30,11 +30,14 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
-  useResetPasswordModal,
   type ResetPasswordStep,
+  useResetPasswordModal,
 } from "../../hooks/reset-password/use-reset-password-modal";
+import type {
+  PasswordResetRequestResponse,
+  PasswordResetTokenSummary,
+} from "../../types/password-reset.type";
 import type { SystemUser } from "../../types/user.type";
-import type { PasswordResetRequestResponse, PasswordResetTokenSummary } from "../../types/password-reset.type";
 
 const {
   mockVerifyPassword,
@@ -284,7 +287,9 @@ describe("useResetPasswordModal", () => {
       act(() => result.current.setAdminPassword("wrong"));
       await act(async () => result.current.handleVerifyPassword());
 
-      await waitFor(() => expect(result.current.adminPasswordError).toBe("Incorrect password."));
+      await waitFor(() =>
+        expect(result.current.adminPasswordError).toBe("Incorrect password."),
+      );
       expect(result.current.step).toBe("verify");
       expect(result.current.isVerifying).toBe(false);
 
@@ -525,9 +530,11 @@ describe("useResetPasswordModal", () => {
       const { result } = await renderAndNavigateToConflict(client, vi.fn());
 
       let resolveDelete!: () => void;
-      mockDeleteToken.mockReturnValueOnce(new Promise<void>((resolve) => {
-        resolveDelete = resolve;
-      }));
+      mockDeleteToken.mockReturnValueOnce(
+        new Promise<void>((resolve) => {
+          resolveDelete = resolve;
+        }),
+      );
 
       act(() => {
         result.current.resolveConflict();
@@ -561,7 +568,9 @@ describe("useResetPasswordModal", () => {
       await waitFor(() => expect(mockToast.error).toHaveBeenCalledTimes(1));
       // getErrorMessage is REAL here: for a plain Error it returns the fallback
       // "Could not cancel the existing reset request." (not err.message).
-      expect(mockToast.error).toHaveBeenCalledWith("Could not cancel the existing reset request.");
+      expect(mockToast.error).toHaveBeenCalledWith(
+        "Could not cancel the existing reset request.",
+      );
       // Still at conflict step, conflictInfo not cleared.
       expect(result.current.step).toBe("conflict");
       expect(result.current.conflictInfo).not.toBeNull();
@@ -656,9 +665,11 @@ describe("useResetPasswordModal", () => {
       const { result } = await renderAndNavigateToLink(client, vi.fn());
 
       let resolveDelete!: () => void;
-      mockDeleteToken.mockReturnValueOnce(new Promise<void>((resolve) => {
-        resolveDelete = resolve;
-      }));
+      mockDeleteToken.mockReturnValueOnce(
+        new Promise<void>((resolve) => {
+          resolveDelete = resolve;
+        }),
+      );
 
       // Start abandon and wait for isAbandoningLink to be true
       let abandonPromise: Promise<void> | undefined;
@@ -726,9 +737,11 @@ describe("useResetPasswordModal", () => {
 
       // Start abandon with a pending delete
       let resolveDelete!: () => void;
-      mockDeleteToken.mockReturnValueOnce(new Promise<void>((resolve) => {
-        resolveDelete = resolve;
-      }));
+      mockDeleteToken.mockReturnValueOnce(
+        new Promise<void>((resolve) => {
+          resolveDelete = resolve;
+        }),
+      );
 
       let abandonPromise: Promise<void> | undefined;
       await act(async () => {
@@ -782,9 +795,11 @@ describe("useResetPasswordModal", () => {
       const { result } = await renderAndNavigateToLink(client, vi.fn());
 
       let resolveDelete!: () => void;
-      mockDeleteToken.mockReturnValueOnce(new Promise<void>((resolve) => {
-        resolveDelete = resolve;
-      }));
+      mockDeleteToken.mockReturnValueOnce(
+        new Promise<void>((resolve) => {
+          resolveDelete = resolve;
+        }),
+      );
 
       await act(async () => {
         result.current.abandon();

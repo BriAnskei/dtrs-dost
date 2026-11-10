@@ -196,9 +196,7 @@ describe("useVerifyPasswordStep", () => {
      * message. The error appears inline and `onVerified` is never called
      * (keeping the modal on the verify step).
      */
-    mockVerifyPassword.mockRejectedValueOnce(
-      axiosError(401, "Password is incorrect."),
-    );
+    mockVerifyPassword.mockRejectedValueOnce(axiosError(401, "Password is incorrect."));
 
     const client = makeClient();
     const { result } = renderHook(() => useVerifyPasswordStep(onVerified), {

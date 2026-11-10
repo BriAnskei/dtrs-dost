@@ -349,10 +349,7 @@ export default function UserManagementTable({
       )}
 
       {disableTarget && canDisable && (
-        <DisableUserModal
-          user={disableTarget}
-          onClose={() => setDisableTarget(null)}
-        />
+        <DisableUserModal user={disableTarget} onClose={() => setDisableTarget(null)} />
       )}
     </>
   );

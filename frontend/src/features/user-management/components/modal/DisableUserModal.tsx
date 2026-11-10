@@ -1,9 +1,9 @@
 import { useState } from "react";
 import Input from "../../../../components/form/input/InputField";
+import Modal from "../../../../components/Modal";
 import { useVerifyPasswordStep } from "../../hooks/reset-password/use-verify-password";
 import { useDisableUser } from "../../hooks/use-disable-user";
 import type { SystemUser } from "../../types/user.type";
-import Modal from "../../../../components/Modal";
 
 export default function DisableUserModal({
   user,
@@ -83,8 +83,8 @@ export default function DisableUserModal({
           {!verified ? (
             <div className="flex flex-col gap-1">
               <p className="text-theme-xs text-gray-500 dark:text-gray-400 mb-3">
-                Disabling another user is a sensitive action. Confirm your own
-                password to continue.
+                Disabling another user is a sensitive action. Confirm your own password to
+                continue.
               </p>
 
               <Input

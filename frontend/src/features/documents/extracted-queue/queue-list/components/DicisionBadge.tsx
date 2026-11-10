@@ -1,5 +1,7 @@
+import StatusBadge, {
+  DECISION_BADGE,
+} from "../../../../../components/ui/badge/StatusBadge";
 import type { Decision } from "../../../extraction/types/extraction-types";
-import StatusBadge, { DECISION_BADGE } from "../../../../../components/ui/badge/StatusBadge";
 
 /** Labels for use in filter pills, menus, and chips — kept here so existing imports don't break. */
 export const DECISION_LABELS: Record<Decision, string> = {

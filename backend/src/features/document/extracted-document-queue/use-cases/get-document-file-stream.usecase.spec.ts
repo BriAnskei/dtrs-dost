@@ -16,16 +16,14 @@
  *   - S3 get receives the correct object_key.
  */
 
-import { NotFoundException } from "@nestjs/common";
 import { Readable } from "node:stream";
+import { NotFoundException } from "@nestjs/common";
 import { Test } from "@nestjs/testing";
-import { ExtractedDocumentQueueService } from "../service/extracted-document-queue.service";
 import { S3Service } from "../../../../storage/s3/s3.service";
+import { ExtractedDocumentQueueService } from "../service/extracted-document-queue.service";
 import { GetDocumentFileStreamUseCase } from "./get-document-file-stream.usecase";
 
-async function buildUseCase(opts: {
-  queueNotFound?: boolean;
-} = {}) {
+async function buildUseCase(opts: { queueNotFound?: boolean } = {}) {
   const mockEntity = {
     id: "queue-1",
     document_file: {
@@ -74,14 +72,13 @@ async function buildUseCase(opts: {
 
 describe("GetDocumentFileStreamUseCase", () => {
   it("loads the queue, fetches the S3 object by object_key, and returns the stream + filename", async () => {
-    const { useCase, mockService, mockS3Service, fakeStream, mockEntity } = await buildUseCase();
+    const { useCase, mockService, mockS3Service, fakeStream, mockEntity } =
+      await buildUseCase();
 
     const result = await useCase.execute("queue-1");
 
     expect(mockService.getOrThrow).toHaveBeenCalledWith("queue-1");
-    expect(mockS3Service.get).toHaveBeenCalledWith(
-      mockEntity.document_file.object_key,
-    );
+    expect(mockS3Service.get).toHaveBeenCalledWith(mockEntity.document_file.object_key);
     expect(result.stream).toBe(fakeStream);
     expect(result.filename).toBe("report.pdf");
   });

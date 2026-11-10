@@ -1,8 +1,8 @@
 // components/header/NotificationDropdown.tsx
 import { useState } from "react";
 import { Link } from "react-router";
-import { useNotifications } from "../../context/NotificationsContext";
 import { useUser } from "../../context/currentUser/use-user";
+import { useNotifications } from "../../context/NotificationsContext";
 import {
   type NotificationType,
   typeLabel,

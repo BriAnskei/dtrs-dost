@@ -60,9 +60,7 @@ describe("DecisionBanner", () => {
     // The threshold text is split across multiple text nodes inside the <p>,
     // so use a function matcher to find the element containing the substring.
     expect(
-      screen.getByText((content) =>
-        content.includes(`≥ ${ACCEPT_THRESHOLD}%`),
-      ),
+      screen.getByText((content) => content.includes(`≥ ${ACCEPT_THRESHOLD}%`)),
     ).toBeInTheDocument();
   });
 

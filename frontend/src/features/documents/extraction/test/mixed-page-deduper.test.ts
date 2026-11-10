@@ -20,10 +20,17 @@
  */
 
 import { describe, expect, it } from "vitest";
-import type { BoundingBox, ExtractionChunk } from "../pdf/types";
 import { deduplicateMixedPage } from "../pdf/mixed-page-deduper";
+import type { BoundingBox, ExtractionChunk } from "../pdf/types";
 
-function textChunk(id: string, text: string, x: number, y: number, w = 100, h = 10): ExtractionChunk {
+function textChunk(
+  id: string,
+  text: string,
+  x: number,
+  y: number,
+  w = 100,
+  h = 10,
+): ExtractionChunk {
   return {
     chunkId: id,
     text,
@@ -33,7 +40,14 @@ function textChunk(id: string, text: string, x: number, y: number, w = 100, h = 
   };
 }
 
-function ocrChunk(id: string, text: string, x: number, y: number, w = 100, h = 10): ExtractionChunk {
+function ocrChunk(
+  id: string,
+  text: string,
+  x: number,
+  y: number,
+  w = 100,
+  h = 10,
+): ExtractionChunk {
   return {
     chunkId: id,
     text,
@@ -197,10 +211,7 @@ describe("deduplicateMixedPage", () => {
     });
 
     it("returns all native chunks when there are no OCR chunks", () => {
-      const chunks = [
-        textChunk("t1", "line 1", 0, 0),
-        textChunk("t2", "line 2", 0, 10),
-      ];
+      const chunks = [textChunk("t1", "line 1", 0, 0), textChunk("t2", "line 2", 0, 10)];
 
       const result = deduplicateMixedPage(chunks);
 
@@ -209,10 +220,7 @@ describe("deduplicateMixedPage", () => {
     });
 
     it("returns all OCR chunks when there are no native chunks", () => {
-      const chunks = [
-        ocrChunk("o1", "line 1", 0, 0),
-        ocrChunk("o2", "line 2", 0, 10),
-      ];
+      const chunks = [ocrChunk("o1", "line 1", 0, 0), ocrChunk("o2", "line 2", 0, 10)];
 
       const result = deduplicateMixedPage(chunks);
 
@@ -221,10 +229,7 @@ describe("deduplicateMixedPage", () => {
     });
 
     it("does not modify the original array", () => {
-      const chunks = [
-        textChunk("t1", "a", 0, 0),
-        ocrChunk("o1", "b", 0, 0),
-      ];
+      const chunks = [textChunk("t1", "a", 0, 0), ocrChunk("o1", "b", 0, 0)];
       const original = [...chunks];
 
       deduplicateMixedPage(chunks);

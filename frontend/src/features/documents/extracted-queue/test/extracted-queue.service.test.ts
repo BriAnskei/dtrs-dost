@@ -53,7 +53,10 @@ describe("ExtractedQueueService", () => {
         sort: "newest" as const,
       };
 
-      mockGet.mockResolvedValueOnce({ data: { data: [], nextCursor: null }, status: 200 });
+      mockGet.mockResolvedValueOnce({
+        data: { data: [], nextCursor: null },
+        status: 200,
+      });
 
       const result = await ExtractedQueueService.findAll(params);
 
@@ -67,7 +70,10 @@ describe("ExtractedQueueService", () => {
        * Caller may pass `undefined` for optional filters. The service forwards
        * them verbatim; axios itself omits undefined query params.
        */
-      mockGet.mockResolvedValueOnce({ data: { data: [], nextCursor: null }, status: 200 });
+      mockGet.mockResolvedValueOnce({
+        data: { data: [], nextCursor: null },
+        status: 200,
+      });
 
       await ExtractedQueueService.findAll({
         uploader_name: undefined,
@@ -185,11 +191,9 @@ describe("ExtractedQueueService", () => {
         "key-123",
       );
 
-      expect(mockPost).toHaveBeenCalledWith(
-        "/incoming-documents/from-queue/q-1",
-        dto,
-        { headers: { "Idempotency-Key": "key-123" } },
-      );
+      expect(mockPost).toHaveBeenCalledWith("/incoming-documents/from-queue/q-1", dto, {
+        headers: { "Idempotency-Key": "key-123" },
+      });
       expect(result).toEqual({ id: "inc-1", documentFileId: "df-1", code: "DOC-001" });
     });
 

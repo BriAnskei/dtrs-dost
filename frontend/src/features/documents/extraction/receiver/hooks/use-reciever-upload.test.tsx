@@ -94,14 +94,25 @@ vi.mock("sonner", () => ({
 
 /* ─── Imports after mocks ────────────────────────────────────────────────────── */
 
-import { useReceiverUpload } from "./use-reciever-upload";
-import type { ReceiverChunk, ReceiverUploadResponse } from "../types/reciever-upload-api-types";
 import type { PdfExtractionResult } from "../../pdf/types";
+import type {
+  ReceiverChunk,
+  ReceiverUploadResponse,
+} from "../types/reciever-upload-api-types";
+import { useReceiverUpload } from "./use-reciever-upload";
 
 /* ─── Fixtures ────────────────────────────────────────────────────────────────── */
 
 const VALID_PDF_RESULT = {
-  pages: [{ page: 1, content: [], hasNativeText: true, hasImages: false, extractionMode: "text" as const }],
+  pages: [
+    {
+      page: 1,
+      content: [],
+      hasNativeText: true,
+      hasImages: false,
+      extractionMode: "text" as const,
+    },
+  ],
   totalPages: 1,
   statistics: { textPages: 1, ocrPages: 0, mixedPages: 0, emptyPages: 0 },
 } as unknown as PdfExtractionResult;
@@ -113,7 +124,14 @@ function makeChunk(id: string, text = "test text"): ReceiverChunk {
 const VALID_RESPONSE: ReceiverUploadResponse = {
   decision: "ACCEPT",
   fields: [
-    { field: "subject", value: "Foo", chunkIds: ["c1"], aiConfidence: 90, sourceConfidence: 95, effectiveConfidence: 86 },
+    {
+      field: "subject",
+      value: "Foo",
+      chunkIds: ["c1"],
+      aiConfidence: 90,
+      sourceConfidence: 95,
+      effectiveConfidence: 86,
+    },
   ],
 };
 
@@ -155,7 +173,9 @@ describe("useReceiverUpload", () => {
     mockToReceiverChunks.mockReturnValue([makeChunk("c1")]);
     mockUpload.mockResolvedValue(VALID_RESPONSE);
     // By default, getApiErrorMessage returns the fallback passed as second arg.
-    mockGetApiErrorMessage.mockImplementation((_err: unknown, fallback: string) => fallback);
+    mockGetApiErrorMessage.mockImplementation(
+      (_err: unknown, fallback: string) => fallback,
+    );
   });
 
   /* ── Initial state ────────────────────────────────────────────────────────── */
@@ -311,13 +331,10 @@ describe("useReceiverUpload", () => {
     // backToIdle sets status to "idle" but does NOT clear the file (file stays set).
     expect(result.current.status).toBe("idle");
     expect(result.current.file).not.toBeNull();
-    expect(mockToastError).toHaveBeenCalledWith(
-      "Could not read this PDF",
-      {
-        description: "The file may be corrupted or protected. Try another file.",
-        id: "extraction-failed",
-      },
-    );
+    expect(mockToastError).toHaveBeenCalledWith("Could not read this PDF", {
+      description: "The file may be corrupted or protected. Try another file.",
+      id: "extraction-failed",
+    });
 
     client.clear();
   });
@@ -341,13 +358,10 @@ describe("useReceiverUpload", () => {
     // backToIdle sets status to "idle" but does NOT clear the file.
     expect(result.current.status).toBe("idle");
     expect(result.current.file).not.toBeNull();
-    expect(mockToastError).toHaveBeenCalledWith(
-      "No readable text found",
-      {
-        description: "The PDF appears to be blank or unreadable. Try another file.",
-        id: "extraction-failed",
-      },
-    );
+    expect(mockToastError).toHaveBeenCalledWith("No readable text found", {
+      description: "The PDF appears to be blank or unreadable. Try another file.",
+      id: "extraction-failed",
+    });
 
     client.clear();
   });
@@ -373,13 +387,10 @@ describe("useReceiverUpload", () => {
     // backToIdle sets status to "idle" but does NOT clear the file.
     expect(result.current.status).toBe("idle");
     expect(result.current.file).not.toBeNull();
-    expect(mockToastError).toHaveBeenCalledWith(
-      "Document is too long",
-      {
-        description: "This PDF produced more than 500 text blocks. Try a shorter file.",
-        id: "extraction-failed",
-      },
-    );
+    expect(mockToastError).toHaveBeenCalledWith("Document is too long", {
+      description: "This PDF produced more than 500 text blocks. Try a shorter file.",
+      id: "extraction-failed",
+    });
 
     client.clear();
   });

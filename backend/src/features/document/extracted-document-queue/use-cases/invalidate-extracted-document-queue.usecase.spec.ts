@@ -29,11 +29,11 @@
 import { ConflictException, NotFoundException } from "@nestjs/common";
 import { Test } from "@nestjs/testing";
 import { DataSource, EntityManager } from "typeorm";
+import { S3Service } from "../../../../storage/s3/s3.service";
+import { DocumentFileService } from "../../document-file/service/document-file.service";
 import { ExtractedDocumentQueueStatus } from "../entities/extracted-document-queue.entity";
 import { ExtractedDocumentQueueRepository } from "../repository/extracted-document-queue.repository";
 import { InvalidationResponseRepository } from "../repository/invalidation-response.repository";
-import { DocumentFileService } from "../../document-file/service/document-file.service";
-import { S3Service } from "../../../../storage/s3/s3.service";
 import { InvalidateExtractedDocumentQueueUseCase } from "./invalidate-extracted-document-queue.usecase";
 
 /**
@@ -60,17 +60,21 @@ function makeQueue(overrides: Record<string, unknown> = {}) {
  * (the mock callback throws). Pass `findOneForUpdateReturns` to control
  * the queue returned by the repository.
  */
-async function buildUseCase(opts: {
-  transactionShouldFail?: boolean;
-  oneNotFound?: boolean;
-  queueStatus?: ExtractedDocumentQueueStatus;
-} = {}) {
+async function buildUseCase(
+  opts: {
+    transactionShouldFail?: boolean;
+    oneNotFound?: boolean;
+    queueStatus?: ExtractedDocumentQueueStatus;
+  } = {},
+) {
   const mockQueueRepository: Partial<ExtractedDocumentQueueRepository> = {
     findOneForUpdate: opts.oneNotFound
       ? jest.fn().mockResolvedValue(null)
-      : jest.fn().mockResolvedValue(
-          makeQueue(opts.queueStatus ? { status: opts.queueStatus } : {}),
-        ),
+      : jest
+          .fn()
+          .mockResolvedValue(
+            makeQueue(opts.queueStatus ? { status: opts.queueStatus } : {}),
+          ),
     updateStatus: jest.fn().mockResolvedValue(true),
   };
 
@@ -107,7 +111,10 @@ async function buildUseCase(opts: {
       { provide: DataSource, useValue: mockDataSource },
       { provide: ExtractedDocumentQueueRepository, useValue: mockQueueRepository },
       { provide: DocumentFileService, useValue: mockDocumentFileService },
-      { provide: InvalidationResponseRepository, useValue: mockInvalidationResponseRepository },
+      {
+        provide: InvalidationResponseRepository,
+        useValue: mockInvalidationResponseRepository,
+      },
       { provide: S3Service, useValue: mockS3Service },
     ],
   }).compile();
@@ -164,9 +171,7 @@ describe("InvalidateExtractedDocumentQueueUseCase", () => {
 
       // S3 object deleted after transaction completes.
       expect(mockS3Service.delete).toHaveBeenCalledTimes(1);
-      expect(mockS3Service.delete).toHaveBeenCalledWith(
-        "incoming/2026/01/file.pdf",
-      );
+      expect(mockS3Service.delete).toHaveBeenCalledWith("incoming/2026/01/file.pdf");
 
       // Return shape.
       expect(result).toEqual({
@@ -181,11 +186,8 @@ describe("InvalidateExtractedDocumentQueueUseCase", () => {
     });
 
     it("invalidates without a response — invalidation_response is null but S3 still deleted", async () => {
-      const {
-        useCase,
-        mockInvalidationResponseRepository,
-        mockS3Service,
-      } = await buildUseCase();
+      const { useCase, mockInvalidationResponseRepository, mockS3Service } =
+        await buildUseCase();
 
       const result = await useCase.execute({ queueId: "queue-1" });
 
@@ -194,9 +196,7 @@ describe("InvalidateExtractedDocumentQueueUseCase", () => {
       expect(result.status).toBe(ExtractedDocumentQueueStatus.INVALIDATED);
 
       // S3 cleanup still happens even without a response.
-      expect(mockS3Service.delete).toHaveBeenCalledWith(
-        "incoming/2026/01/file.pdf",
-      );
+      expect(mockS3Service.delete).toHaveBeenCalledWith("incoming/2026/01/file.pdf");
     });
   });
 
@@ -215,9 +215,9 @@ describe("InvalidateExtractedDocumentQueueUseCase", () => {
     ])("throws ConflictException when status is %s", async (status) => {
       const { useCase, mockDataSource } = await buildUseCase({ queueStatus: status });
 
-      await expect(
-        useCase.execute({ queueId: "queue-1" }),
-      ).rejects.toThrow(ConflictException);
+      await expect(useCase.execute({ queueId: "queue-1" })).rejects.toThrow(
+        ConflictException,
+      );
 
       // No transaction body should commit — updateStatus was never reached.
       expect(mockDataSource.transaction).toHaveBeenCalledTimes(1);

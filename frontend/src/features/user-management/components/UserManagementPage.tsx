@@ -4,7 +4,6 @@ import PageMeta from "../../../components/common/PageMeta";
 import UserManagementTable from "./UserManagementTable";
 
 export default function UserManagementPage() {
-
   return (
     <>
       <PageMeta

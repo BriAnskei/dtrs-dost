@@ -1,8 +1,8 @@
+import { CheckCircle, Search, Trash } from "lucide-react";
 import Input from "../../../components/form/input/InputField";
 import TableShell, { type TableShellColumn } from "../../../components/tables/TableShell";
 import StatusBadge, { ROLE_BADGE } from "../../../components/ui/badge/StatusBadge";
 import KebabMenu from "../../../components/ui/kebab-menu/KebabMenu";
-import { CheckCircle, Search, Trash } from "lucide-react";
 import type { TableShellProp } from "../../../type/table-shell-prop";
 import { noPermission } from "../../auth/authorization/helpers/no-permission-message"; // NEW
 import { ALL_ROLES } from "../../user-management/constants";

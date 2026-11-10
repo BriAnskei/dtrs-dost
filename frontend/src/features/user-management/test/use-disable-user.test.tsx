@@ -23,8 +23,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { userService } from "../services/user.service";
 import { useDisableUser } from "../hooks/use-disable-user";
+import { userService } from "../services/user.service";
 
 const { mockDisable, mockGetApiErrorMessage, mockToast } = vi.hoisted(() => ({
   mockDisable: vi.fn(),
@@ -200,9 +200,7 @@ describe("useDisableUser", () => {
     });
 
     await waitFor(() => expect(mockToast.success).toHaveBeenCalledTimes(1));
-    expect(mockToast.success).toHaveBeenCalledWith(
-      "User disabled successfully",
-    );
+    expect(mockToast.success).toHaveBeenCalledWith("User disabled successfully");
 
     client.clear();
   });

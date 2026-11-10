@@ -517,12 +517,8 @@ describe("api-client response interceptor — concurrent 401 + single refresh", 
     expect(resB.status).toBe(200);
     expect(mockRefresh).toHaveBeenCalledTimes(1);
     // Each endpoint was hit twice (original 401 + retry 200).
-    expect(
-      adapter.calls.filter((c) => c.url === "/user/me"),
-    ).toHaveLength(2);
-    expect(
-      adapter.calls.filter((c) => c.url === "/dashboard/stats"),
-    ).toHaveLength(2);
+    expect(adapter.calls.filter((c) => c.url === "/user/me")).toHaveLength(2);
+    expect(adapter.calls.filter((c) => c.url === "/dashboard/stats")).toHaveLength(2);
   });
 
   it("dispatches session-expired once when concurrent refresh also fails", async () => {

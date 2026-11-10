@@ -43,7 +43,9 @@ export class ExtractionService {
       extractedFields,
     );
 
-    const untrustedCount = fields.filter((f) => f.aiConfidence === null && f.value !== null).length;
+    const untrustedCount = fields.filter(
+      (f) => f.aiConfidence === null && f.value !== null,
+    ).length;
     if (untrustedCount > 0) {
       this.logger.warn(
         `${untrustedCount} field(s) have null aiConfidence with a non-null value ` +

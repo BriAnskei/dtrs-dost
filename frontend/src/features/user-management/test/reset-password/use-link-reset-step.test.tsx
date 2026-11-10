@@ -24,8 +24,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { PasswordResetRequestResponse } from "../../types/password-reset.type";
 import { useLinkResetStep } from "../../hooks/reset-password/use-link-reset-step";
+import type { PasswordResetRequestResponse } from "../../types/password-reset.type";
 
 const { mockCreateResetRequest, mockDeleteToken, mockToast } = vi.hoisted(() => ({
   mockCreateResetRequest: vi.fn(),

@@ -25,12 +25,13 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useUserManagementTable } from "../hooks/use-user-management-table";
 
-const { mockUseUsers, mockUseInfiniteScrollSentinel, mockFetchNextPage } =
-  vi.hoisted(() => ({
+const { mockUseUsers, mockUseInfiniteScrollSentinel, mockFetchNextPage } = vi.hoisted(
+  () => ({
     mockUseUsers: vi.fn(),
     mockFetchNextPage: vi.fn(),
     mockUseInfiniteScrollSentinel: vi.fn(),
-  }));
+  }),
+);
 
 vi.mock("../hooks/use-users", () => ({
   useUsers: mockUseUsers,
@@ -452,9 +453,7 @@ describe("useUserManagementTable", () => {
        * flattened + mapped SystemUser[] array. The real mapper handles role
        * translation and date formatting.
        */
-      mockUseUsers.mockReturnValue(
-        mockUseUsersReturn({ data: MOCK_DATA }),
-      );
+      mockUseUsers.mockReturnValue(mockUseUsersReturn({ data: MOCK_DATA }));
 
       const { result } = renderHook(() => useUserManagementTable());
 
@@ -615,7 +614,17 @@ describe("useUserManagementTable", () => {
     it("setEditTarget(null) clears the edit target", () => {
       const { result } = renderHook(() => useUserManagementTable());
 
-      act(() => result.current.setEditTarget({ id: "u-1", name: "A", position: "", role: "Admin", email: "", contact: "", createtAt: "" }));
+      act(() =>
+        result.current.setEditTarget({
+          id: "u-1",
+          name: "A",
+          position: "",
+          role: "Admin",
+          email: "",
+          contact: "",
+          createtAt: "",
+        }),
+      );
       expect(result.current.editTarget).not.toBeNull();
 
       act(() => result.current.setEditTarget(null));

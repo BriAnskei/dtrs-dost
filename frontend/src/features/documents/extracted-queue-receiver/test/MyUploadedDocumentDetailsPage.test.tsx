@@ -44,10 +44,12 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import React from "react";
 import { MemoryRouter } from "react-router";
 import { describe, expect, it, vi } from "vitest";
-
-import MyUploadedDocumentDetailsPage from "../view-components/MyUploadedDocumentDetailsPage";
 import type { MyExtractedDocumentQueue } from "../types/extracted-queue-receiver-types";
-import type { IncomingDocumentDetailsDto, InvalidationResponseDto } from "../types/get-incoming-document-by-queue.dto";
+import type {
+  IncomingDocumentDetailsDto,
+  InvalidationResponseDto,
+} from "../types/get-incoming-document-by-queue.dto";
+import MyUploadedDocumentDetailsPage from "../view-components/MyUploadedDocumentDetailsPage";
 
 /* ─── Mocks ─────────────────────────────────────────────────────────────────── */
 
@@ -76,7 +78,8 @@ vi.mock("../hooks/api/use-get-incoming-document-by-queue", () => ({
 }));
 
 vi.mock("../hooks/use-delete-queue-modal", () => ({
-  useDeleteQueueModal: (opts?: { onDeleted?: () => void }) => useDeleteQueueModalMock(opts),
+  useDeleteQueueModal: (opts?: { onDeleted?: () => void }) =>
+    useDeleteQueueModalMock(opts),
 }));
 
 vi.mock("sonner", () => ({
@@ -180,9 +183,7 @@ describe("MyUploadedDocumentDetailsPage", () => {
 
       // The notice text lives in a single <p>; match the leading sentence via a
       // regex so the full-sentence matcher doesn't reject the extra trailing copy.
-      expect(
-        screen.getByText(/This document could not be found\./),
-      ).toBeInTheDocument();
+      expect(screen.getByText(/This document could not be found\./)).toBeInTheDocument();
     });
 
     it("does NOT render the delete button when the item is missing", () => {
@@ -290,7 +291,9 @@ describe("MyUploadedDocumentDetailsPage", () => {
       renderPage();
 
       expect(
-        screen.getByText(/Approved by an admin\. The incoming document below is the final record\./),
+        screen.getByText(
+          /Approved by an admin\. The incoming document below is the final record\./,
+        ),
       ).toBeInTheDocument();
     });
 
@@ -309,9 +312,18 @@ describe("MyUploadedDocumentDetailsPage", () => {
       // "Tracking:" label and the capitalized status sit in separate spans.
       expect(screen.getByText("Tracking:")).toBeInTheDocument();
       expect(screen.getByText("Complete")).toBeInTheDocument();
-      expect(screen.getByText(`Approved at ${new Date(APPROVED_DETAILS.created_at).toLocaleString("en-PH", {
-        year: "numeric", month: "short", day: "numeric", hour: "numeric", minute: "2-digit", hour12: true,
-      })}`)).toBeInTheDocument();
+      expect(
+        screen.getByText(
+          `Approved at ${new Date(APPROVED_DETAILS.created_at).toLocaleString("en-PH", {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+            hour: "numeric",
+            minute: "2-digit",
+            hour12: true,
+          })}`,
+        ),
+      ).toBeInTheDocument();
     });
 
     it("renders a loading skeleton in the outcome while fetching", () => {
@@ -359,7 +371,9 @@ describe("MyUploadedDocumentDetailsPage", () => {
     });
 
     it("renders the AI extraction result card in the advanced-details disclosure", () => {
-      useMyQueueItemMock.mockReturnValue(makeItem({ status: "INVALIDATED", decision: "INVALID" }));
+      useMyQueueItemMock.mockReturnValue(
+        makeItem({ status: "INVALIDATED", decision: "INVALID" }),
+      );
       useGetIncomingDocumentByQueueMock.mockReturnValue({
         data: INVALIDATION,
         isLoading: false,
@@ -408,7 +422,9 @@ describe("MyUploadedDocumentDetailsPage", () => {
     });
 
     it("wraps the AI extraction in an 'Advanced details' disclosure", () => {
-      useMyQueueItemMock.mockReturnValue(makeItem({ status: "INVALIDATED", decision: "INVALID" }));
+      useMyQueueItemMock.mockReturnValue(
+        makeItem({ status: "INVALIDATED", decision: "INVALID" }),
+      );
       useGetIncomingDocumentByQueueMock.mockReturnValue({
         data: INVALIDATION,
         isLoading: false,
@@ -427,7 +443,9 @@ describe("MyUploadedDocumentDetailsPage", () => {
     });
 
     it("reveals AI extraction when the Advanced details disclosure is opened", () => {
-      useMyQueueItemMock.mockReturnValue(makeItem({ status: "INVALIDATED", decision: "INVALID" }));
+      useMyQueueItemMock.mockReturnValue(
+        makeItem({ status: "INVALIDATED", decision: "INVALID" }),
+      );
       useGetIncomingDocumentByQueueMock.mockReturnValue({
         data: INVALIDATION,
         isLoading: false,
@@ -444,7 +462,9 @@ describe("MyUploadedDocumentDetailsPage", () => {
       // AI-extraction description is now present.
       expect(toggle).toHaveAttribute("aria-expanded", "true");
       expect(
-        screen.getByText("What the AI read from your upload before the admin invalidated it."),
+        screen.getByText(
+          "What the AI read from your upload before the admin invalidated it.",
+        ),
       ).toBeInTheDocument();
     });
   });
@@ -466,7 +486,12 @@ describe("MyUploadedDocumentDetailsPage", () => {
     it("renders the delete modal when a target is set", () => {
       const item = makeItem({ status: "PENDING" });
       useDeleteQueueModalMock.mockReturnValue(
-        makeDeleteModal({ target: item, isDeleting: false, close: vi.fn(), confirm: vi.fn() }),
+        makeDeleteModal({
+          target: item,
+          isDeleting: false,
+          close: vi.fn(),
+          confirm: vi.fn(),
+        }),
       );
 
       renderPage();
@@ -477,7 +502,12 @@ describe("MyUploadedDocumentDetailsPage", () => {
     it("shows Deleting... and disables Cancel while isDeleting", () => {
       const item = makeItem({ status: "PENDING" });
       useDeleteQueueModalMock.mockReturnValue(
-        makeDeleteModal({ target: item, isDeleting: true, close: vi.fn(), confirm: vi.fn() }),
+        makeDeleteModal({
+          target: item,
+          isDeleting: true,
+          close: vi.fn(),
+          confirm: vi.fn(),
+        }),
       );
 
       renderPage();
@@ -490,14 +520,24 @@ describe("MyUploadedDocumentDetailsPage", () => {
       // The page wires onDeleted={ () => navigate("/my-uploads", { replace: true }) }.
       const item = makeItem({ status: "APPROVED" });
       useDeleteQueueModalMock.mockReturnValue(
-        makeDeleteModal({ target: item, isDeleting: false, close: vi.fn(), confirm: vi.fn() }),
+        makeDeleteModal({
+          target: item,
+          isDeleting: false,
+          close: vi.fn(),
+          confirm: vi.fn(),
+        }),
       );
 
       // Capture the onDeleted passed to the hook and invoke it to prove wiring.
       let captured: { onDeleted?: () => void } = {};
       useDeleteQueueModalMock.mockImplementation((opts?: { onDeleted?: () => void }) => {
         captured = opts ?? {};
-        return makeDeleteModal({ target: item, isDeleting: false, close: vi.fn(), confirm: vi.fn() });
+        return makeDeleteModal({
+          target: item,
+          isDeleting: false,
+          close: vi.fn(),
+          confirm: vi.fn(),
+        });
       });
 
       renderPage();

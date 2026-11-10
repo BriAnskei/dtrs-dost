@@ -89,7 +89,9 @@ describe("InvalidateDocumentModal", () => {
       render(<InvalidateDocumentModal {...defaultProps} />);
 
       expect(
-        screen.getByText(/This document will be marked as invalid and removed from the extraction queue./),
+        screen.getByText(
+          /This document will be marked as invalid and removed from the extraction queue./,
+        ),
       ).toBeInTheDocument();
       expect(screen.getByText(/This can't be undone./)).toBeInTheDocument();
     });
@@ -108,7 +110,9 @@ describe("InvalidateDocumentModal", () => {
       render(<InvalidateDocumentModal {...defaultProps} />);
 
       expect(
-        screen.getByPlaceholderText("e.g. The scan is unreadable. Please re-upload a clearer copy."),
+        screen.getByPlaceholderText(
+          "e.g. The scan is unreadable. Please re-upload a clearer copy.",
+        ),
       ).toBeInTheDocument();
     });
 
@@ -199,8 +203,9 @@ describe("InvalidateDocumentModal", () => {
       const closeButtons = screen.getAllByLabelText("Close modal");
       // The header's X button is the one that has an SVG child with the
       // "M6 18L18 6" path (the X icon), not the backdrop.
-      const xButton = closeButtons.find((btn) =>
-        btn.querySelector("svg path")?.getAttribute("d") === "M6 18L18 6M6 6l12 12",
+      const xButton = closeButtons.find(
+        (btn) =>
+          btn.querySelector("svg path")?.getAttribute("d") === "M6 18L18 6M6 6l12 12",
       );
       fireEvent.click(xButton!);
 

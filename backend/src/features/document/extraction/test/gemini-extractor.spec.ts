@@ -41,11 +41,11 @@ import { Test } from "@nestjs/testing";
 
 import { buildExtractionPrompt } from "../prompts/extraction-prompt";
 import { GeminiExtractorService } from "../providers/gemini-extractor.service";
-import { extractionResponseSchema } from "../schemas/extraction-response.schema";
 import type {
   ExtractedField,
   ExtractionChunk,
 } from "../providers/llm-extractor.interface";
+import { extractionResponseSchema } from "../schemas/extraction-response.schema";
 
 /*
  * The GoogleGenAI SDK is mocked at the module level. Each test swaps

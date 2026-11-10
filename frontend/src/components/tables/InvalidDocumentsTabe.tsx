@@ -1,8 +1,8 @@
 import axios from "axios";
+import { Eye, Search, Trash } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useUser } from "../../context/currentUser/use-user";
 import KebabMenu from "../ui/kebab-menu/KebabMenu";
-import { Eye, Search, Trash } from "lucide-react";
 import { Table, TableBody, TableCell, TableHeader, TableRow } from "../ui/table";
 
 // ─── Types ─────────────────────────────────────────────────────
@@ -292,8 +292,17 @@ export default function InvalidDocumentsTable() {
                     </p>
                     <KebabMenu
                       actions={[
-                        { label: "View", icon: <Eye className="h-4 w-4" />, handler: () => console.log("[View] Record:", record) },
-                        { label: "Delete", icon: <Trash className="h-4 w-4" />, handler: () => openDeleteModal(record), danger: true },
+                        {
+                          label: "View",
+                          icon: <Eye className="h-4 w-4" />,
+                          handler: () => console.log("[View] Record:", record),
+                        },
+                        {
+                          label: "Delete",
+                          icon: <Trash className="h-4 w-4" />,
+                          handler: () => openDeleteModal(record),
+                          danger: true,
+                        },
                       ]}
                     />
                   </div>

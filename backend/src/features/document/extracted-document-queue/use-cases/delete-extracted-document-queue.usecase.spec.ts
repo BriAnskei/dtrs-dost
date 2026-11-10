@@ -27,10 +27,10 @@
 import { NotFoundException } from "@nestjs/common";
 import { Test } from "@nestjs/testing";
 import { DataSource, EntityManager } from "typeorm";
+import { S3Service } from "../../../../storage/s3/s3.service";
+import { DocumentFileService } from "../../document-file/service/document-file.service";
 import { ExtractedDocumentQueueStatus } from "../entities/extracted-document-queue.entity";
 import { ExtractedDocumentQueueService } from "../service/extracted-document-queue.service";
-import { DocumentFileService } from "../../document-file/service/document-file.service";
-import { S3Service } from "../../../../storage/s3/s3.service";
 import { DeleteExtractedDocumentQueueUseCase } from "./delete-extracted-document-queue.usecase";
 
 /** Build a queue entity with the given status. */
@@ -48,10 +48,9 @@ function makeQueue(status: ExtractedDocumentQueueStatus) {
   };
 }
 
-async function buildUseCase(opts: {
-  queue?: ReturnType<typeof makeQueue>;
-  transactionShouldFail?: boolean;
-} = {}) {
+async function buildUseCase(
+  opts: { queue?: ReturnType<typeof makeQueue>; transactionShouldFail?: boolean } = {},
+) {
   const queue = opts.queue ?? makeQueue(ExtractedDocumentQueueStatus.PENDING);
 
   const mockService: Partial<ExtractedDocumentQueueService> = {
@@ -108,17 +107,12 @@ describe("DeleteExtractedDocumentQueueUseCase", () => {
 
       expect(mockService.getOrThrow).toHaveBeenCalledWith("queue-1");
       expect(mockDataSource.transaction).toHaveBeenCalledTimes(1);
-      expect(mockService.delete).toHaveBeenCalledWith(
-        "queue-1",
-        expect.any(Object),
-      );
+      expect(mockService.delete).toHaveBeenCalledWith("queue-1", expect.any(Object));
       expect(mockDocumentFileService.delete).toHaveBeenCalledWith(
         "docfile-1",
         expect.any(Object),
       );
-      expect(mockS3Service.delete).toHaveBeenCalledWith(
-        "incoming/2026/01/file.pdf",
-      );
+      expect(mockS3Service.delete).toHaveBeenCalledWith("incoming/2026/01/file.pdf");
     });
 
     it("also deletes the file when status is INVALIDATED", async () => {

@@ -63,9 +63,13 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import React from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { SortDirection, SystemUser, UserRole } from "../../user-management/types/user.type";
 import type { User } from "../../../context/currentUser/curr-user.type";
 import type { UserManagementPermissions } from "../../auth/authorization/types/user-management-permission.type";
+import type {
+  SortDirection,
+  SystemUser,
+  UserRole,
+} from "../../user-management/types/user.type";
 
 // ─── Hoisted mocks ───────────────────────────────────────────────────────
 //
@@ -75,15 +79,21 @@ import type { UserManagementPermissions } from "../../auth/authorization/types/u
 // `mockUseDeleteUser` are the deepest boundary of each modal — mocking them lets
 // us flip `isPending` to assert the real loading indicator without a
 // QueryClientProvider or a real network layer.
-const { mockUseUser, mockUseTable, mockUseReactivateUser, mockUseDeleteUser, reactivateMutate, deleteMutate } =
-  vi.hoisted(() => ({
-    mockUseUser: vi.fn(),
-    mockUseTable: vi.fn(),
-    mockUseReactivateUser: vi.fn(),
-    mockUseDeleteUser: vi.fn(),
-    reactivateMutate: vi.fn(),
-    deleteMutate: vi.fn(),
-  }));
+const {
+  mockUseUser,
+  mockUseTable,
+  mockUseReactivateUser,
+  mockUseDeleteUser,
+  reactivateMutate,
+  deleteMutate,
+} = vi.hoisted(() => ({
+  mockUseUser: vi.fn(),
+  mockUseTable: vi.fn(),
+  mockUseReactivateUser: vi.fn(),
+  mockUseDeleteUser: vi.fn(),
+  reactivateMutate: vi.fn(),
+  deleteMutate: vi.fn(),
+}));
 
 vi.mock("../../../context/currentUser/use-user", () => ({
   useUser: mockUseUser,
@@ -359,9 +369,7 @@ describe("DisabledUsersTable (UI)", () => {
       );
 
       fireEvent.click(del);
-      expect(
-        screen.queryByText(/Permanently delete Jane Doe\?/),
-      ).not.toBeInTheDocument();
+      expect(screen.queryByText(/Permanently delete Jane Doe\?/)).not.toBeInTheDocument();
     });
 
     it("replaces the whole kebab with a dash when the user lacks ALL row actions", () => {
@@ -413,9 +421,7 @@ describe("DisabledUsersTable (UI)", () => {
 
       fireEvent.click(del);
 
-      expect(
-        screen.getByText("Permanently delete Jane Doe?"),
-      ).toBeInTheDocument();
+      expect(screen.getByText("Permanently delete Jane Doe?")).toBeInTheDocument();
     });
 
     it("grants the Reactivate action to a super-admin (role_id 1) even with no claims", () => {
@@ -438,9 +444,9 @@ describe("DisabledUsersTable (UI)", () => {
       render(<DisabledUsersTable />);
 
       fireEvent.click(screen.getAllByTitle("More actions")[0]);
-      expect(
-        screen.getByRole("button", { name: "Reactivate" }),
-      ).not.toHaveAttribute("aria-disabled");
+      expect(screen.getByRole("button", { name: "Reactivate" })).not.toHaveAttribute(
+        "aria-disabled",
+      );
       expect(screen.getByRole("button", { name: "Delete" })).not.toHaveAttribute(
         "aria-disabled",
       );
@@ -467,9 +473,7 @@ describe("DisabledUsersTable (UI)", () => {
     it("renders the search input with the 'Search name…' placeholder", () => {
       render(<DisabledUsersTable />);
 
-      expect(
-        screen.getByPlaceholderText("Search name..."),
-      ).toBeInTheDocument();
+      expect(screen.getByPlaceholderText("Search name...")).toBeInTheDocument();
     });
 
     it("typing in search is controlled: updates the input and reveals Clear", () => {
@@ -478,9 +482,7 @@ describe("DisabledUsersTable (UI)", () => {
          both react. */
       render(<DisabledUsersTable />);
 
-      const input = screen.getByPlaceholderText(
-        "Search name...",
-      ) as HTMLInputElement;
+      const input = screen.getByPlaceholderText("Search name...") as HTMLInputElement;
       expect(input.value).toBe("");
 
       fireEvent.change(input, { target: { value: "jane" } });
@@ -500,16 +502,14 @@ describe("DisabledUsersTable (UI)", () => {
 
       fireEvent.click(screen.getByText("Clear"));
 
-      const input = screen.getByPlaceholderText(
-        "Search name...",
-      ) as HTMLInputElement;
+      const input = screen.getByPlaceholderText("Search name...") as HTMLInputElement;
       expect(input.value).toBe("");
       expect(screen.queryByText("Clear")).not.toBeInTheDocument();
       // Sort button returns to the default "Newest" label.
       expect(screen.getByText("Newest")).toBeInTheDocument();
     });
 
-  it("role <select> change activates filters (Clear appears)", () => {
+    it("role <select> change activates filters (Clear appears)", () => {
       /* Non-default role filter → hasFilters true → Clear button. */
       render(<DisabledUsersTable />);
 
@@ -693,16 +693,14 @@ describe("DisabledUsersTable (UI)", () => {
     });
 
     it("renders the empty message when loaded with zero users", () => {
-      mockUseTable.mockImplementation(
-        makeHookImpl({ filtered: [], hasNextPage: false }),
-      );
+      mockUseTable.mockImplementation(makeHookImpl({ filtered: [], hasNextPage: false }));
 
       render(<DisabledUsersTable />);
 
       // The empty message renders once per surface: mobile card + desktop row.
-      expect(
-        screen.getAllByText("No disabled users match your filters."),
-      ).toHaveLength(2);
+      expect(screen.getAllByText("No disabled users match your filters.")).toHaveLength(
+        2,
+      );
       expect(screen.queryByTestId("mobile-skeleton")).not.toBeInTheDocument();
     });
   });
@@ -739,24 +737,18 @@ describe("DisabledUsersTable (UI)", () => {
       fireEvent.click(screen.getAllByTitle("More actions")[0]);
       fireEvent.click(screen.getByRole("button", { name: "Delete" }));
 
-      expect(
-        screen.getByText("Permanently delete Jane Doe?"),
-      ).toBeInTheDocument();
+      expect(screen.getByText("Permanently delete Jane Doe?")).toBeInTheDocument();
 
       // Cancel button is the first "Cancel" footer button.
       fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
-      expect(
-        screen.queryByText(/Permanently delete Jane Doe\?/),
-      ).not.toBeInTheDocument();
+      expect(screen.queryByText(/Permanently delete Jane Doe\?/)).not.toBeInTheDocument();
     });
 
     it("renders no modal until a kebab action fires", () => {
       render(<DisabledUsersTable />);
 
       expect(screen.queryByText(/Reactivate/)).not.toBeInTheDocument();
-      expect(
-        screen.queryByText(/Permanently delete/),
-      ).not.toBeInTheDocument();
+      expect(screen.queryByText(/Permanently delete/)).not.toBeInTheDocument();
     });
   });
 
@@ -822,13 +814,9 @@ describe("DisabledUsersTable (UI)", () => {
 
       expect(screen.getByText("Reactivate")).toBeInTheDocument();
       expect(screen.getByText("Delete Permanently")).toBeInTheDocument();
-      expect(
-        screen.getByRole("button", { name: "Reactivate" }),
-      ).not.toBeDisabled();
+      expect(screen.getByRole("button", { name: "Reactivate" })).not.toBeDisabled();
       // Submit still gated by canConfirm (name not yet typed).
-      expect(
-        screen.getByRole("button", { name: "Delete Permanently" }),
-      ).toBeDisabled();
+      expect(screen.getByRole("button", { name: "Delete Permanently" })).toBeDisabled();
     });
   });
 

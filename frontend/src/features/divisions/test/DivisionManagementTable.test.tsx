@@ -60,9 +60,9 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import React from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import DivisionManagementTable from "../components/DivisionManagementTable";
 import type { Division } from "../type/division.type";
 import type { DivisionSort } from "../type/division-api.type";
-import DivisionManagementTable from "../components/DivisionManagementTable";
 
 // ─── Mocked hook (stateful impl set per test) ─────────────────────────────────
 
@@ -365,9 +365,7 @@ describe("DivisionManagementTable (UI)", () => {
   it("renders the search input bound to hook state, and typing flips isFiltered (Clear appears)", () => {
     render(<DivisionManagementTable />);
 
-    const input = screen.getByPlaceholderText(
-      "Search divisions…",
-    ) as HTMLInputElement;
+    const input = screen.getByPlaceholderText("Search divisions…") as HTMLInputElement;
     expect(input.value).toBe(""); // starts empty
 
     fireEvent.change(input, { target: { value: "civil" } });
@@ -632,9 +630,7 @@ describe("DivisionManagementTable (UI)", () => {
 
     expect(screen.queryByTestId("edit-division-modal")).not.toBeInTheDocument();
     expect(screen.queryByTestId("delete-division-modal")).not.toBeInTheDocument();
-    expect(
-      screen.queryByTestId("division-users-modal"),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByTestId("division-users-modal")).not.toBeInTheDocument();
   });
 
   // ── Loading / error UI ─────────────────────────────────────────────────────
@@ -649,9 +645,7 @@ describe("DivisionManagementTable (UI)", () => {
     expect(screen.getByTestId("mobile-skeleton")).toBeInTheDocument();
     expect(screen.getByTestId("desktop-skeleton")).toBeInTheDocument();
     // Data is hidden during load.
-    expect(
-      screen.queryByText("Civil Works Division"),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByText("Civil Works Division")).not.toBeInTheDocument();
     // The infinite-scroll footers are data-section only.
     expect(screen.queryByText(/Loading more/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/No more/i)).not.toBeInTheDocument();
@@ -672,9 +666,7 @@ describe("DivisionManagementTable (UI)", () => {
       screen.getByText(/Failed to load divisions: Killed by gremlins/),
     ).toBeInTheDocument();
     expect(screen.queryByTestId("desktop-skeleton")).not.toBeInTheDocument();
-    expect(
-      screen.queryByText("Civil Works Division"),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByText("Civil Works Division")).not.toBeInTheDocument();
   });
 
   // ── Infinite-scroll footers (loading at the bottom) ────────────────────────
@@ -760,11 +752,7 @@ describe("DivisionManagementTable (UI)", () => {
     rerender(<DivisionManagementTable />);
 
     expect(screen.getAllByText("Civil Works Division")).toHaveLength(2);
-    expect(
-      screen.queryByText("Equipment Division"),
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByText("Administrative Division"),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByText("Equipment Division")).not.toBeInTheDocument();
+    expect(screen.queryByText("Administrative Division")).not.toBeInTheDocument();
   });
 });

@@ -44,19 +44,25 @@ function makeUser(overrides: Partial<User> = {}): User {
 describe("hasUserManagementPermission", () => {
   it("returns true for a granted flag", () => {
     const user = makeUser();
-    expect(hasUserManagementPermission(user, UserManagementPermissionEnum.View)).toBe(true);
+    expect(hasUserManagementPermission(user, UserManagementPermissionEnum.View)).toBe(
+      true,
+    );
   });
 
   it("returns false for a denied flag", () => {
     const user = makeUser();
-    expect(hasUserManagementPermission(user, UserManagementPermissionEnum.Add)).toBe(false);
+    expect(hasUserManagementPermission(user, UserManagementPermissionEnum.Add)).toBe(
+      false,
+    );
   });
 
   it("returns false when user_management_permissions is null", () => {
     const user = makeUser({
       permissions: { user_management_permissions: null },
     });
-    expect(hasUserManagementPermission(user, UserManagementPermissionEnum.View)).toBe(false);
+    expect(hasUserManagementPermission(user, UserManagementPermissionEnum.View)).toBe(
+      false,
+    );
   });
 
   it("super admin (role_id === 1) bypasses ALL checks", () => {
@@ -66,12 +72,26 @@ describe("hasUserManagementPermission", () => {
     });
 
     // Every enum value returns true for super admin.
-    expect(hasUserManagementPermission(user, UserManagementPermissionEnum.View)).toBe(true);
-    expect(hasUserManagementPermission(user, UserManagementPermissionEnum.Add)).toBe(true);
-    expect(hasUserManagementPermission(user, UserManagementPermissionEnum.Edit)).toBe(true);
-    expect(hasUserManagementPermission(user, UserManagementPermissionEnum.ResetPassword)).toBe(true);
-    expect(hasUserManagementPermission(user, UserManagementPermissionEnum.Disable)).toBe(true);
-    expect(hasUserManagementPermission(user, UserManagementPermissionEnum.Reactivate)).toBe(true);
-    expect(hasUserManagementPermission(user, UserManagementPermissionEnum.Delete)).toBe(true);
+    expect(hasUserManagementPermission(user, UserManagementPermissionEnum.View)).toBe(
+      true,
+    );
+    expect(hasUserManagementPermission(user, UserManagementPermissionEnum.Add)).toBe(
+      true,
+    );
+    expect(hasUserManagementPermission(user, UserManagementPermissionEnum.Edit)).toBe(
+      true,
+    );
+    expect(
+      hasUserManagementPermission(user, UserManagementPermissionEnum.ResetPassword),
+    ).toBe(true);
+    expect(hasUserManagementPermission(user, UserManagementPermissionEnum.Disable)).toBe(
+      true,
+    );
+    expect(
+      hasUserManagementPermission(user, UserManagementPermissionEnum.Reactivate),
+    ).toBe(true);
+    expect(hasUserManagementPermission(user, UserManagementPermissionEnum.Delete)).toBe(
+      true,
+    );
   });
 });

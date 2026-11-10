@@ -46,17 +46,17 @@ jest.mock("uuid", () => ({
   v4: jest.fn(() => `uuid-${Math.random().toString(36).slice(2)}`),
 }));
 
-import { CreateExtractedDocumentQueueUseCase } from "./create-extracted-document-queue.usecase";
+import { S3Service } from "../../../../storage/s3/s3.service";
+import { DocumentFileService } from "../../document-file/service/document-file.service";
+import { ExtractionService } from "../../extraction/extraction.service";
+import type { CreateExtractedDocumentDto } from "../dto/create-extracted-document-dto";
+import { ExtractedDocumentQueueService } from "../service/extracted-document-queue.service";
 import type {
   ExtractedChunk,
   ExtractedDocumentField,
   ReceiveDocumentResponse,
 } from "../types/extracted-types";
-import type { CreateExtractedDocumentDto } from "../dto/create-extracted-document-dto";
-import { ExtractionService } from "../../extraction/extraction.service";
-import { DocumentFileService } from "../../document-file/service/document-file.service";
-import { ExtractedDocumentQueueService } from "../service/extracted-document-queue.service";
-import { S3Service } from "../../../../storage/s3/s3.service";
+import { CreateExtractedDocumentQueueUseCase } from "./create-extracted-document-queue.usecase";
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -118,10 +118,9 @@ function makeMockManager(): EntityManager {
  * Set `transactionShouldFail` to make `documentFileService.create` reject,
  * which triggers the use-case's catch block (S3 cleanup + rethrow).
  */
-async function buildUseCase(opts: {
-  transactionShouldFail?: boolean;
-  s3DeleteShouldFail?: boolean;
-} = {}) {
+async function buildUseCase(
+  opts: { transactionShouldFail?: boolean; s3DeleteShouldFail?: boolean } = {},
+) {
   const mockExtractedFields = [
     makeField("subject", "Foo", ["c1"], 90),
     makeField("from", "Bar", ["c1"], 95),
@@ -162,9 +161,11 @@ async function buildUseCase(opts: {
   // passes in. The callback runs the REAL use-case logic (resolveExtraction,
   // documentFileService.create, etc.).
   const mockDataSource = {
-    transaction: jest.fn().mockImplementation(async (cb: (manager: EntityManager) => Promise<unknown>) =>
-      cb({} as EntityManager),
-    ),
+    transaction: jest
+      .fn()
+      .mockImplementation(async (cb: (manager: EntityManager) => Promise<unknown>) =>
+        cb({} as EntityManager),
+      ),
   };
 
   const moduleRef = await Test.createTestingModule({
@@ -173,7 +174,10 @@ async function buildUseCase(opts: {
       { provide: DataSource, useValue: mockDataSource },
       { provide: ExtractionService, useValue: mockExtractionService },
       { provide: DocumentFileService, useValue: mockDocumentFileService },
-      { provide: ExtractedDocumentQueueService, useValue: mockExtractedDocumentQueueService },
+      {
+        provide: ExtractedDocumentQueueService,
+        useValue: mockExtractedDocumentQueueService,
+      },
       { provide: S3Service, useValue: mockS3Service },
     ],
   }).compile();
@@ -259,7 +263,9 @@ describe("ExtractedDocumentQueueUseCase", () => {
 
       const keys = mockS3Service.upload!.mock.calls.map((c) => c[0]);
       expect(keys[0]).not.toBe(keys[1]);
-      expect(keys.every((k) => typeof k === "string" && k.startsWith("incoming/"))).toBe(true);
+      expect(keys.every((k) => typeof k === "string" && k.startsWith("incoming/"))).toBe(
+        true,
+      );
     });
 
     it("forwards the uploaded file's originalname to the document file", async () => {
@@ -542,7 +548,8 @@ describe("ExtractedDocumentQueueUseCase", () => {
     });
 
     it("persists the same decision to the ExtractedDocumentQueueEntity", async () => {
-      const { useCase, mockExtractionService, mockExtractedDocumentQueueService } = await buildUseCase();
+      const { useCase, mockExtractionService, mockExtractedDocumentQueueService } =
+        await buildUseCase();
 
       const fields = [
         makeField("subject", "Foo", ["c1"], 90),
@@ -567,7 +574,8 @@ describe("ExtractedDocumentQueueUseCase", () => {
     });
 
     it("stores the same decision returned to the client (ACCEPT path)", async () => {
-      const { useCase, mockExtractionService, mockExtractedDocumentQueueService } = await buildUseCase();
+      const { useCase, mockExtractionService, mockExtractedDocumentQueueService } =
+        await buildUseCase();
 
       const fields = [
         makeField("subject", "Foo", ["c1"], 95),
@@ -600,7 +608,8 @@ describe("ExtractedDocumentQueueUseCase", () => {
    */
   describe("chunk deduplication", () => {
     it("dedupes duplicate chunkIds, keeping the first occurrence", async () => {
-      const { useCase, mockExtractionService, mockDocumentFileService } = await buildUseCase();
+      const { useCase, mockExtractionService, mockDocumentFileService } =
+        await buildUseCase();
 
       const fields = [
         makeField("subject", "Foo", ["c1"], 90),

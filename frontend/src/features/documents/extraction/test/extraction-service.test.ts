@@ -33,9 +33,12 @@ vi.mock("../../../../lib/api-client", () => ({
   },
 }));
 
+import type {
+  ExtractionRequest,
+  ExtractionResponse,
+} from "../service/extraction-service";
 // Import after the mock is declared so the mock is in place.
 import { extractionService } from "../service/extraction-service";
-import type { ExtractionRequest, ExtractionResponse } from "../service/extraction-service";
 
 describe("extractionService", () => {
   beforeEach(() => {
@@ -58,15 +61,11 @@ describe("extractionService", () => {
       await extractionService.extractFields(request, idempotencyKey);
 
       expect(mockPost).toHaveBeenCalledTimes(1);
-      expect(mockPost).toHaveBeenCalledWith(
-        "/extraction",
-        request,
-        {
-          headers: {
-            "Idempotency-Key": idempotencyKey,
-          },
+      expect(mockPost).toHaveBeenCalledWith("/extraction", request, {
+        headers: {
+          "Idempotency-Key": idempotencyKey,
         },
-      );
+      });
     });
 
     it("returns response.data verbatim (unwrapped)", async () => {

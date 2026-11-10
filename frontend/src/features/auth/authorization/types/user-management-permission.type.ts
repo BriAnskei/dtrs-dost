@@ -1,5 +1,5 @@
 export type UserManagementPermissions = {
-  view: boolean
+  view: boolean;
   add: boolean;
   edit: boolean;
   reset_password: boolean;

@@ -32,15 +32,17 @@
  *   the "no next page" branch.
  */
 
-import { EntityManager, Repository } from "typeorm";
 import { Test } from "@nestjs/testing";
 import { getRepositoryToken } from "@nestjs/typeorm";
-import { ExtractedDocumentQueueRepository } from "./extracted-document-queue.repository";
-import { ExtractedDocumentQueueEntity } from "../entities/extracted-document-queue.entity";
-import { ExtractedDocumentQueueStatus } from "../entities/extracted-document-queue.entity";
+import { EntityManager, Repository } from "typeorm";
 import { encodeCursor } from "../../../../common/pagination/cursor";
 import type { FindExtractedDocumentQueuesQueryDto } from "../dto/find-extracted-document-queues-query.dto";
 import type { FindMyExtractedDocumentQueuesQueryDto } from "../dto/find-my-extracted-document-queues-query.dto";
+import {
+  ExtractedDocumentQueueEntity,
+  ExtractedDocumentQueueStatus,
+} from "../entities/extracted-document-queue.entity";
+import { ExtractedDocumentQueueRepository } from "./extracted-document-queue.repository";
 
 /**
  * A chainable mock QueryBuilder. Every method returns `this` so the production
@@ -54,44 +56,44 @@ function makeMockQueryBuilder() {
 
   const qb = {
     calls,
-    leftJoinAndSelect: jest.fn(function (relation, alias) {
+    leftJoinAndSelect: jest.fn((relation, alias) => {
       calls.leftJoinAndSelect = [relation, alias];
       return qb;
     }),
-    leftJoin: jest.fn(function (relation, alias) {
+    leftJoin: jest.fn((relation, alias) => {
       calls.leftJoin = [relation, alias];
       return qb;
     }),
-    innerJoinAndSelect: jest.fn(function (relation, alias) {
+    innerJoinAndSelect: jest.fn((relation, alias) => {
       calls.innerJoinAndSelect = [relation, alias];
       return qb;
     }),
-    addSelect: jest.fn(function (cols) {
+    addSelect: jest.fn((cols) => {
       calls.addSelect = [cols];
       return qb;
     }),
-    where: jest.fn(function (cond, params) {
+    where: jest.fn((cond, params) => {
       calls.where = [cond, params];
       return qb;
     }),
-    andWhere: jest.fn(function (cond, params) {
+    andWhere: jest.fn((cond, params) => {
       const existing = (calls.andWhere ?? []) as unknown[][];
       calls.andWhere = [...existing, [cond, params]];
       return qb;
     }),
-    orderBy: jest.fn(function (col, dir) {
+    orderBy: jest.fn((col, dir) => {
       calls.orderBy = [col, dir];
       return qb;
     }),
-    addOrderBy: jest.fn(function (col, dir) {
+    addOrderBy: jest.fn((col, dir) => {
       calls.addOrderBy = [col, dir];
       return qb;
     }),
-    take: jest.fn(function (n) {
+    take: jest.fn((n) => {
       calls.take = [n];
       return qb;
     }),
-    getMany: jest.fn(async function () {
+    getMany: jest.fn(async () => {
       calls.getMany = true;
       // Return whatever the test pre-set (via `_rows`).
       return (qb as any)._rows ?? [];
@@ -123,7 +125,10 @@ async function buildRepository() {
   const moduleRef = await Test.createTestingModule({
     providers: [
       ExtractedDocumentQueueRepository,
-      { provide: getRepositoryToken(ExtractedDocumentQueueEntity), useValue: mockRepository },
+      {
+        provide: getRepositoryToken(ExtractedDocumentQueueEntity),
+        useValue: mockRepository,
+      },
     ],
   }).compile();
 
@@ -135,7 +140,9 @@ async function buildRepository() {
 }
 
 /** Make a queue entity row with sensible defaults. */
-function makeQueue(overrides: Partial<ExtractedDocumentQueueEntity> = {}): ExtractedDocumentQueueEntity {
+function makeQueue(
+  overrides: Partial<ExtractedDocumentQueueEntity> = {},
+): ExtractedDocumentQueueEntity {
   return {
     id: "q-1",
     document_file_id: "df-1",
@@ -231,9 +238,7 @@ describe("ExtractedDocumentQueueRepository", () => {
         unknown_uploader: true,
       } as FindExtractedDocumentQueuesQueryDto);
 
-      expect(mockQb.calls.andWhere).toContainEqual([
-        "document_file.uploader_id IS NULL",
-      ]);
+      expect(mockQb.calls.andWhere).toContainEqual(["document_file.uploader_id IS NULL"]);
     });
 
     it("filters unknown_uploader=false as IS NOT NULL", async () => {
@@ -313,19 +318,20 @@ describe("ExtractedDocumentQueueRepository", () => {
       expect(result.nextCursor).not.toBeNull();
 
       // The nextCursor should decode back to the last (popped) row.
-      const decoded = JSON.parse(Buffer.from(result.nextCursor!, "base64url").toString("utf8"));
+      const decoded = JSON.parse(
+        Buffer.from(result.nextCursor!, "base64url").toString("utf8"),
+      );
       expect(decoded.id).toBe("q-4");
     });
 
     it("returns nextCursor=null when rows <= limit", async () => {
       const { repository, mockQb } = await buildRepository();
 
-      mockQb._setRows([
-        makeQueue({ id: "q-1" }),
-        makeQueue({ id: "q-2" }),
-      ]);
+      mockQb._setRows([makeQueue({ id: "q-1" }), makeQueue({ id: "q-2" })]);
 
-      const result = await repository.findAll({ limit: 5 } as FindExtractedDocumentQueuesQueryDto);
+      const result = await repository.findAll({
+        limit: 5,
+      } as FindExtractedDocumentQueuesQueryDto);
 
       expect(result.data).toHaveLength(2);
       expect(result.nextCursor).toBeNull();
@@ -428,9 +434,7 @@ describe("ExtractedDocumentQueueRepository", () => {
     it("encodes nextCursor when more rows than limit", async () => {
       const { repository, mockQb } = await buildRepository();
 
-      const rows = Array.from({ length: 11 }, (_, i) =>
-        makeQueue({ id: `q-${i}` }),
-      );
+      const rows = Array.from({ length: 11 }, (_, i) => makeQueue({ id: `q-${i}` }));
       mockQb._setRows(rows);
 
       const result = await repository.findAllByUploaderId("u1", {
@@ -480,7 +484,10 @@ describe("ExtractedDocumentQueueRepository", () => {
 
       mockRepository.update = jest.fn().mockResolvedValue({ affected: 1 });
 
-      const result = await repository.updateStatus("q-1", ExtractedDocumentQueueStatus.APPROVED);
+      const result = await repository.updateStatus(
+        "q-1",
+        ExtractedDocumentQueueStatus.APPROVED,
+      );
 
       expect(mockRepository.update).toHaveBeenCalledWith(
         { id: "q-1" },
@@ -494,7 +501,10 @@ describe("ExtractedDocumentQueueRepository", () => {
 
       mockRepository.update = jest.fn().mockResolvedValue({ affected: 0 });
 
-      const result = await repository.updateStatus("q-1", ExtractedDocumentQueueStatus.INVALIDATED);
+      const result = await repository.updateStatus(
+        "q-1",
+        ExtractedDocumentQueueStatus.INVALIDATED,
+      );
 
       expect(result).toBe(false);
     });

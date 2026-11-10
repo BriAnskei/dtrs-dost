@@ -1,9 +1,7 @@
 import { QueryFailedError } from "typeorm";
 import { PostgresDriverError } from "./postgres-error.types";
 
-export function getPostgresError(
-  error: unknown,
-): PostgresDriverError | null {
+export function getPostgresError(error: unknown): PostgresDriverError | null {
   if (!(error instanceof QueryFailedError)) return null;
 
   return error.driverError as PostgresDriverError;

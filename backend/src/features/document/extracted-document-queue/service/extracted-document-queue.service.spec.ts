@@ -29,21 +29,21 @@
 import { ConflictException, NotFoundException } from "@nestjs/common";
 import { Test } from "@nestjs/testing";
 import { EntityManager } from "typeorm";
-import { ExtractedDocumentQueueService } from "./extracted-document-queue.service";
-import { ExtractedDocumentQueueRepository } from "../repository/extracted-document-queue.repository";
-import type { ExtractedDocumentQueueEntity } from "../entities/extracted-document-queue.entity";
-import {
-  ExtractedDocumentQueueStatus,
-} from "../entities/extracted-document-queue.entity";
+import type { ExtractedDocumentQueueResponseDto } from "../dto/extracted-document-response-dto";
 import type { FindExtractedDocumentQueuesQueryDto } from "../dto/find-extracted-document-queues-query.dto";
 import type { FindMyExtractedDocumentQueuesQueryDto } from "../dto/find-my-extracted-document-queues-query.dto";
-import type { ExtractedDocumentQueueResponseDto } from "../dto/extracted-document-response-dto";
+import type { ExtractedDocumentQueueEntity } from "../entities/extracted-document-queue.entity";
+import { ExtractedDocumentQueueStatus } from "../entities/extracted-document-queue.entity";
+import { ExtractedDocumentQueueRepository } from "../repository/extracted-document-queue.repository";
+import { ExtractedDocumentQueueService } from "./extracted-document-queue.service";
 
 /**
  * Build a minimal ExtractedDocumentQueueEntity with all fields the
  * service's `toDto` reads. `uploader` can be null to test the null-coalesce.
  */
-function makeEntity(overrides: Partial<ExtractedDocumentQueueEntity> = {}): ExtractedDocumentQueueEntity {
+function makeEntity(
+  overrides: Partial<ExtractedDocumentQueueEntity> = {},
+): ExtractedDocumentQueueEntity {
   return {
     id: "queue-id-1",
     document_file_id: "doc-file-id-1",
@@ -322,12 +322,8 @@ describe("ExtractedDocumentQueueService", () => {
 
       mockRepository.findOneByIdWithJoin = jest.fn().mockResolvedValue(null);
 
-      await expect(service.getOrThrow("missing-id")).rejects.toThrow(
-        NotFoundException,
-      );
-      expect(mockRepository.findOneByIdWithJoin).toHaveBeenCalledWith(
-        "missing-id",
-      );
+      await expect(service.getOrThrow("missing-id")).rejects.toThrow(NotFoundException);
+      expect(mockRepository.findOneByIdWithJoin).toHaveBeenCalledWith("missing-id");
     });
 
     it("returns the entity when found", async () => {
@@ -413,7 +409,9 @@ describe("ExtractedDocumentQueueService", () => {
           uploader_id: "u-1",
           uploader: { id: "u-1", full_name: "Reviewer" } as never,
         } as never,
-        extracted_data: [{ field: "subject", value: "Hello", chunkIds: ["c1"], aiConfidence: 95 }],
+        extracted_data: [
+          { field: "subject", value: "Hello", chunkIds: ["c1"], aiConfidence: 95 },
+        ],
         extracted_chunks: [
           {
             chunkId: "c1",
@@ -464,7 +462,9 @@ describe("ExtractedDocumentQueueService", () => {
 
     it("omits chunk_locations entries for chunks without page + bbox", async () => {
       const entity = makeEntity({
-        extracted_data: [{ field: "subject", value: "Hello", chunkIds: ["c1"], aiConfidence: 95 }],
+        extracted_data: [
+          { field: "subject", value: "Hello", chunkIds: ["c1"], aiConfidence: 95 },
+        ],
         extracted_chunks: [
           {
             chunkId: "c1",
@@ -556,22 +556,22 @@ describe("ExtractedDocumentQueueService", () => {
       mockRepository.findOneForUpdate = jest.fn().mockResolvedValue(null);
       const manager = {} as EntityManager;
 
-      await expect(
-        service.approveIfPending("missing", manager),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.approveIfPending("missing", manager)).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it("throws ConflictException when status is not PENDING", async () => {
       const { service, mockRepository } = await buildServiceForApprove();
 
-      mockRepository.findOneForUpdate = jest.fn().mockResolvedValue(
-        makeEntity({ status: ExtractedDocumentQueueStatus.APPROVED }),
-      );
+      mockRepository.findOneForUpdate = jest
+        .fn()
+        .mockResolvedValue(makeEntity({ status: ExtractedDocumentQueueStatus.APPROVED }));
       const manager = {} as EntityManager;
 
-      await expect(
-        service.approveIfPending("queue-id-1", manager),
-      ).rejects.toThrow(ConflictException);
+      await expect(service.approveIfPending("queue-id-1", manager)).rejects.toThrow(
+        ConflictException,
+      );
       // No status update should occur on conflict.
       expect(mockRepository.updateStatus).not.toHaveBeenCalled();
     });

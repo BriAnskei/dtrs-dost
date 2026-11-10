@@ -1,9 +1,9 @@
+import { NotFoundException } from "@nestjs/common";
 import { Test, TestingModule } from "@nestjs/testing";
 import { EntityManager } from "typeorm";
 import { DocumentFileEntity } from "../entities/document-file.entity";
 import { DocumentFileRepository } from "../repository/document-file.repository";
 import { DocumentFileService } from "./document-file.service";
-import { NotFoundException } from "@nestjs/common";
 
 describe("DocumentFileService", () => {
   let service: DocumentFileService;
@@ -136,9 +136,7 @@ describe("DocumentFileService", () => {
       const manager = {} as EntityManager;
       repository.delete.mockResolvedValue(false);
 
-      await expect(service.delete("uuid-1", manager)).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(service.delete("uuid-1", manager)).rejects.toThrow(NotFoundException);
     });
   });
 });

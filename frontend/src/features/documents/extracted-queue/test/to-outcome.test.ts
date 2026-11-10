@@ -40,7 +40,11 @@ function makeChunkLocation(loc: {
   w?: number;
   h?: number;
   sourceConfidence?: number;
-  tokens?: { text: string; bbox: { x: number; y: number; w: number; h: number }; confidence?: number }[];
+  tokens?: {
+    text: string;
+    bbox: { x: number; y: number; w: number; h: number };
+    confidence?: number;
+  }[];
 }): NonNullChunkLocation {
   return {
     page: loc.page ?? 1,
@@ -64,7 +68,9 @@ import type { ChunkLocation } from "../../extraction/types/extraction-types";
  * `decision` defaults to REVIEW so `minEffective` computation is exercised.
  * `status` defaults to APPROVED (already approved after creation).
  */
-function makeDetail(overrides: Partial<ExtractedDocumentQueueDetail> = {}): ExtractedDocumentQueueDetail {
+function makeDetail(
+  overrides: Partial<ExtractedDocumentQueueDetail> = {},
+): ExtractedDocumentQueueDetail {
   return {
     id: "queue-1",
     file_name: "invoice.pdf",
@@ -233,11 +239,46 @@ describe("toOutcome", () => {
       const outcome = toOutcome(
         makeDetail({
           fields: [
-            { field: "subject", value: "a", chunkIds: [], aiConfidence: 90, sourceConfidence: 100, effectiveConfidence: 90 },
-            { field: "from", value: "b", chunkIds: [], aiConfidence: 95, sourceConfidence: 100, effectiveConfidence: 95 },
-            { field: "to", value: "c", chunkIds: [], aiConfidence: 80, sourceConfidence: 100, effectiveConfidence: 80 },
-            { field: "dateReceived", value: "2026-10-15", chunkIds: [], aiConfidence: 70, sourceConfidence: 100, effectiveConfidence: 70 },
-            { field: "summary", value: "d", chunkIds: [], aiConfidence: 85, sourceConfidence: 100, effectiveConfidence: 85 },
+            {
+              field: "subject",
+              value: "a",
+              chunkIds: [],
+              aiConfidence: 90,
+              sourceConfidence: 100,
+              effectiveConfidence: 90,
+            },
+            {
+              field: "from",
+              value: "b",
+              chunkIds: [],
+              aiConfidence: 95,
+              sourceConfidence: 100,
+              effectiveConfidence: 95,
+            },
+            {
+              field: "to",
+              value: "c",
+              chunkIds: [],
+              aiConfidence: 80,
+              sourceConfidence: 100,
+              effectiveConfidence: 80,
+            },
+            {
+              field: "dateReceived",
+              value: "2026-10-15",
+              chunkIds: [],
+              aiConfidence: 70,
+              sourceConfidence: 100,
+              effectiveConfidence: 70,
+            },
+            {
+              field: "summary",
+              value: "d",
+              chunkIds: [],
+              aiConfidence: 85,
+              sourceConfidence: 100,
+              effectiveConfidence: 85,
+            },
           ],
         }),
       );

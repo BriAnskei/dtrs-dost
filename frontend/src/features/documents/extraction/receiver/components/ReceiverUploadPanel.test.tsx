@@ -39,12 +39,11 @@
  *  10. Submit button calls submit().
  */
 
-import { render, screen, fireEvent } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-
-import ReceiverUploadPanel from "./ReceiverUploadPanel";
-import type { ReceiverUploadResponse } from "../types/reciever-upload-api-types";
 import type { ReceiverUploadStatus } from "../hooks/use-reciever-upload";
+import type { ReceiverUploadResponse } from "../types/reciever-upload-api-types";
+import ReceiverUploadPanel from "./ReceiverUploadPanel";
 
 /* ─── Mock the hook ──────────────────────────────────────────────────────────── */
 
@@ -67,7 +66,13 @@ vi.mock("../hooks/use-reciever-upload", () => ({
 
 vi.mock("../../admins/components/PDFDropzone", () => ({
   __esModule: true,
-  default: function MockPdfDropzone({ file, onSelect }: { file: unknown; onSelect: (f: unknown) => void }) {
+  default: function MockPdfDropzone({
+    file,
+    onSelect,
+  }: {
+    file: unknown;
+    onSelect: (f: unknown) => void;
+  }) {
     return (
       <div data-testid="pdf-dropzone">
         <span data-testid="dropzone-file">{file ? file.name : "no-file"}</span>
@@ -131,24 +136,26 @@ vi.mock("./UploadSuccessCard", () => ({
 
 /* ─── Fixtures ───────────────────────────────────────────────────────────────── */
 
-function makeMockReturn(overrides: Partial<{
-  file: File | null;
-  status: ReceiverUploadStatus;
-  busy: boolean;
-  activeIdx: number;
-  result: ReceiverUploadResponse | null;
-  showResult: boolean;
-}> = {}) {
+function makeMockReturn(
+  overrides: Partial<{
+    file: File | null;
+    status: ReceiverUploadStatus;
+    busy: boolean;
+    activeIdx: number;
+    result: ReceiverUploadResponse | null;
+    showResult: boolean;
+  }> = {},
+) {
   const status: ReceiverUploadStatus = overrides.status ?? "idle";
   const file = overrides.file ?? null;
   const busy = overrides.busy ?? (status === "processing" || status === "queueing");
-  const activeIdx = overrides.activeIdx ?? (
-    status === "queued"
+  const activeIdx =
+    overrides.activeIdx ??
+    (status === "queued"
       ? 3
       : status === "queueing" || status === "queue_failed"
         ? 1
-        : 0
-  );
+        : 0);
   const result = overrides.result ?? null;
   const showResult = overrides.showResult ?? false;
 
@@ -171,7 +178,14 @@ function makeMockReturn(overrides: Partial<{
 const VALID_RESPONSE: ReceiverUploadResponse = {
   decision: "ACCEPT",
   fields: [
-    { field: "subject", value: "Foo", chunkIds: ["c1"], aiConfidence: 90, sourceConfidence: 95, effectiveConfidence: 86 },
+    {
+      field: "subject",
+      value: "Foo",
+      chunkIds: ["c1"],
+      aiConfidence: 90,
+      sourceConfidence: 95,
+      effectiveConfidence: 86,
+    },
   ],
 };
 

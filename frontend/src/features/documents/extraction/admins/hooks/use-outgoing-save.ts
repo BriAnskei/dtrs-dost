@@ -17,7 +17,6 @@ interface Options {
   onSaved: () => void;
 }
 
-
 export function useOutgoingSave({ enabled, file, outcome, edits, onSaved }: Options) {
   const navigate = useNavigate();
   const createOutgoing = useCreateOutgoingDocument();

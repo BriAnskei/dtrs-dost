@@ -23,7 +23,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import PdfDropzone from "../admins/components/PDFDropzone";
-import { MAX_FILE_MB, formatBytes } from "../constans";
+import { formatBytes, MAX_FILE_MB } from "../constans";
 import { formatBytes as formatBytesHelper } from "../helpers/extraction-helpers";
 
 /* Re-exported so tests can reference the expected size string. */
@@ -185,7 +185,9 @@ describe("PdfDropzone", () => {
         dataTransfer: { files: [bigFile] },
       });
 
-      expect(screen.getByText(`File must be ${MAX_FILE_MB} MB or smaller.`)).toBeInTheDocument();
+      expect(
+        screen.getByText(`File must be ${MAX_FILE_MB} MB or smaller.`),
+      ).toBeInTheDocument();
       expect(onSelect).not.toHaveBeenCalled();
     });
 
@@ -253,7 +255,9 @@ describe("PdfDropzone", () => {
 
   describe("disabled state", () => {
     it("does not open the file input when disabled", () => {
-      const { container } = render(<PdfDropzone file={null} onSelect={() => {}} disabled />);
+      const { container } = render(
+        <PdfDropzone file={null} onSelect={() => {}} disabled />,
+      );
 
       const dropzone = container.querySelector('[class*="border-dashed"]')!;
       // Clicking the dropzone when disabled should not call click on the input.
@@ -275,7 +279,9 @@ describe("PdfDropzone", () => {
 
     it("does not accept drops when disabled", () => {
       const onSelect = vi.fn();
-      const { container } = render(<PdfDropzone file={null} onSelect={onSelect} disabled />);
+      const { container } = render(
+        <PdfDropzone file={null} onSelect={onSelect} disabled />,
+      );
 
       const dropzone = container.querySelector('[class*="border-dashed"]')!;
       const file = makeFile("dropped.pdf", 1024);
@@ -288,7 +294,9 @@ describe("PdfDropzone", () => {
     });
 
     it("does not enter dragging state when disabled", () => {
-      const { container } = render(<PdfDropzone file={null} onSelect={() => {}} disabled />);
+      const { container } = render(
+        <PdfDropzone file={null} onSelect={() => {}} disabled />,
+      );
 
       const dropzone = container.querySelector('[class*="border-dashed"]')!;
       fireEvent.dragOver(dropzone);

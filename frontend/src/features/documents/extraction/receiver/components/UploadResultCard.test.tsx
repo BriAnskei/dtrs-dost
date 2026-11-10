@@ -37,25 +37,62 @@
 
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import UploadResultCard from "./UploadResultCard";
-import type { ReceiverUploadResponse } from "../types/reciever-upload-api-types";
 import type { Decision } from "../../types/extraction-types";
+import type { ReceiverUploadResponse } from "../types/reciever-upload-api-types";
+import UploadResultCard from "./UploadResultCard";
 
 /*
  * Build a complete ReceiverUploadResponse with all five incoming fields.
  * Each field can be overridden; defaults produce a mixed confidence set so
  * we can verify both "low" (red) and "normal" bar styling in one render.
  */
-function makeResponse(overrides: {
-  decision?: Decision;
-  fields?: Partial<ReceiverUploadResponse["fields"][number]>[];
-} = {}): ReceiverUploadResponse {
+function makeResponse(
+  overrides: {
+    decision?: Decision;
+    fields?: Partial<ReceiverUploadResponse["fields"][number]>[];
+  } = {},
+): ReceiverUploadResponse {
   const baseFields = [
-    { field: "subject" as const, value: "Foo", chunkIds: ["c1"], aiConfidence: 90, sourceConfidence: 95, effectiveConfidence: 86 },
-    { field: "from" as const, value: "Bar", chunkIds: ["c1"], aiConfidence: 60, sourceConfidence: 70, effectiveConfidence: 42 },
-    { field: "to" as const, value: null, chunkIds: [], aiConfidence: null, sourceConfidence: null, effectiveConfidence: null },
-    { field: "dateReceived" as const, value: "10/03/2026", chunkIds: ["c1"], aiConfidence: 95, sourceConfidence: 92, effectiveConfidence: 87 },
-    { field: "summary" as const, value: "A summary text", chunkIds: ["c1"], aiConfidence: 85, sourceConfidence: 88, effectiveConfidence: 75 },
+    {
+      field: "subject" as const,
+      value: "Foo",
+      chunkIds: ["c1"],
+      aiConfidence: 90,
+      sourceConfidence: 95,
+      effectiveConfidence: 86,
+    },
+    {
+      field: "from" as const,
+      value: "Bar",
+      chunkIds: ["c1"],
+      aiConfidence: 60,
+      sourceConfidence: 70,
+      effectiveConfidence: 42,
+    },
+    {
+      field: "to" as const,
+      value: null,
+      chunkIds: [],
+      aiConfidence: null,
+      sourceConfidence: null,
+      effectiveConfidence: null,
+    },
+    {
+      field: "dateReceived" as const,
+      value: "10/03/2026",
+      chunkIds: ["c1"],
+      aiConfidence: 95,
+      sourceConfidence: 92,
+      effectiveConfidence: 87,
+    },
+    {
+      field: "summary" as const,
+      value: "A summary text",
+      chunkIds: ["c1"],
+      aiConfidence: 85,
+      sourceConfidence: 88,
+      effectiveConfidence: 75,
+    },
   ];
 
   return {
@@ -70,7 +107,10 @@ describe("UploadResultCard", () => {
   describe("decision rendering", () => {
     it("renders ACCEPT decision with the correct label and message", () => {
       render(
-        <UploadResultCard fileName="doc.pdf" result={makeResponse({ decision: "ACCEPT" })} />,
+        <UploadResultCard
+          fileName="doc.pdf"
+          result={makeResponse({ decision: "ACCEPT" })}
+        />,
       );
 
       expect(screen.getByText("Accepted")).toBeInTheDocument();
@@ -82,18 +122,22 @@ describe("UploadResultCard", () => {
 
     it("renders REVIEW decision with the correct label and message", () => {
       render(
-        <UploadResultCard fileName="doc.pdf" result={makeResponse({ decision: "REVIEW" })} />,
+        <UploadResultCard
+          fileName="doc.pdf"
+          result={makeResponse({ decision: "REVIEW" })}
+        />,
       );
 
       expect(screen.getByText("Needs review")).toBeInTheDocument();
-      expect(
-        screen.getByText(/Some details have low confidence\./),
-      ).toBeInTheDocument();
+      expect(screen.getByText(/Some details have low confidence\./)).toBeInTheDocument();
     });
 
     it("renders INVALID decision with the correct label and message", () => {
       render(
-        <UploadResultCard fileName="doc.pdf" result={makeResponse({ decision: "INVALID" })} />,
+        <UploadResultCard
+          fileName="doc.pdf"
+          result={makeResponse({ decision: "INVALID" })}
+        />,
       );
 
       expect(screen.getByText("Invalid")).toBeInTheDocument();
@@ -104,7 +148,10 @@ describe("UploadResultCard", () => {
 
     it("applies the decision-specific text color class", () => {
       const { container } = render(
-        <UploadResultCard fileName="doc.pdf" result={makeResponse({ decision: "REVIEW" })} />,
+        <UploadResultCard
+          fileName="doc.pdf"
+          result={makeResponse({ decision: "REVIEW" })}
+        />,
       );
 
       // REVIEW uses warning text color.
@@ -114,7 +161,10 @@ describe("UploadResultCard", () => {
 
     it("uses neutral text color for ACCEPT (no color emphasis)", () => {
       const { container } = render(
-        <UploadResultCard fileName="doc.pdf" result={makeResponse({ decision: "ACCEPT" })} />,
+        <UploadResultCard
+          fileName="doc.pdf"
+          result={makeResponse({ decision: "ACCEPT" })}
+        />,
       );
 
       const decisionSpan = container.querySelector("span.shrink-0");
@@ -125,9 +175,7 @@ describe("UploadResultCard", () => {
 
   describe("file name rendering", () => {
     it("displays the fileName in the header", () => {
-      render(
-        <UploadResultCard fileName="my-document.pdf" result={makeResponse()} />,
-      );
+      render(<UploadResultCard fileName="my-document.pdf" result={makeResponse()} />);
 
       expect(screen.getByText("my-document.pdf")).toBeInTheDocument();
     });
@@ -188,7 +236,9 @@ describe("UploadResultCard", () => {
       // The "from" field has effectiveConfidence=42 → low → error bar.
       const bars = screen.getAllByRole("progressbar");
       // Find the bar with aria-valuenow=42.
-      const lowBar = Array.from(bars).find((b) => b.getAttribute("aria-valuenow") === "42");
+      const lowBar = Array.from(bars).find(
+        (b) => b.getAttribute("aria-valuenow") === "42",
+      );
       expect(lowBar).toBeDefined();
 
       const barFill = lowBar!.querySelector("div");

@@ -21,8 +21,8 @@
  */
 
 import { describe, expect, it } from "vitest";
-import type { BoundingBox, ExtractionToken } from "../pdf/types";
 import { findValueBox } from "../helpers/text-matching-helpers";
+import type { BoundingBox, ExtractionToken } from "../pdf/types";
 
 function token(text: string, bbox: BoundingBox): ExtractionToken {
   return { text, bbox, confidence: 1.0 };
@@ -216,7 +216,11 @@ describe("findValueBox", () => {
 
     it("strips punctuation when matching", () => {
       // "10/03/2026" expands to words "10", "03", "2026".
-      const tokens = [token("10", bbox(0, 0, 3, 2)), token("03", bbox(5, 0, 3, 2)), token("2026", bbox(10, 0, 8, 2))];
+      const tokens = [
+        token("10", bbox(0, 0, 3, 2)),
+        token("03", bbox(5, 0, 3, 2)),
+        token("2026", bbox(10, 0, 8, 2)),
+      ];
 
       expect(findValueBox("10/03/2026", tokens)).toEqual(bbox(0, 0, 18, 2));
     });

@@ -1,15 +1,15 @@
 import axios from "axios";
-import { getApiErrorMessage } from "../../lib/api-error";
+import { Archive, Eye, History, RotateCw, Search, Share2 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { getApiErrorMessage } from "../../lib/api-error";
 import QRCodeModal from "../receiver/QRCodeModal";
+import KebabMenu from "../ui/kebab-menu/KebabMenu";
 import IncomingAuditModal from "../ui/modal/document/IncomingAuditModal";
 import RoutedDivisionsModal from "../ui/modal/document/RoutedDivisionsModal";
 import StatusUpdateModal, {
   type StatusType,
   type StatusUpdatePayload,
 } from "../ui/modal/document/StatusUpdateModal";
-import KebabMenu from "../ui/kebab-menu/KebabMenu";
-import { Archive, Eye, History, RotateCw, Search, Share2 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHeader, TableRow } from "../ui/table";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -140,11 +140,31 @@ function MobileCard({
         </span>
         <KebabMenu
           actions={[
-            { label: "View", icon: <Eye className="h-4 w-4" />, handler: () => console.log("[View] Record:", record) },
-            { label: "Update Status", icon: <RotateCw className="h-4 w-4" />, handler: () => onUpdateStatus(record) },
-            { label: "History", icon: <History className="h-4 w-4" />, handler: () => onHistory(record) },
-            { label: "Share", icon: <Share2 className="h-4 w-4" />, handler: () => onShare(record) },
-            { label: "Archive", icon: <Archive className="h-4 w-4" />, handler: () => console.log("[Archive] Record:", record) },
+            {
+              label: "View",
+              icon: <Eye className="h-4 w-4" />,
+              handler: () => console.log("[View] Record:", record),
+            },
+            {
+              label: "Update Status",
+              icon: <RotateCw className="h-4 w-4" />,
+              handler: () => onUpdateStatus(record),
+            },
+            {
+              label: "History",
+              icon: <History className="h-4 w-4" />,
+              handler: () => onHistory(record),
+            },
+            {
+              label: "Share",
+              icon: <Share2 className="h-4 w-4" />,
+              handler: () => onShare(record),
+            },
+            {
+              label: "Archive",
+              icon: <Archive className="h-4 w-4" />,
+              handler: () => console.log("[Archive] Record:", record),
+            },
           ]}
         />
       </div>
@@ -266,9 +286,7 @@ export default function IncomingDocumentsTable() {
       } catch (error: any) {
         if (!cancelled) {
           console.error("Failed to fetch incoming documents:", error);
-          setFetchError(
-            getApiErrorMessage(error, "Failed to load incoming documents."),
-          );
+          setFetchError(getApiErrorMessage(error, "Failed to load incoming documents."));
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -710,11 +728,31 @@ export default function IncomingDocumentsTable() {
                         <TableCell className="px-3 py-3">
                           <KebabMenu
                             actions={[
-                              { label: "View", icon: <Eye className="h-4 w-4" />, handler: () => console.log("[View] Record:", record) },
-                              { label: "Update Status", icon: <RotateCw className="h-4 w-4" />, handler: () => openUpdateModal(record) },
-                              { label: "History", icon: <History className="h-4 w-4" />, handler: () => openAuditModal(record) },
-                              { label: "Share", icon: <Share2 className="h-4 w-4" />, handler: () => handleShare(record) },
-                              { label: "Archive", icon: <Archive className="h-4 w-4" />, handler: () => console.log("[Archive] Record:", record) },
+                              {
+                                label: "View",
+                                icon: <Eye className="h-4 w-4" />,
+                                handler: () => console.log("[View] Record:", record),
+                              },
+                              {
+                                label: "Update Status",
+                                icon: <RotateCw className="h-4 w-4" />,
+                                handler: () => openUpdateModal(record),
+                              },
+                              {
+                                label: "History",
+                                icon: <History className="h-4 w-4" />,
+                                handler: () => openAuditModal(record),
+                              },
+                              {
+                                label: "Share",
+                                icon: <Share2 className="h-4 w-4" />,
+                                handler: () => handleShare(record),
+                              },
+                              {
+                                label: "Archive",
+                                icon: <Archive className="h-4 w-4" />,
+                                handler: () => console.log("[Archive] Record:", record),
+                              },
                             ]}
                           />
                         </TableCell>

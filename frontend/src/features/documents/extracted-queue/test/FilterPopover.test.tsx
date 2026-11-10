@@ -166,7 +166,9 @@ describe("FilterPopover", () => {
 
       // Click the "Invalid" radio.
       const invalidLabel = screen.getByText("Invalid");
-      const invalidRadio = invalidLabel.closest("label")?.querySelector('input[type="radio"]');
+      const invalidRadio = invalidLabel
+        .closest("label")
+        ?.querySelector('input[type="radio"]');
       fireEvent.click(invalidRadio!);
 
       expect(onDecisionChange).toHaveBeenCalledWith("INVALID");
@@ -323,7 +325,9 @@ describe("FilterPopover", () => {
 
       fireEvent.click(screen.getByRole("button", { name: /Filter/ }));
 
-      expect(screen.queryByRole("button", { name: "Reset filters" })).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole("button", { name: "Reset filters" }),
+      ).not.toBeInTheDocument();
     });
 
     it("calls onReset when Reset filters is clicked", () => {

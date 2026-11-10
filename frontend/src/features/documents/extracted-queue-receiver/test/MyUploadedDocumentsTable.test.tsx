@@ -73,7 +73,9 @@ vi.mock("sonner", () => ({
   },
 }));
 
-type TableHookReturn = ReturnType<typeof import("../hooks/use-my-extracted-queue-table").useMyExtractedQueueTable>;
+type TableHookReturn = ReturnType<
+  typeof import("../hooks/use-my-extracted-queue-table").useMyExtractedQueueTable
+>;
 
 /** Builder so each test can declare only the fields it cares about. */
 function makeHookReturn(overrides: Partial<TableHookReturn> = {}): TableHookReturn {
@@ -111,7 +113,9 @@ function makeHookReturn(overrides: Partial<TableHookReturn> = {}): TableHookRetu
 }
 
 /** A minimal queue row; caller overrides the bits under test. */
-function makeRow(overrides: Partial<MyExtractedDocumentQueue> = {}): MyExtractedDocumentQueue {
+function makeRow(
+  overrides: Partial<MyExtractedDocumentQueue> = {},
+): MyExtractedDocumentQueue {
   return {
     id: "queue-1",
     file_name: "invoice.pdf",
@@ -125,7 +129,9 @@ function makeRow(overrides: Partial<MyExtractedDocumentQueue> = {}): MyExtracted
 
 /* ─── Fixtures ─────────────────────────────────────────────────────────────── */
 
-const { useMyExtractedQueueTable } = await import("../hooks/use-my-extracted-queue-table");
+const { useMyExtractedQueueTable } = await import(
+  "../hooks/use-my-extracted-queue-table"
+);
 
 /* ─── Tests ─────────────────────────────────────────────────────────────────── */
 
@@ -137,7 +143,9 @@ describe("MyUploadedDocumentsTable", () => {
 
   describe("loading state", () => {
     it("renders skeletons while isLoading (aria-busy=true on skeleton spans)", () => {
-      vi.mocked(useMyExtractedQueueTable).mockReturnValue(makeHookReturn({ isLoading: true }));
+      vi.mocked(useMyExtractedQueueTable).mockReturnValue(
+        makeHookReturn({ isLoading: true }),
+      );
 
       const { container } = render(<MyUploadedDocumentsTable />);
 
@@ -164,7 +172,9 @@ describe("MyUploadedDocumentsTable", () => {
 
       render(<MyUploadedDocumentsTable />);
 
-      expect(screen.getByText(/Failed to load documents: Network down/)).toBeInTheDocument();
+      expect(
+        screen.getByText(/Failed to load documents: Network down/),
+      ).toBeInTheDocument();
     });
   });
 
@@ -173,7 +183,9 @@ describe("MyUploadedDocumentsTable", () => {
       render(<MyUploadedDocumentsTable />);
 
       // TableShell renders the empty cell in both desktop + mobile layouts.
-      expect(screen.getAllByText("You haven't uploaded any documents yet.")[0]).toBeInTheDocument();
+      expect(
+        screen.getAllByText("You haven't uploaded any documents yet.")[0],
+      ).toBeInTheDocument();
     });
 
     it("shows the filtered empty message when hasFilters is true", () => {
@@ -193,7 +205,10 @@ describe("MyUploadedDocumentsTable", () => {
     it("renders the file name for each queue row", () => {
       vi.mocked(useMyExtractedQueueTable).mockReturnValue(
         makeHookReturn({
-          items: [makeRow({ id: "a", file_name: "alpha.pdf" }), makeRow({ id: "b", file_name: "beta.pdf" })],
+          items: [
+            makeRow({ id: "a", file_name: "alpha.pdf" }),
+            makeRow({ id: "b", file_name: "beta.pdf" }),
+          ],
         }),
       );
 
@@ -230,7 +245,9 @@ describe("MyUploadedDocumentsTable", () => {
   describe("toolbar interactions", () => {
     it("renders a search input wired to setSearch on change", () => {
       const setSearch = vi.fn();
-      vi.mocked(useMyExtractedQueueTable).mockReturnValue(makeHookReturn({ search: "a", setSearch }));
+      vi.mocked(useMyExtractedQueueTable).mockReturnValue(
+        makeHookReturn({ search: "a", setSearch }),
+      );
 
       render(<MyUploadedDocumentsTable />);
 
@@ -278,7 +295,9 @@ describe("MyUploadedDocumentsTable", () => {
     });
 
     it("renders the sort toggle button showing 'Oldest' when sort='oldest'", () => {
-      vi.mocked(useMyExtractedQueueTable).mockReturnValue(makeHookReturn({ sort: "oldest" }));
+      vi.mocked(useMyExtractedQueueTable).mockReturnValue(
+        makeHookReturn({ sort: "oldest" }),
+      );
 
       render(<MyUploadedDocumentsTable />);
 
@@ -288,7 +307,9 @@ describe("MyUploadedDocumentsTable", () => {
 
     it("calls toggleSort when the sort button is clicked", () => {
       const toggleSort = vi.fn();
-      vi.mocked(useMyExtractedQueueTable).mockReturnValue(makeHookReturn({ sort: "newest", toggleSort }));
+      vi.mocked(useMyExtractedQueueTable).mockReturnValue(
+        makeHookReturn({ sort: "newest", toggleSort }),
+      );
 
       render(<MyUploadedDocumentsTable />);
 
@@ -299,7 +320,9 @@ describe("MyUploadedDocumentsTable", () => {
 
     describe("clear filters", () => {
       it("renders a Clear button only when hasFilters is true", () => {
-        vi.mocked(useMyExtractedQueueTable).mockReturnValue(makeHookReturn({ hasFilters: true }));
+        vi.mocked(useMyExtractedQueueTable).mockReturnValue(
+          makeHookReturn({ hasFilters: true }),
+        );
 
         render(<MyUploadedDocumentsTable />);
 
@@ -330,7 +353,9 @@ describe("MyUploadedDocumentsTable", () => {
   describe("row actions", () => {
     it("navigates to the details route with router state when 'View' is clicked", () => {
       const row = makeRow({ id: "queue-abc", file_name: "invoice.pdf" });
-      vi.mocked(useMyExtractedQueueTable).mockReturnValue(makeHookReturn({ items: [row] }));
+      vi.mocked(useMyExtractedQueueTable).mockReturnValue(
+        makeHookReturn({ items: [row] }),
+      );
 
       const { container } = render(<MyUploadedDocumentsTable />);
 
@@ -342,14 +367,19 @@ describe("MyUploadedDocumentsTable", () => {
       const viewButton = screen.getByRole("button", { name: "View" });
       fireEvent.click(viewButton);
 
-      expect(navigateMock).toHaveBeenCalledWith(`/my-uploads/${row.id}`, { state: { item: row } });
+      expect(navigateMock).toHaveBeenCalledWith(`/my-uploads/${row.id}`, {
+        state: { item: row },
+      });
     });
 
     it("opens the delete modal with the row item when 'Delete' is clicked", () => {
       const row = makeRow({ id: "queue-abc" });
       const open = vi.fn();
       vi.mocked(useMyExtractedQueueTable).mockReturnValue(
-        makeHookReturn({ items: [row], deleteModal: { ...makeHookReturn().deleteModal, open } }),
+        makeHookReturn({
+          items: [row],
+          deleteModal: { ...makeHookReturn().deleteModal, open },
+        }),
       );
 
       const { container } = render(<MyUploadedDocumentsTable />);
@@ -406,7 +436,9 @@ describe("MyUploadedDocumentsTable", () => {
 
       expect(screen.getByText("Remove from my uploads?")).toBeInTheDocument();
       expect(
-        screen.getByText(/The incoming document and its PDF stay in the system/, { exact: false }),
+        screen.getByText(/The incoming document and its PDF stay in the system/, {
+          exact: false,
+        }),
       ).toBeInTheDocument();
     });
 

@@ -213,8 +213,8 @@ export default function ReviewFieldDetail({
         </p>
       ) : row.aiConfidence === null ? (
         <p className="text-theme-xs text-warning">
-          Value could not be verified against the document text. Use the pencil to correct it,
-          or scroll the document to check it.
+          Value could not be verified against the document text. Use the pencil to correct
+          it, or scroll the document to check it.
         </p>
       ) : (
         <>

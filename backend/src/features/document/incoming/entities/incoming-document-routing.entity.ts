@@ -1,5 +1,6 @@
 import {
   Column,
+  CreateDateColumn,
   Entity,
   Index,
   JoinColumn,
@@ -48,6 +49,13 @@ export class IncomingDocumentRoutingEntity {
     foreignKeyConstraintName: "fk_idr_division",
   })
   division!: DivisionEntity;
+
+  @CreateDateColumn({
+    type: "timestamptz",
+    default: () => "NOW()",
+    nullable: false,
+  })
+  routed_at!: Date;
 
   @OneToOne(
     () => IncomingDocumentRoutingAssignmentCounterEntity,

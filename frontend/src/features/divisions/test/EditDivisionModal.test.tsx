@@ -30,8 +30,8 @@
 
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import type { Division } from "../type/division.type";
 import EditDivisionModal from "../components/modal/EditDivisionModal";
+import type { Division } from "../type/division.type";
 
 const CIVIL_WORKS: Division = {
   id: "d1",
@@ -45,11 +45,7 @@ describe("EditDivisionModal (UI)", () => {
 
   it("pre-fills the input with the division's current name", () => {
     render(
-      <EditDivisionModal
-        division={CIVIL_WORKS}
-        onClose={vi.fn()}
-        onSave={vi.fn()}
-      />,
+      <EditDivisionModal division={CIVIL_WORKS} onClose={vi.fn()} onSave={vi.fn()} />,
     );
 
     const input = screen.getByDisplayValue("Civil Works Division");
@@ -61,11 +57,7 @@ describe("EditDivisionModal (UI)", () => {
   it("calls onSave with the trimmed name when Save is clicked", () => {
     const onSave = vi.fn();
     render(
-      <EditDivisionModal
-        division={CIVIL_WORKS}
-        onClose={vi.fn()}
-        onSave={onSave}
-      />,
+      <EditDivisionModal division={CIVIL_WORKS} onClose={vi.fn()} onSave={onSave} />,
     );
 
     const input = screen.getByRole("textbox") as HTMLInputElement;
@@ -81,11 +73,7 @@ describe("EditDivisionModal (UI)", () => {
   it("calls onSave when Enter is pressed in the input", () => {
     const onSave = vi.fn();
     render(
-      <EditDivisionModal
-        division={CIVIL_WORKS}
-        onClose={vi.fn()}
-        onSave={onSave}
-      />,
+      <EditDivisionModal division={CIVIL_WORKS} onClose={vi.fn()} onSave={onSave} />,
     );
 
     const input = screen.getByRole("textbox");
@@ -145,11 +133,7 @@ describe("EditDivisionModal (UI)", () => {
   it("shows an error and does NOT call onSave when the name is empty", () => {
     const onSave = vi.fn();
     render(
-      <EditDivisionModal
-        division={CIVIL_WORKS}
-        onClose={vi.fn()}
-        onSave={onSave}
-      />,
+      <EditDivisionModal division={CIVIL_WORKS} onClose={vi.fn()} onSave={onSave} />,
     );
 
     const input = screen.getByRole("textbox");
@@ -164,11 +148,7 @@ describe("EditDivisionModal (UI)", () => {
     const onClose = vi.fn();
     const onSave = vi.fn();
     render(
-      <EditDivisionModal
-        division={CIVIL_WORKS}
-        onClose={onClose}
-        onSave={onSave}
-      />,
+      <EditDivisionModal division={CIVIL_WORKS} onClose={onClose} onSave={onSave} />,
     );
 
     // Input already has the division name; clicking Save without changes.

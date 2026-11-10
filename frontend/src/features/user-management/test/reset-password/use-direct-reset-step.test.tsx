@@ -26,8 +26,8 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import { AxiosError } from "axios";
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { SystemUser } from "../../types/user.type";
 import { useDirectResetStep } from "../../hooks/reset-password/use-direct-reset-step";
+import type { SystemUser } from "../../types/user.type";
 
 const { mockUpdatePassword, mockPasswordGenerator, mockToast } = vi.hoisted(() => ({
   mockUpdatePassword: vi.fn(),

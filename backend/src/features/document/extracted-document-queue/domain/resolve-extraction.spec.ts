@@ -46,10 +46,7 @@ function makeField(
   return { field: field as ExtractedField["field"], value, chunkIds, aiConfidence };
 }
 
-function makeChunk(
-  chunkId: string,
-  sourceConfidence: number,
-): ExtractedChunk {
+function makeChunk(chunkId: string, sourceConfidence: number): ExtractedChunk {
   return {
     chunkId,
     text: "chunk text",
@@ -165,9 +162,7 @@ describe("resolveExtraction", () => {
     });
 
     it("returns INVALID when aiConfidence is null for a field with a value", () => {
-      const fields = [
-        makeField("subject", "Foo", ["c1"], null),
-      ];
+      const fields = [makeField("subject", "Foo", ["c1"], null)];
       const chunks = [makeChunk("c1", 95)];
 
       const result = resolveExtraction(fields, chunks);
@@ -176,9 +171,7 @@ describe("resolveExtraction", () => {
     });
 
     it("returns INVALID when a cited chunk is missing (effectiveConfidence null)", () => {
-      const fields = [
-        makeField("subject", "Foo", ["c999"], 90),
-      ];
+      const fields = [makeField("subject", "Foo", ["c999"], 90)];
       const chunks = [makeChunk("c1", 95)];
 
       const result = resolveExtraction(fields, chunks);
@@ -187,9 +180,7 @@ describe("resolveExtraction", () => {
     });
 
     it("returns INVALID when a field has no chunk citations (effectiveConfidence null)", () => {
-      const fields = [
-        makeField("subject", "Foo", [], 90),
-      ];
+      const fields = [makeField("subject", "Foo", [], 90)];
       const chunks = [makeChunk("c1", 95)];
 
       const result = resolveExtraction(fields, chunks);
@@ -198,9 +189,7 @@ describe("resolveExtraction", () => {
     });
 
     it("returns INVALID when chunks array is empty", () => {
-      const fields = [
-        makeField("subject", "Foo", ["c1"], 95),
-      ];
+      const fields = [makeField("subject", "Foo", ["c1"], 95)];
 
       const result = resolveExtraction(fields, []);
 

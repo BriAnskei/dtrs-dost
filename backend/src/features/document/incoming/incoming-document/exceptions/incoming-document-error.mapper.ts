@@ -1,19 +1,11 @@
-import {
-  ConflictException,
-  HttpException,
-  NotFoundException,
-} from "@nestjs/common";
+import { ConflictException, HttpException, NotFoundException } from "@nestjs/common";
 import {
   getPostgresError,
   isPostgresError,
 } from "../../../../../common/database/postgres-error.utils";
 
-export function mapIncomingDocumentError(
-  error: unknown,
-): HttpException | null {
-  if (
-    isPostgresError(error, "23505", "uq_incoming_document_routing")
-  ) {
+export function mapIncomingDocumentError(error: unknown): HttpException | null {
+  if (isPostgresError(error, "23505", "uq_incoming_document_routing")) {
     return new ConflictException(
       "This incoming document is already routed to this division.",
       { cause: error },

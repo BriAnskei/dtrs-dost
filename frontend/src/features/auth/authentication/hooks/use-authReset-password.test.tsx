@@ -150,9 +150,7 @@ describe("useResetPasswordFlow", () => {
       });
 
       await waitFor(() => expect(result.current.isTokenInvalid).toBe(true));
-      expect(result.current.tokenErrorMessage).toBe(
-        "Reset link could not be found.",
-      );
+      expect(result.current.tokenErrorMessage).toBe("Reset link could not be found.");
       expect(result.current.isVerifying).toBe(false);
       queryClient.clear();
     });
@@ -177,9 +175,7 @@ describe("useResetPasswordFlow", () => {
       });
 
       expect(mockResetPassword).not.toHaveBeenCalled();
-      expect(result.current.formErrors.password).toBe(
-        "Use at least 8 characters.",
-      );
+      expect(result.current.formErrors.password).toBe("Use at least 8 characters.");
     });
 
     it("rejects when the two passwords do not match", async () => {
@@ -199,9 +195,7 @@ describe("useResetPasswordFlow", () => {
       });
 
       expect(mockResetPassword).not.toHaveBeenCalled();
-      expect(result.current.formErrors.confirmPassword).toBe(
-        "Passwords don't match.",
-      );
+      expect(result.current.formErrors.confirmPassword).toBe("Passwords don't match.");
     });
 
     it("does not call resetPassword when the password is empty", async () => {
@@ -221,9 +215,7 @@ describe("useResetPasswordFlow", () => {
       });
 
       expect(mockResetPassword).not.toHaveBeenCalled();
-      expect(result.current.formErrors.password).toBe(
-        "New password is required.",
-      );
+      expect(result.current.formErrors.password).toBe("New password is required.");
     });
   });
 
@@ -248,9 +240,7 @@ describe("useResetPasswordFlow", () => {
         token: "tok",
         new_password: "new-password-123",
       });
-      expect(mockToast.success).toHaveBeenCalledWith(
-        "Your password has been changed.",
-      );
+      expect(mockToast.success).toHaveBeenCalledWith("Your password has been changed.");
     });
 
     it("treats a 400 during submit as a dead token (expiry state + toast)", async () => {

@@ -33,19 +33,14 @@
 import { describe, expect, it } from "vitest";
 import type { User } from "../../../../context/currentUser/curr-user.type";
 import { UserManagementPermissionEnum } from "../enum/user-management-permission";
-import {
-  hasModulePermission,
-  requirePermission,
-} from "./has-module-permission";
+import { hasModulePermission, requirePermission } from "./has-module-permission";
 
 /**
  * Test fixture: a non-super-admin user with a selective set of
  * user-management permissions.  Everything not explicitly granted
  * is `false`, mirroring a real backend response for a partial-access admin.
  */
-function makeUser(
-  overrides: Partial<User> = {},
-): User {
+function makeUser(overrides: Partial<User> = {}): User {
   return {
     id: "u-1",
     full_name: "Jane Doe",
@@ -109,15 +104,15 @@ describe("hasModulePermission", () => {
 
   describe("null / undefined user", () => {
     it("returns false when user is null", () => {
-      expect(
-        hasModulePermission(null, "user_management_permissions", "view"),
-      ).toBe(false);
+      expect(hasModulePermission(null, "user_management_permissions", "view")).toBe(
+        false,
+      );
     });
 
     it("returns false when user is undefined", () => {
-      expect(
-        hasModulePermission(undefined, "user_management_permissions", "view"),
-      ).toBe(false);
+      expect(hasModulePermission(undefined, "user_management_permissions", "view")).toBe(
+        false,
+      );
     });
   });
 

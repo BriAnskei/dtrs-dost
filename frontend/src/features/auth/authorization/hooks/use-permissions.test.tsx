@@ -31,8 +31,8 @@ vi.mock("../../../../context/currentUser/use-user", () => ({
 }));
 
 import type { User } from "../../../../context/currentUser/curr-user.type";
-import { usePermissions } from "./use-permissions";
 import { UserManagementPermissionEnum } from "../enum/user-management-permission";
+import { usePermissions } from "./use-permissions";
 
 const FULL_PERMISSIONS = {
   view: true,
@@ -63,9 +63,7 @@ describe("usePermissions", () => {
   it("returns can, canAny, and canAll functions", () => {
     mockUseUser.mockReturnValue({ currentUser: makeUser(), isLoading: false });
 
-    const { result } = renderHook(() =>
-      usePermissions("user_management_permissions"),
-    );
+    const { result } = renderHook(() => usePermissions("user_management_permissions"));
 
     expect(typeof result.current.can).toBe("function");
     expect(typeof result.current.canAny).toBe("function");
@@ -75,9 +73,7 @@ describe("usePermissions", () => {
   it("can returns true for a granted permission", () => {
     mockUseUser.mockReturnValue({ currentUser: makeUser(), isLoading: false });
 
-    const { result } = renderHook(() =>
-      usePermissions("user_management_permissions"),
-    );
+    const { result } = renderHook(() => usePermissions("user_management_permissions"));
 
     expect(result.current.can(UserManagementPermissionEnum.View)).toBe(true);
     expect(result.current.can(UserManagementPermissionEnum.Add)).toBe(true);
@@ -99,9 +95,7 @@ describe("usePermissions", () => {
     });
     mockUseUser.mockReturnValue({ currentUser: user, isLoading: false });
 
-    const { result } = renderHook(() =>
-      usePermissions("user_management_permissions"),
-    );
+    const { result } = renderHook(() => usePermissions("user_management_permissions"));
 
     expect(result.current.can(UserManagementPermissionEnum.View)).toBe(false);
     expect(result.current.can(UserManagementPermissionEnum.Add)).toBe(false);
@@ -115,9 +109,7 @@ describe("usePermissions", () => {
      */
     mockUseUser.mockReturnValue({ currentUser: null, isLoading: false });
 
-    const { result } = renderHook(() =>
-      usePermissions("user_management_permissions"),
-    );
+    const { result } = renderHook(() => usePermissions("user_management_permissions"));
 
     expect(result.current.can(UserManagementPermissionEnum.View)).toBe(false);
     expect(result.current.can(UserManagementPermissionEnum.Delete)).toBe(false);
@@ -139,12 +131,13 @@ describe("usePermissions", () => {
     });
     mockUseUser.mockReturnValue({ currentUser: user, isLoading: false });
 
-    const { result } = renderHook(() =>
-      usePermissions("user_management_permissions"),
-    );
+    const { result } = renderHook(() => usePermissions("user_management_permissions"));
 
     expect(
-      result.current.canAny(UserManagementPermissionEnum.View, UserManagementPermissionEnum.Delete),
+      result.current.canAny(
+        UserManagementPermissionEnum.View,
+        UserManagementPermissionEnum.Delete,
+      ),
     ).toBe(true);
   });
 
@@ -164,24 +157,26 @@ describe("usePermissions", () => {
     });
     mockUseUser.mockReturnValue({ currentUser: user, isLoading: false });
 
-    const { result } = renderHook(() =>
-      usePermissions("user_management_permissions"),
-    );
+    const { result } = renderHook(() => usePermissions("user_management_permissions"));
 
     expect(
-      result.current.canAny(UserManagementPermissionEnum.View, UserManagementPermissionEnum.Add),
+      result.current.canAny(
+        UserManagementPermissionEnum.View,
+        UserManagementPermissionEnum.Add,
+      ),
     ).toBe(false);
   });
 
   it("canAll returns true only when ALL permissions are granted", () => {
     mockUseUser.mockReturnValue({ currentUser: makeUser(), isLoading: false });
 
-    const { result } = renderHook(() =>
-      usePermissions("user_management_permissions"),
-    );
+    const { result } = renderHook(() => usePermissions("user_management_permissions"));
 
     expect(
-      result.current.canAll(UserManagementPermissionEnum.View, UserManagementPermissionEnum.Add),
+      result.current.canAll(
+        UserManagementPermissionEnum.View,
+        UserManagementPermissionEnum.Add,
+      ),
     ).toBe(true);
   });
 
@@ -201,12 +196,13 @@ describe("usePermissions", () => {
     });
     mockUseUser.mockReturnValue({ currentUser: user, isLoading: false });
 
-    const { result } = renderHook(() =>
-      usePermissions("user_management_permissions"),
-    );
+    const { result } = renderHook(() => usePermissions("user_management_permissions"));
 
     expect(
-      result.current.canAll(UserManagementPermissionEnum.View, UserManagementPermissionEnum.Add),
+      result.current.canAll(
+        UserManagementPermissionEnum.View,
+        UserManagementPermissionEnum.Add,
+      ),
     ).toBe(false);
   });
 
@@ -231,13 +227,13 @@ describe("usePermissions", () => {
     });
     mockUseUser.mockReturnValue({ currentUser: superAdmin, isLoading: false });
 
-    const { result } = renderHook(() =>
-      usePermissions("user_management_permissions"),
-    );
+    const { result } = renderHook(() => usePermissions("user_management_permissions"));
 
     expect(result.current.can(UserManagementPermissionEnum.View)).toBe(true);
     expect(result.current.can(UserManagementPermissionEnum.Delete)).toBe(true);
-    expect(result.current.canAll(...Object.values(UserManagementPermissionEnum))).toBe(true);
+    expect(result.current.canAll(...Object.values(UserManagementPermissionEnum))).toBe(
+      true,
+    );
   });
 
   it("re-evaluates when the user object identity changes", () => {

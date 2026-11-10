@@ -25,14 +25,14 @@
  */
 
 import { describe, expect, it } from "vitest";
+import { ACCEPT_THRESHOLD } from "../constans";
 import {
   computeEffective,
-  decide,
   confidenceTone,
+  decide,
   formatBytes,
   isFlagged,
 } from "../helpers/extraction-helpers";
-import { ACCEPT_THRESHOLD } from "../constans";
 import type { ResultRow } from "../types/extraction-types";
 
 /* ── computeEffective ──────────────────────────────────────────────── */

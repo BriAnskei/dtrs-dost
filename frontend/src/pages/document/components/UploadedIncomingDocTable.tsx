@@ -1,10 +1,10 @@
 // ─── MyUploadsTable.tsx ───────────────────────────────────────────────────────
 
 import axios from "axios";
+import { Archive, Search, Share2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import QRCodeModal from "../../../components/receiver/QRCodeModal";
 import KebabMenu from "../../../components/ui/kebab-menu/KebabMenu";
-import { Archive, Search, Share2 } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -126,7 +126,6 @@ function ArchiveConfirmModal({
     </div>
   );
 }
-
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
@@ -364,8 +363,18 @@ export default function UploadedIncomingDocTable() {
                     <div className="flex justify-end border-t border-gray-100 pt-1 dark:border-white/[0.05]">
                       <KebabMenu
                         actions={[
-                          { label: "Share", icon: <Share2 className="h-4 w-4" />, handler: () => handleShare(record), disabled: record.status === "archived" },
-                          { label: "Archive", icon: <Archive className="h-4 w-4" />, handler: () => setPendingArchive(record), disabled: record.status === "archived" },
+                          {
+                            label: "Share",
+                            icon: <Share2 className="h-4 w-4" />,
+                            handler: () => handleShare(record),
+                            disabled: record.status === "archived",
+                          },
+                          {
+                            label: "Archive",
+                            icon: <Archive className="h-4 w-4" />,
+                            handler: () => setPendingArchive(record),
+                            disabled: record.status === "archived",
+                          },
                         ]}
                       />
                     </div>
@@ -463,8 +472,18 @@ export default function UploadedIncomingDocTable() {
                           <TableCell className="px-3 py-3">
                             <KebabMenu
                               actions={[
-                                { label: "Share", icon: <Share2 className="h-4 w-4" />, handler: () => handleShare(record), disabled: record.status === "archived" },
-                                { label: "Archive", icon: <Archive className="h-4 w-4" />, handler: () => setPendingArchive(record), disabled: record.status === "archived" },
+                                {
+                                  label: "Share",
+                                  icon: <Share2 className="h-4 w-4" />,
+                                  handler: () => handleShare(record),
+                                  disabled: record.status === "archived",
+                                },
+                                {
+                                  label: "Archive",
+                                  icon: <Archive className="h-4 w-4" />,
+                                  handler: () => setPendingArchive(record),
+                                  disabled: record.status === "archived",
+                                },
                               ]}
                             />
                           </TableCell>

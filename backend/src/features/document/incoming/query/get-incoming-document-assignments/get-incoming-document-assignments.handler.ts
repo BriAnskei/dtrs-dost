@@ -1,15 +1,13 @@
-import { IQueryHandler, QueryHandler } from "@nestjs/cqrs";
-import { PaginatedResponse } from "../../../../../common/pagination/paginated-response";
-import { IncomingDocumentAssignmentEntity } from "../../entities/incoming-document-assignment.entity";
-import { AssignmentStatus } from "../../enums/assignment-status.enum";
-import { IncomingDocumentAssignmentsRepository } from "../../repository/incoming-document-assignment.repository";
-import { IncomingDocumentAssignmentResponse } from "../../types/get-incoming-document-assignment.type";
-import { GetIncomingDocumentAssignmentsQuery } from "./get-incoming-document-assignments.query";
+import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
+import { PaginatedResponse } from '../../../../../common/pagination/paginated-response';
+import { IncomingDocumentAssignmentEntity } from '../../entities/incoming-document-assignment.entity';
+import { AssignmentStatus } from '../../enums/assignment-status.enum';
+import { IncomingDocumentAssignmentResponse } from '../../types/get-incoming-document-assignment.type';
+import { IncomingDocumentAssignmentsRepository } from '../../repository/incoming-document-assignment.repository';
+import { GetIncomingDocumentAssignmentsQuery } from './get-incoming-document-assignments.query';
 
 @QueryHandler(GetIncomingDocumentAssignmentsQuery)
-export class GetIncomingDocumentAssignmentsHandler
-  implements IQueryHandler<GetIncomingDocumentAssignmentsQuery>
-{
+export class GetIncomingDocumentAssignmentsHandler implements IQueryHandler<GetIncomingDocumentAssignmentsQuery> {
   constructor(
     private readonly assignmentsRepository: IncomingDocumentAssignmentsRepository,
   ) {}

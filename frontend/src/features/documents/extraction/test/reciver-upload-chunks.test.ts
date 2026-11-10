@@ -21,8 +21,11 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { MAX_RECEIVER_CHUNKS, toReceiverChunks } from "../receiver/helpers/reciver-upload-chunks";
-import type { PdfExtractionResult, ExtractionToken } from "../pdf/types";
+import type { ExtractionToken, PdfExtractionResult } from "../pdf/types";
+import {
+  MAX_RECEIVER_CHUNKS,
+  toReceiverChunks,
+} from "../receiver/helpers/reciver-upload-chunks";
 
 /* ── Constants ────────────────────────────────────────────────────────────── */
 
@@ -38,14 +41,16 @@ describe("MAX_RECEIVER_CHUNKS", () => {
  * Builder: create a minimal PdfExtractionResult with one page containing
  * the given chunks. Keeps the test boilerplate short.
  */
-function makeResult(chunks: Array<{
-  chunkId: string;
-  text: string;
-  bbox?: { x: number; y: number; width: number; height: number };
-  confidence?: number;
-  source?: "text" | "ocr";
-  tokens?: ExtractionToken[];
-}>): PdfExtractionResult {
+function makeResult(
+  chunks: Array<{
+    chunkId: string;
+    text: string;
+    bbox?: { x: number; y: number; width: number; height: number };
+    confidence?: number;
+    source?: "text" | "ocr";
+    tokens?: ExtractionToken[];
+  }>,
+): PdfExtractionResult {
   return {
     pages: [
       {
@@ -96,7 +101,11 @@ describe("toReceiverChunks", () => {
   it("passes multiple chunks in order", () => {
     const result = makeResult([
       { chunkId: "p1-o1", text: "first", bbox: { x: 0, y: 0, width: 1, height: 1 } },
-      { chunkId: "p1-o2", text: "second", bbox: { x: 0.5, y: 0.5, width: 0.2, height: 0.2 } },
+      {
+        chunkId: "p1-o2",
+        text: "second",
+        bbox: { x: 0.5, y: 0.5, width: 0.2, height: 0.2 },
+      },
     ]);
 
     const chunks = toReceiverChunks(result);
@@ -107,7 +116,12 @@ describe("toReceiverChunks", () => {
 
   it("converts confidence 0-1 to a 0-100 integer", () => {
     const result = makeResult([
-      { chunkId: "c1", text: "a", bbox: { x: 0, y: 0, width: 1, height: 1 }, confidence: 0.753 },
+      {
+        chunkId: "c1",
+        text: "a",
+        bbox: { x: 0, y: 0, width: 1, height: 1 },
+        confidence: 0.753,
+      },
     ]);
 
     expect(toReceiverChunks(result)[0].sourceConfidence).toBe(75); // rounds
@@ -115,14 +129,24 @@ describe("toReceiverChunks", () => {
 
   it("clamps confidence 0 → 0", () => {
     const result = makeResult([
-      { chunkId: "c1", text: "a", bbox: { x: 0, y: 0, width: 1, height: 1 }, confidence: 0 },
+      {
+        chunkId: "c1",
+        text: "a",
+        bbox: { x: 0, y: 0, width: 1, height: 1 },
+        confidence: 0,
+      },
     ]);
     expect(toReceiverChunks(result)[0].sourceConfidence).toBe(0);
   });
 
   it("clamps confidence 1 → 100", () => {
     const result = makeResult([
-      { chunkId: "c1", text: "a", bbox: { x: 0, y: 0, width: 1, height: 1 }, confidence: 1 },
+      {
+        chunkId: "c1",
+        text: "a",
+        bbox: { x: 0, y: 0, width: 1, height: 1 },
+        confidence: 1,
+      },
     ]);
     expect(toReceiverChunks(result)[0].sourceConfidence).toBe(100);
   });
@@ -136,19 +160,23 @@ describe("toReceiverChunks", () => {
     // We can't directly pass `undefined` via makeResult since it defaults, so
     // we construct a raw chunk object instead.
     const raw = {
-      pages: [{
-        page: 1,
-        content: [{
-          chunkId: "c1",
-          text: "a",
-          source: "text" as const,
-          confidence: undefined as unknown as number,
-          bbox: { x: 0, y: 0, width: 1, height: 1 },
-        }],
-        hasNativeText: true,
-        hasImages: false,
-        extractionMode: "text" as const,
-      }],
+      pages: [
+        {
+          page: 1,
+          content: [
+            {
+              chunkId: "c1",
+              text: "a",
+              source: "text" as const,
+              confidence: undefined as unknown as number,
+              bbox: { x: 0, y: 0, width: 1, height: 1 },
+            },
+          ],
+          hasNativeText: true,
+          hasImages: false,
+          extractionMode: "text" as const,
+        },
+      ],
       totalPages: 1,
       statistics: { textPages: 1, ocrPages: 0, mixedPages: 0, emptyPages: 0 },
     };
@@ -158,7 +186,12 @@ describe("toReceiverChunks", () => {
 
   it("clamps confidence above 1 (e.g. 1.5) to 100", () => {
     const result = makeResult([
-      { chunkId: "c1", text: "a", bbox: { x: 0, y: 0, width: 1, height: 1 }, confidence: 1.5 },
+      {
+        chunkId: "c1",
+        text: "a",
+        bbox: { x: 0, y: 0, width: 1, height: 1 },
+        confidence: 1.5,
+      },
     ]);
 
     // 1.5 * 100 = 150 → clamped to 100.
@@ -192,9 +225,7 @@ describe("toReceiverChunks", () => {
   });
 
   it("skips a chunk with no bbox AND empty text", () => {
-    const result = makeResult([
-      { chunkId: "c1", text: "" },
-    ]);
+    const result = makeResult([{ chunkId: "c1", text: "" }]);
 
     expect(toReceiverChunks(result)).toEqual([]);
   });
@@ -227,7 +258,10 @@ describe("toReceiverChunks", () => {
     ]);
 
     expect(toReceiverChunks(result)[0].bbox).toEqual({
-      x: 1, y: 1, w: 1, h: 1,
+      x: 1,
+      y: 1,
+      w: 1,
+      h: 1,
     });
   });
 
@@ -237,7 +271,10 @@ describe("toReceiverChunks", () => {
     ]);
 
     expect(toReceiverChunks(result)[0].bbox).toEqual({
-      x: 0, y: 0, w: 0, h: 0,
+      x: 0,
+      y: 0,
+      w: 0,
+      h: 0,
     });
   });
 
@@ -247,7 +284,10 @@ describe("toReceiverChunks", () => {
     ]);
 
     expect(toReceiverChunks(result)[0].bbox).toEqual({
-      x: 0.15, y: 0.35, w: 0.7, h: 0.45,
+      x: 0.15,
+      y: 0.35,
+      w: 0.7,
+      h: 0.45,
     });
   });
 
@@ -255,11 +295,24 @@ describe("toReceiverChunks", () => {
 
   it("remaps token bboxes from {x,y,width,height} to {x,y,w,h}", () => {
     const tokens: ExtractionToken[] = [
-      { text: "Hello", bbox: { x: 0.1, y: 0.2, width: 0.3, height: 0.4 }, confidence: 0.9 },
-      { text: "World", bbox: { x: 0.5, y: 0.6, width: 0.7, height: 0.8 }, confidence: 0.85 },
+      {
+        text: "Hello",
+        bbox: { x: 0.1, y: 0.2, width: 0.3, height: 0.4 },
+        confidence: 0.9,
+      },
+      {
+        text: "World",
+        bbox: { x: 0.5, y: 0.6, width: 0.7, height: 0.8 },
+        confidence: 0.85,
+      },
     ];
     const result = makeResult([
-      { chunkId: "c1", text: "Hello World", bbox: { x: 0, y: 0, width: 1, height: 1 }, tokens },
+      {
+        chunkId: "c1",
+        text: "Hello World",
+        bbox: { x: 0, y: 0, width: 1, height: 1 },
+        tokens,
+      },
     ]);
 
     const chunks = toReceiverChunks(result);
@@ -271,7 +324,11 @@ describe("toReceiverChunks", () => {
 
   it("clamps token bbox coordinates", () => {
     const tokens: ExtractionToken[] = [
-      { text: "word", bbox: { x: -0.5, y: 1.5, width: 2.0, height: -1.0 }, confidence: 0.9 },
+      {
+        text: "word",
+        bbox: { x: -0.5, y: 1.5, width: 2.0, height: -1.0 },
+        confidence: 0.9,
+      },
     ];
     const result = makeResult([
       { chunkId: "c1", text: "word", bbox: { x: 0, y: 0, width: 1, height: 1 }, tokens },
@@ -308,7 +365,11 @@ describe("toReceiverChunks", () => {
 
   it("defaults token confidence to 1.0 when undefined", () => {
     const tokens: ExtractionToken[] = [
-      { text: "a", bbox: { x: 0, y: 0, width: 0.1, height: 0.1 }, confidence: undefined as unknown as number },
+      {
+        text: "a",
+        bbox: { x: 0, y: 0, width: 0.1, height: 0.1 },
+        confidence: undefined as unknown as number,
+      },
     ];
     const result = makeResult([
       { chunkId: "c1", text: "a", bbox: { x: 0, y: 0, width: 1, height: 1 }, tokens },
@@ -325,7 +386,13 @@ describe("toReceiverChunks", () => {
         {
           page: 1,
           content: [
-            { chunkId: "p1-o1", text: "page one", source: "text", confidence: 0.9, bbox: { x: 0, y: 0, width: 1, height: 1 } },
+            {
+              chunkId: "p1-o1",
+              text: "page one",
+              source: "text",
+              confidence: 0.9,
+              bbox: { x: 0, y: 0, width: 1, height: 1 },
+            },
           ],
           hasNativeText: true,
           hasImages: false,
@@ -334,7 +401,13 @@ describe("toReceiverChunks", () => {
         {
           page: 2,
           content: [
-            { chunkId: "p2-o1", text: "page two", source: "text", confidence: 0.8, bbox: { x: 0, y: 0, width: 1, height: 1 } },
+            {
+              chunkId: "p2-o1",
+              text: "page two",
+              source: "text",
+              confidence: 0.8,
+              bbox: { x: 0, y: 0, width: 1, height: 1 },
+            },
           ],
           hasNativeText: true,
           hasImages: false,
@@ -354,7 +427,13 @@ describe("toReceiverChunks", () => {
   /* ── Empty / degenerate inputs ─────────────────────────────────────── */
 
   it("returns an empty array for a result with no pages", () => {
-    expect(toReceiverChunks({ pages: [], totalPages: 0, statistics: { textPages: 0, ocrPages: 0, mixedPages: 0, emptyPages: 0 } })).toEqual([]);
+    expect(
+      toReceiverChunks({
+        pages: [],
+        totalPages: 0,
+        statistics: { textPages: 0, ocrPages: 0, mixedPages: 0, emptyPages: 0 },
+      }),
+    ).toEqual([]);
   });
 
   it("returns an empty array when all chunks are skipped", () => {

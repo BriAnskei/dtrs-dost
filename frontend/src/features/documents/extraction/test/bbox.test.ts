@@ -11,8 +11,8 @@
  */
 
 import { describe, expect, it } from "vitest";
-import type { BoundingBox } from "../pdf/types";
 import { mergeBoxes } from "../pdf/bbox";
+import type { BoundingBox } from "../pdf/types";
 
 function box(x: number, y: number, width: number, height: number): BoundingBox {
   return { x, y, width, height };

@@ -1,11 +1,11 @@
 import { ForbiddenException } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 import { Test, type TestingModule } from "@nestjs/testing";
-import { PermissionsGuard } from "./permission.guard";
+import type { AuthenticatedUser } from "../../authentication/types/authenticated-user";
 import { PERMISSION_KEY } from "../decorator/permissions.decorator";
 import { PermissionDomain } from "../enum/permission-domain.enum";
 import { Role } from "../enum/roles.enum";
-import type { AuthenticatedUser } from "../../authentication/types/authenticated-user";
+import { PermissionsGuard } from "./permission.guard";
 
 /**
  * Helper: creates a mock ExecutionContext whose HTTP request carries

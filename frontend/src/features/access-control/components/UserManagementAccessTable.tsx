@@ -1,5 +1,5 @@
-import type { CSSProperties } from "react";
 import { Search } from "lucide-react";
+import type { CSSProperties } from "react";
 import Input from "../../../components/form/input/InputField";
 import { THIN_SCROLLBAR } from "../../../contant/ThinScrollBar";
 import type { TableShellProp } from "../../../type/table-shell-prop";
@@ -66,9 +66,7 @@ export default function AccessControlTable({
           <Input
             type="text"
             size="sm"
-            leadingIcon={
-              <Search className="w-4 h-4" />
-            }
+            leadingIcon={<Search className="w-4 h-4" />}
             value={search}
             name="admin-access-search-no-autofill"
             data-form-type="other"

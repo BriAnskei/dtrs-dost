@@ -26,14 +26,14 @@
  */
 
 import { describe, expect, it, vi } from "vitest";
+import { FIELD_LABELS } from "../constans";
 import {
   buildOutgoingDraft,
-  toIsoDate,
   getFinalFieldValue,
   todayLocal,
+  toIsoDate,
 } from "../helpers/outgoing-helpers";
-import { FIELD_LABELS } from "../constans";
-import type { ResultRow, FieldKey } from "../types/extraction-types";
+import type { FieldKey, ResultRow } from "../types/extraction-types";
 
 /* ── toIsoDate ────────────────────────────────────────────────────────────── */
 
@@ -367,9 +367,7 @@ describe("buildOutgoingDraft", () => {
     r.value = "a".repeat(501);
 
     const draft = buildOutgoingDraft(rows, {});
-    expect(draft.issues).toContain(
-      `${FIELD_LABELS.subject} is over 500 characters`,
-    );
+    expect(draft.issues).toContain(`${FIELD_LABELS.subject} is over 500 characters`);
   });
 
   it("flags `summary` exceeding 2000 characters", () => {
@@ -378,9 +376,7 @@ describe("buildOutgoingDraft", () => {
     r.value = "a".repeat(2001);
 
     const draft = buildOutgoingDraft(rows, {});
-    expect(draft.issues).toContain(
-      `${FIELD_LABELS.summary} is over 2000 characters`,
-    );
+    expect(draft.issues).toContain(`${FIELD_LABELS.summary} is over 2000 characters`);
   });
 
   it("does not flag fields exactly at their length limit", () => {
@@ -390,9 +386,7 @@ describe("buildOutgoingDraft", () => {
 
     const draft = buildOutgoingDraft(rows, {});
     expect(draft.issues).toEqual([]);
-    expect(draft.issues).not.toContain(
-      `${FIELD_LABELS.to} is over 255 characters`,
-    );
+    expect(draft.issues).not.toContain(`${FIELD_LABELS.to} is over 255 characters`);
   });
 
   /* ── Missing rows ──────────────────────────────────────────────────── */

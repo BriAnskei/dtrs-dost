@@ -37,10 +37,7 @@ import { getApiErrorMessage } from "./api-error";
  * Build a real AxiosError the same way axios does on a non-2xx response,
  * so `axios.isAxiosError` and the `.response` shape are accurate.
  */
-function makeAxiosError(
-  status: number,
-  data: unknown,
-): AxiosError {
+function makeAxiosError(status: number, data: unknown): AxiosError {
   const response = {
     data,
     status,
@@ -261,10 +258,7 @@ describe("getApiErrorMessage", () => {
      * with `error.response === undefined`. There is no status or body to read,
      * so the function must return the fallback.
      */
-    const error = new AxiosError(
-      "connect ECONNREFUSED",
-      AxiosError.ERR_NETWORK,
-    );
+    const error = new AxiosError("connect ECONNREFUSED", AxiosError.ERR_NETWORK);
 
     expect(getApiErrorMessage(error, FALLBACK)).toBe(FALLBACK);
   });

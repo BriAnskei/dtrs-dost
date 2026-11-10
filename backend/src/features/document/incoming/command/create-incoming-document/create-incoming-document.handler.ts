@@ -87,7 +87,7 @@ export class CreateIncomingDocumentHandler
       //   ),
       // );
 
-      return ;
+      return;
     } catch (error) {
       if (uploadCompleted) {
         try {

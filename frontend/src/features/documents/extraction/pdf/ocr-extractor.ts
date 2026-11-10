@@ -116,9 +116,7 @@ export async function performOCR(
   // This matches how the LLM and reviewer read, and ensures chunkIds are stable
   // across Tesseract runs that may iterate blocks in different order.
   rawLines.sort(
-    (a, b) =>
-      (a.bbox?.y ?? 0) - (b.bbox?.y ?? 0) ||
-      (a.bbox?.x ?? 0) - (b.bbox?.x ?? 0),
+    (a, b) => (a.bbox?.y ?? 0) - (b.bbox?.y ?? 0) || (a.bbox?.x ?? 0) - (b.bbox?.x ?? 0),
   );
 
   return rawLines.map((chunk, i) => ({

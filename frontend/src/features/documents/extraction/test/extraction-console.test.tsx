@@ -120,9 +120,7 @@ describe("ExtractionConsole", () => {
     });
 
     it("does NOT show a pulse dot when phase is 'idle'", () => {
-      const { container } = render(
-        <ExtractionConsole logs={[]} phase="idle" />,
-      );
+      const { container } = render(<ExtractionConsole logs={[]} phase="idle" />);
 
       const dot = container.querySelector(".animate-pulse");
       expect(dot).toBeNull();
@@ -140,17 +138,13 @@ describe("ExtractionConsole", () => {
 
   describe("accessibility", () => {
     it("container has role='log'", () => {
-      const { container } = render(
-        <ExtractionConsole logs={[]} phase="idle" />,
-      );
+      const { container } = render(<ExtractionConsole logs={[]} phase="idle" />);
 
       expect(container.querySelector('[role="log"]')).not.toBeNull();
     });
 
     it("container has aria-live='polite'", () => {
-      const { container } = render(
-        <ExtractionConsole logs={[]} phase="idle" />,
-      );
+      const { container } = render(<ExtractionConsole logs={[]} phase="idle" />);
 
       expect(container.querySelector('[aria-live="polite"]')).not.toBeNull();
     });
@@ -158,9 +152,7 @@ describe("ExtractionConsole", () => {
 
   describe("empty logs with running phase", () => {
     it("shows the pulse dot but no log rows when phase is 'source' and logs is empty", () => {
-      const { container } = render(
-        <ExtractionConsole logs={[]} phase="source" />,
-      );
+      const { container } = render(<ExtractionConsole logs={[]} phase="source" />);
 
       expect(container.querySelector(".animate-pulse")).not.toBeNull();
       // No log message divs.

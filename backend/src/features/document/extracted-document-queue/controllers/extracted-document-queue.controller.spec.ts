@@ -47,13 +47,13 @@ jest.mock("content-disposition", () => ({
 }));
 jest.mock("multer", () => ({ memoryStorage: jest.fn(() => ({})) }));
 
-import { Test } from "@nestjs/testing";
-import { HttpStatus } from "@nestjs/common";
 import { Readable } from "node:stream";
+import { HttpStatus } from "@nestjs/common";
 import { HTTP_CODE_METADATA } from "@nestjs/common/constants";
+import { Test } from "@nestjs/testing";
+import type { AuthenticatedRequest } from "../../../../auth/authentication/types/authenticated-request";
 import { ROLES_KEY } from "../../../../auth/authorization/decorator/roles.decorator";
 import { Role } from "../../../../auth/authorization/enum/roles.enum";
-import type { AuthenticatedRequest } from "../../../../auth/authentication/types/authenticated-request";
 import type { CreateExtractedDocumentDto } from "../dto/create-extracted-document-dto";
 import type { FindExtractedDocumentQueuesQueryDto } from "../dto/find-extracted-document-queues-query.dto";
 import type { FindMyExtractedDocumentQueuesQueryDto } from "../dto/find-my-extracted-document-queues-query.dto";
@@ -91,10 +91,19 @@ async function buildController(
   const moduleRef = await Test.createTestingModule({
     controllers: [ExtractionQueueController],
     providers: [
-      { provide: InvalidateExtractedDocumentQueueUseCase, useValue: mocks.invalidateQueue },
-      { provide: CreateExtractedDocumentQueueUseCase, useValue: mocks.createExtractedDocumentQueue },
+      {
+        provide: InvalidateExtractedDocumentQueueUseCase,
+        useValue: mocks.invalidateQueue,
+      },
+      {
+        provide: CreateExtractedDocumentQueueUseCase,
+        useValue: mocks.createExtractedDocumentQueue,
+      },
       { provide: GetDocumentFileStreamUseCase, useValue: mocks.getFileSteam },
-      { provide: DeleteExtractedDocumentQueueUseCase, useValue: mocks.deleteExtractedDocumentQueue },
+      {
+        provide: DeleteExtractedDocumentQueueUseCase,
+        useValue: mocks.deleteExtractedDocumentQueue,
+      },
       { provide: ExtractedDocumentQueueService, useValue: mocks.service },
     ],
   }).compile();
@@ -122,10 +131,15 @@ describe("ExtractionQueueController", () => {
     it("forwards file, dto, and user id to CreateExtractedDocumentQueueUseCase", async () => {
       const { controller, mocks } = await buildController();
 
-      const file = { originalname: "test.pdf", buffer: Buffer.from("pdf") } as Express.Multer.File;
+      const file = {
+        originalname: "test.pdf",
+        buffer: Buffer.from("pdf"),
+      } as Express.Multer.File;
       const dto = { chunks: [] } as unknown as CreateExtractedDocumentDto;
       const req = makeReq("user-abc");
-      mocks.createExtractedDocumentQueue.execute!.mockResolvedValue({ decision: "ACCEPT" } as never);
+      mocks.createExtractedDocumentQueue.execute!.mockResolvedValue({
+        decision: "ACCEPT",
+      } as never);
 
       const result = await controller.create(file, dto, req);
 
@@ -143,7 +157,10 @@ describe("ExtractionQueueController", () => {
     it("forwards the query to the service and returns the paginated result", async () => {
       const { controller, mocks } = await buildController();
 
-      const query = { limit: 10, sort: "newest" } as unknown as FindExtractedDocumentQueuesQueryDto;
+      const query = {
+        limit: 10,
+        sort: "newest",
+      } as unknown as FindExtractedDocumentQueuesQueryDto;
       const page = { data: [{ id: "q1" }], nextCursor: "cursor" };
       mocks.service.findAll!.mockResolvedValue(page as never);
 
@@ -208,7 +225,10 @@ describe("ExtractionQueueController", () => {
     it("forwards queueId + response to the usecase", async () => {
       const { controller, mocks } = await buildController();
 
-      mocks.invalidateQueue.execute!.mockResolvedValue({ id: "q1", status: "INVALIDATED" } as never);
+      mocks.invalidateQueue.execute!.mockResolvedValue({
+        id: "q1",
+        status: "INVALIDATED",
+      } as never);
       const dto = { response: "unreadable" } as InvalidateExtractedDocumentQueueDto;
 
       const result = await controller.invalidate("queue-id-1", dto);
@@ -223,7 +243,11 @@ describe("ExtractionQueueController", () => {
     it("passes undefined response when dto has no response field", async () => {
       const { controller, mocks } = await buildController();
 
-      mocks.invalidateQueue.execute!.mockResolvedValue({ id: "q1", status: "INVALIDATED", invalidation_response: null } as never);
+      mocks.invalidateQueue.execute!.mockResolvedValue({
+        id: "q1",
+        status: "INVALIDATED",
+        invalidation_response: null,
+      } as never);
       const dto = {} as InvalidateExtractedDocumentQueueDto;
 
       await controller.invalidate("queue-id-1", dto);
@@ -243,7 +267,9 @@ describe("ExtractionQueueController", () => {
 
       await expect(controller.delete("queue-id-1")).resolves.toBeUndefined();
 
-      expect(mocks.deleteExtractedDocumentQueue.execute).toHaveBeenCalledWith("queue-id-1");
+      expect(mocks.deleteExtractedDocumentQueue.execute).toHaveBeenCalledWith(
+        "queue-id-1",
+      );
     });
   });
 
@@ -260,7 +286,8 @@ describe("ExtractionQueueController", () => {
     it("create is restricted to ReceiverOfficer", async () => {
       const { controller } = await buildController();
 
-      const create = (controller.constructor.prototype as Record<string, unknown>).create as Function;
+      const create = (controller.constructor.prototype as Record<string, unknown>)
+        .create as Function;
       const roles = Reflect.getMetadata(ROLES_KEY, create);
       expect(roles).toEqual([Role.ReceiverOfficer]);
     });
@@ -268,7 +295,8 @@ describe("ExtractionQueueController", () => {
     it("findAll is restricted to SuperAdmin + Admin", async () => {
       const { controller } = await buildController();
 
-      const findAll = (controller.constructor.prototype as Record<string, unknown>).findAll as Function;
+      const findAll = (controller.constructor.prototype as Record<string, unknown>)
+        .findAll as Function;
       const roles = Reflect.getMetadata(ROLES_KEY, findAll);
       expect(roles).toEqual([Role.SuperAdmin, Role.Admin]);
     });
@@ -276,7 +304,8 @@ describe("ExtractionQueueController", () => {
     it("findMyQueues is restricted to ReceiverOfficer", async () => {
       const { controller } = await buildController();
 
-      const fn = (controller.constructor.prototype as Record<string, unknown>).findMyQueues as Function;
+      const fn = (controller.constructor.prototype as Record<string, unknown>)
+        .findMyQueues as Function;
       const roles = Reflect.getMetadata(ROLES_KEY, fn);
       expect(roles).toEqual([Role.ReceiverOfficer]);
     });
@@ -284,7 +313,8 @@ describe("ExtractionQueueController", () => {
     it("invalidate responds with HTTP 200 (overriding default 200 for PATCH)", async () => {
       const { controller } = await buildController();
 
-      const invalidate = (controller.constructor.prototype as Record<string, unknown>).invalidate as Function;
+      const invalidate = (controller.constructor.prototype as Record<string, unknown>)
+        .invalidate as Function;
       const code = Reflect.getMetadata(HTTP_CODE_METADATA, invalidate);
       expect(code).toBe(HttpStatus.OK);
     });
@@ -292,7 +322,8 @@ describe("ExtractionQueueController", () => {
     it("delete responds with HTTP 204 NO_CONTENT", async () => {
       const { controller } = await buildController();
 
-      const del = (controller.constructor.prototype as Record<string, unknown>).delete as Function;
+      const del = (controller.constructor.prototype as Record<string, unknown>)
+        .delete as Function;
       const code = Reflect.getMetadata(HTTP_CODE_METADATA, del);
       expect(code).toBe(HttpStatus.NO_CONTENT);
     });

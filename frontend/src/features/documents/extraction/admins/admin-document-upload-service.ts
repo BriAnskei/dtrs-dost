@@ -13,7 +13,9 @@ export const AdminDocumentUploadService = {
     file,
     dto,
     idempotencyKey,
-  }: CreateOutgoingDocumentInput & { idempotencyKey: string }): Promise<CreateOutgoingDocumentResponse> {
+  }: CreateOutgoingDocumentInput & {
+    idempotencyKey: string;
+  }): Promise<CreateOutgoingDocumentResponse> {
     const formData = new FormData();
 
     formData.append("file", file);
@@ -42,7 +44,9 @@ export const AdminDocumentUploadService = {
     file,
     dto,
     idempotencyKey,
-  }: CreateIncomingDocumentInput & { idempotencyKey: string }): Promise<CreateIncomingDocumentResponse> {
+  }: CreateIncomingDocumentInput & {
+    idempotencyKey: string;
+  }): Promise<CreateIncomingDocumentResponse> {
     const formData = new FormData();
 
     formData.append("file", file);

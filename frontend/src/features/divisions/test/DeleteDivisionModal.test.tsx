@@ -28,8 +28,8 @@
 
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import type { Division } from "../type/division.type";
 import DeleteDivisionModal from "../components/modal/DeleteDivisionModal";
+import type { Division } from "../type/division.type";
 
 const EQUIPMENT: Division = {
   id: "d4",
@@ -54,9 +54,7 @@ describe("DeleteDivisionModal (UI)", () => {
 
   it("includes the division name in the title", () => {
     renderModal();
-    expect(
-      screen.getByText('Delete "Equipment Division"?'),
-    ).toBeInTheDocument();
+    expect(screen.getByText('Delete "Equipment Division"?')).toBeInTheDocument();
   });
 
   // ── Button text / disabled states ──────────────────────────────────────────

@@ -32,7 +32,7 @@
 
 import { ExecutionContext, ForbiddenException } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
-import { TestingModule, Test } from "@nestjs/testing";
+import { Test, TestingModule } from "@nestjs/testing";
 import { PERMISSION_KEY } from "../../../auth/authorization/decorator/permissions.decorator";
 import { ROLES_KEY } from "../../../auth/authorization/decorator/roles.decorator";
 import { PermissionDomain } from "../../../auth/authorization/enum/permission-domain.enum";
@@ -629,9 +629,7 @@ describe("UserController", () => {
         },
       };
 
-      service.disable.mockRejectedValue(
-        new Error("You cannot disable your own account"),
-      );
+      service.disable.mockRejectedValue(new Error("You cannot disable your own account"));
 
       await expect(controller.disable(id, mockReq as any)).rejects.toThrow(
         "You cannot disable your own account",

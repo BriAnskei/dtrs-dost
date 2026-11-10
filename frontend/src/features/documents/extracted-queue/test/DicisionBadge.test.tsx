@@ -21,10 +21,9 @@
 
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-
-import DecisionBadge, { DECISION_LABELS } from "../queue-list/components/DicisionBadge";
 import { DECISION_BADGE } from "../../../../components/ui/badge/StatusBadge";
 import type { Decision } from "../../extraction/types/extraction-types";
+import DecisionBadge, { DECISION_LABELS } from "../queue-list/components/DicisionBadge";
 
 describe("DecisionBadge", () => {
   describe("label rendering", () => {

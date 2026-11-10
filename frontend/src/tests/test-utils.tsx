@@ -21,10 +21,10 @@
  * file-scoped and hoisted), so this utility stays dependency-free.
  */
 
-import { type ReactNode } from "react";
-import { MemoryRouter, Routes, Route, useLocation } from "react-router";
-import { render, type RenderResult } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { type RenderResult, render } from "@testing-library/react";
+import type { ReactNode } from "react";
+import { MemoryRouter, Route, Routes, useLocation } from "react-router";
 
 /**
  * Builds a QueryClient configured for tests: no retries, no garbage
@@ -72,7 +72,7 @@ export function renderRoutes(
 ): RenderResult {
   const entries = Array.isArray(initialEntries)
     ? initialEntries
-    : initialEntries.initialEntries ?? ["/"];
+    : (initialEntries.initialEntries ?? ["/"]);
   const queryClient = createTestQueryClient();
   return render(
     <QueryClientProvider client={queryClient}>

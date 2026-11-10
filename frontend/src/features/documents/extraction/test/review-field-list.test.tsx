@@ -31,10 +31,7 @@ import ReviewFieldList from "../admins/components/ReviewFieldList";
 import { FIELD_LABELS } from "../constans";
 import type { FieldKey, ResultRow } from "../types/extraction-types";
 
-function row(
-  field: FieldKey,
-  overrides: Partial<ResultRow> = {},
-): ResultRow {
+function row(field: FieldKey, overrides: Partial<ResultRow> = {}): ResultRow {
   return {
     field,
     value: "default value",
@@ -442,7 +439,9 @@ describe("ReviewFieldList", () => {
         />,
       );
 
-      expect(screen.getByRole("listbox", { name: "Extracted fields" })).toBeInTheDocument();
+      expect(
+        screen.getByRole("listbox", { name: "Extracted fields" }),
+      ).toBeInTheDocument();
     });
   });
 });

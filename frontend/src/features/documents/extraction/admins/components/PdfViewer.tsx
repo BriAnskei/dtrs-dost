@@ -39,10 +39,7 @@ function PdfViewerImpl({ file, highlights, selectedId, onFieldClick }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [containerW, setContainerW] = useState(0);
   const [zoomIdx, setZoomIdx] = useState(1);
-  const isMobile = useMemo(
-    () => window.matchMedia("(max-width: 640px)").matches,
-    [],
-  );
+  const isMobile = useMemo(() => window.matchMedia("(max-width: 640px)").matches, []);
   const maxZoomIdx = isMobile ? 1 : ZOOMS.length - 1; // mobile caps at 1×
 
   // Clamp zoom when crossing the mobile breakpoint.

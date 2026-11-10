@@ -27,7 +27,10 @@ import ReviewFieldDetail from "../admins/components/ReviewFieldDetail";
 import { FIELD_LABELS } from "../constans";
 import type { ChunkLocation, ResultRow } from "../types/extraction-types";
 
-function makeRow(field: ResultRow["field"], overrides: Partial<ResultRow> = {}): ResultRow {
+function makeRow(
+  field: ResultRow["field"],
+  overrides: Partial<ResultRow> = {},
+): ResultRow {
   return {
     field,
     value: "The quick brown fox",
@@ -142,15 +145,17 @@ describe("ReviewFieldDetail", () => {
         />,
       );
 
-      expect(
-        screen.getByText(/Not found by the LLM/),
-      ).toBeInTheDocument();
+      expect(screen.getByText(/Not found by the LLM/)).toBeInTheDocument();
     });
 
     it("shows 'could not be verified' message when aiConfidence is null but value is present", () => {
       render(
         <ReviewFieldDetail
-          row={makeRow("subject", { aiConfidence: null, sourceConfidence: null, effectiveConfidence: null })}
+          row={makeRow("subject", {
+            aiConfidence: null,
+            sourceConfidence: null,
+            effectiveConfidence: null,
+          })}
           locations={LOCATIONS}
           editedValue={undefined}
           onEdit={() => {}}

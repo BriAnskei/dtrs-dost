@@ -8,9 +8,8 @@
  */
 
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
-
 import { MemoryRouter } from "react-router";
+import { describe, expect, it } from "vitest";
 import BackToQueueLink from "../review/components/BackToQueueLink";
 
 describe("BackToQueueLink", () => {

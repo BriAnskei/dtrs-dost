@@ -22,8 +22,8 @@
  * and reflects the state change in place.
  */
 
-import { AxiosError } from "axios";
 import { act, fireEvent, screen, waitFor } from "@testing-library/react";
+import { AxiosError } from "axios";
 import { Route } from "react-router";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
@@ -31,8 +31,8 @@ import {
   notifySessionExpired,
 } from "../../features/auth/authentication/authentication.events";
 import { renderRoutes } from "../../tests/test-utils";
-import { UserProvider } from "./user-provider";
 import { useUser } from "./use-user";
+import { UserProvider } from "./user-provider";
 
 /*
  * currentUserService.getCurrentUser() is async; mock it to resolve a user on
@@ -137,11 +137,7 @@ function SessionProbe() {
   return (
     <>
       <span data-testid="state">{state}</span>
-      <button
-        data-testid="retry"
-        onClick={refetch}
-        disabled={!serverError}
-      >
+      <button data-testid="retry" onClick={refetch} disabled={!serverError}>
         Retry
       </button>
     </>
@@ -177,9 +173,7 @@ describe("UserProvider — network error keeps the session recoverable", () => {
     // this to render <ServerUnavailable /> instead of <Navigate to="/signin" />,
     // which would require serverError === false.
     await waitFor(() => {
-      expect(screen.getByTestId("state").textContent).toBe(
-        "idle|serverError|none",
-      );
+      expect(screen.getByTestId("state").textContent).toBe("idle|serverError|none");
     });
   });
 
@@ -214,9 +208,7 @@ describe("UserProvider — network error keeps the session recoverable", () => {
       );
 
       await waitFor(() => {
-        expect(screen.getByTestId("state").textContent).toBe(
-          "idle|serverError|none",
-        );
+        expect(screen.getByTestId("state").textContent).toBe("idle|serverError|none");
       });
 
       // Button is enabled only in the serverError state; clicking it drives the
@@ -290,7 +282,9 @@ function ClaimsProbe() {
   const canDelete = currentUser?.permissions.user_management_permissions?.delete;
   return (
     <span data-testid="claims">
-      {currentUser ? `${currentUser.email}|view:${String(canView)}|delete:${String(canDelete)}` : "none"}
+      {currentUser
+        ? `${currentUser.email}|view:${String(canView)}|delete:${String(canDelete)}`
+        : "none"}
     </span>
   );
 }

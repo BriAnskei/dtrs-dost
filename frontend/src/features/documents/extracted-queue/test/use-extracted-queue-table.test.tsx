@@ -103,11 +103,7 @@ function makeClient() {
 
 function makeWrapper(client: QueryClient) {
   return function Wrapper({ children }: { children: ReactNode }) {
-    return (
-      <QueryClientProvider client={client}>
-        {children}
-      </QueryClientProvider>
-    );
+    return <QueryClientProvider client={client}>{children}</QueryClientProvider>;
   };
 }
 

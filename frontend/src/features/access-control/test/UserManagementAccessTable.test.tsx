@@ -41,10 +41,9 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import React from "react";
 import { describe, expect, it, vi } from "vitest";
+import UserManagementAccessTable from "../components/UserManagementAccessTable";
 import { USER_MANAGEMENT_PERMISSIONS } from "../contants";
 import type { AdminAccount, AdminPermissions } from "../types/access-controll-types";
-
-import UserManagementAccessTable from "../components/UserManagementAccessTable";
 
 // ─── Mocked hook ──────────────────────────────────────────────────────────────────
 //
@@ -172,9 +171,7 @@ describe("UserManagementAccessTable — loading state", () => {
      * During the initial fetch, the table is empty and a loading banner is
      * shown inside the scroll container. No admin rows, no footers.
      */
-    mockUseTable.mockImplementation(
-      makeHookImpl({ isLoading: true, admins: [] }),
-    );
+    mockUseTable.mockImplementation(makeHookImpl({ isLoading: true, admins: [] }));
 
     render(<UserManagementAccessTable />);
 
@@ -187,9 +184,7 @@ describe("UserManagementAccessTable — loading state", () => {
 
 describe("UserManagementAccessTable — error state", () => {
   it("shows error banner when isError is true", () => {
-    mockUseTable.mockImplementation(
-      makeHookImpl({ isError: true, admins: [] }),
-    );
+    mockUseTable.mockImplementation(makeHookImpl({ isError: true, admins: [] }));
 
     render(<UserManagementAccessTable />);
 
@@ -207,9 +202,7 @@ describe("UserManagementAccessTable — empty state", () => {
 
     render(<UserManagementAccessTable />);
 
-    expect(
-      screen.getByText("No admins match your search."),
-    ).toBeInTheDocument();
+    expect(screen.getByText("No admins match your search.")).toBeInTheDocument();
     // No loading or error indicators.
     expect(screen.queryByText(/Loading admins/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/Couldn't load admins/i)).not.toBeInTheDocument();
@@ -218,9 +211,7 @@ describe("UserManagementAccessTable — empty state", () => {
 
 describe("UserManagementAccessTable — search + clear", () => {
   it("renders a search input with the correct placeholder", () => {
-    mockUseTable.mockImplementation(
-      makeHookImpl({ admins: ADMINS }),
-    );
+    mockUseTable.mockImplementation(makeHookImpl({ admins: ADMINS }));
 
     render(<UserManagementAccessTable />);
 
@@ -298,9 +289,7 @@ describe("UserManagementAccessTable — admin rows render", () => {
   });
 
   it("does not render admin rows when isLoading is true", () => {
-    mockUseTable.mockImplementation(
-      makeHookImpl({ isLoading: true, admins: ADMINS }),
-    );
+    mockUseTable.mockImplementation(makeHookImpl({ isLoading: true, admins: ADMINS }));
 
     render(<UserManagementAccessTable />);
 
@@ -310,9 +299,7 @@ describe("UserManagementAccessTable — admin rows render", () => {
   });
 
   it("does not render admin rows when isError is true", () => {
-    mockUseTable.mockImplementation(
-      makeHookImpl({ isError: true, admins: ADMINS }),
-    );
+    mockUseTable.mockImplementation(makeHookImpl({ isError: true, admins: ADMINS }));
 
     render(<UserManagementAccessTable />);
 
@@ -466,9 +453,7 @@ describe("UserManagementAccessTable — info banner", () => {
 
     render(<UserManagementAccessTable />);
 
-    expect(
-      screen.getByText(/Control who can manage users\./i),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Control who can manage users\./i)).toBeInTheDocument();
   });
 
   it("renders the banner in every state (loading, error, empty, data)", () => {
@@ -478,22 +463,16 @@ describe("UserManagementAccessTable — info banner", () => {
      */
     mockUseTable.mockImplementation(makeHookImpl({ isLoading: true, admins: [] }));
     const { unmount } = render(<UserManagementAccessTable />);
-    expect(
-      screen.getByText(/Control who can manage users\./i),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Control who can manage users\./i)).toBeInTheDocument();
     unmount();
 
     mockUseTable.mockImplementation(makeHookImpl({ isError: true, admins: [] }));
     const { unmount: u2 } = render(<UserManagementAccessTable />);
-    expect(
-      screen.getByText(/Control who can manage users\./i),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Control who can manage users\./i)).toBeInTheDocument();
     u2();
 
     mockUseTable.mockImplementation(makeHookImpl({ isLoading: false, admins: [] }));
     render(<UserManagementAccessTable />);
-    expect(
-      screen.getByText(/Control who can manage users\./i),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Control who can manage users\./i)).toBeInTheDocument();
   });
 });

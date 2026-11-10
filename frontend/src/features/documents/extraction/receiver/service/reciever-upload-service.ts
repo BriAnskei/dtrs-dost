@@ -9,7 +9,9 @@ export const receiverUploadService = {
     file,
     chunks,
     idempotencyKey,
-  }: ReceiverUploadRequest & { idempotencyKey: string }): Promise<ReceiverUploadResponse> {
+  }: ReceiverUploadRequest & {
+    idempotencyKey: string;
+  }): Promise<ReceiverUploadResponse> {
     const form = new FormData();
 
     form.append("file", file);

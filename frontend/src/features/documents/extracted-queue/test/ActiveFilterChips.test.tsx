@@ -24,9 +24,8 @@
 
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-
-import ActiveFilterChips from "../queue-list/components/ActiveFilterChips";
 import type { Decision } from "../../extraction/types/extraction-types";
+import ActiveFilterChips from "../queue-list/components/ActiveFilterChips";
 
 describe("ActiveFilterChips", () => {
   const NO_OP = () => {};

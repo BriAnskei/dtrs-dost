@@ -29,21 +29,23 @@
 
 import { describe, expect, it } from "vitest";
 import { resolveHighlights, toBBox } from "../helpers/highlight-helpers";
-import type { BoundingBox, ExtractionToken } from "../pdf/types";
-import type { FieldKey, ChunkLocation, FieldHighlight } from "../types/extraction-types";
-import type { ExtractionChunk } from "../pdf/types";
+import type { BoundingBox, ExtractionChunk, ExtractionToken } from "../pdf/types";
+import type { ChunkLocation, FieldHighlight, FieldKey } from "../types/extraction-types";
 
 function token(text: string, bbox: BoundingBox, confidence = 1.0): ExtractionToken {
   return { text, bbox, confidence };
 }
 
-function chunk(id: string, params: {
-  text: string;
-  bbox?: BoundingBox;
-  tokens?: ExtractionToken[];
-  source?: "text" | "ocr";
-  confidence?: number;
-}): ExtractionChunk {
+function chunk(
+  id: string,
+  params: {
+    text: string;
+    bbox?: BoundingBox;
+    tokens?: ExtractionToken[];
+    source?: "text" | "ocr";
+    confidence?: number;
+  },
+): ExtractionChunk {
   return {
     chunkId: id,
     text: params.text,
@@ -54,7 +56,10 @@ function chunk(id: string, params: {
   } as ExtractionChunk;
 }
 
-function location(page: number, bbox: { x: number; y: number; width: number; height: number }): ChunkLocation {
+function location(
+  page: number,
+  bbox: { x: number; y: number; width: number; height: number },
+): ChunkLocation {
   return {
     page,
     bbox: { x: bbox.x, y: bbox.y, w: bbox.width, h: bbox.height },
@@ -95,7 +100,13 @@ describe("resolveHighlights", () => {
         "p1-o1": location(1, { x: 10, y: 20, width: 100, height: 50 }),
       };
 
-      const result = resolveHighlights(field, "LLM-written summary", chunkIds, chunksById, locations);
+      const result = resolveHighlights(
+        field,
+        "LLM-written summary",
+        chunkIds,
+        chunksById,
+        locations,
+      );
 
       // Summary → whole chunk bbox, no word-level narrowing.
       expect(result).toEqual([{ page: 1, bbox: { x: 10, y: 20, w: 100, h: 50 } }]);
@@ -108,7 +119,13 @@ describe("resolveHighlights", () => {
         "p1-o2": location(1, { x: 0, y: 10, width: 50, height: 10 }),
       };
 
-      const result = resolveHighlights("summary", "some text", chunkIds, new Map(), locations);
+      const result = resolveHighlights(
+        "summary",
+        "some text",
+        chunkIds,
+        new Map(),
+        locations,
+      );
 
       expect(result).toHaveLength(2);
       expect(result[0]).toEqual({ page: 1, bbox: { x: 0, y: 0, w: 50, h: 10 } });
@@ -164,7 +181,13 @@ describe("resolveHighlights", () => {
         "p1-o1": location(1, { x: 0, y: 0, width: 30, height: 5 }),
       };
 
-      const result = resolveHighlights(field, "Nonexistent", chunkIds, chunksById, locations);
+      const result = resolveHighlights(
+        field,
+        "Nonexistent",
+        chunkIds,
+        chunksById,
+        locations,
+      );
 
       // No word match → fall back to whole chunk bbox.
       expect(result).toEqual([{ page: 1, bbox: { x: 0, y: 0, w: 30, h: 5 } }]);
@@ -225,12 +248,16 @@ describe("resolveHighlights", () => {
   describe("missing locations and chunks", () => {
     it("returns an empty array when a chunkId has no location", () => {
       const chunkIds = ["p1-o1"];
-      const chunksById = new Map([
-        ["p1-o1", chunk("p1-o1", { text: "text" })],
-      ]);
+      const chunksById = new Map([["p1-o1", chunk("p1-o1", { text: "text" })]]);
       const locations: Record<string, ChunkLocation> = {}; // missing
 
-      const result = resolveHighlights("subject", "text", chunkIds, chunksById, locations);
+      const result = resolveHighlights(
+        "subject",
+        "text",
+        chunkIds,
+        chunksById,
+        locations,
+      );
 
       expect(result).toEqual([]);
     });
@@ -251,13 +278,7 @@ describe("resolveHighlights", () => {
     });
 
     it("handles an empty chunkIds array", () => {
-      const result = resolveHighlights(
-        "subject",
-        "nothing",
-        [],
-        new Map(),
-        {},
-      );
+      const result = resolveHighlights("subject", "nothing", [], new Map(), {});
 
       expect(result).toEqual([]);
     });

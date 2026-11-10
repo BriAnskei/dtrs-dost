@@ -137,7 +137,8 @@ export const missingFieldCase: DocumentExtractionTestCase = {
     makeField("dateReceived", null, [], null),
     makeField("summary", null, [], null),
   ],
-  notes: "A valid negative case where the model correctly returns null for missing fields.",
+  notes:
+    "A valid negative case where the model correctly returns null for missing fields.",
 };
 
 export const documentExtractionTestCases: DocumentExtractionTestCase[] = [

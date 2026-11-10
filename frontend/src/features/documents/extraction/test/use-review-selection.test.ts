@@ -21,17 +21,14 @@
  * we can use renderHook from @testing-library/react.
  */
 
-import { renderHook, act } from "@testing-library/react";
+import { act, renderHook } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
 import { useReviewSelection } from "../admins/hooks/use-review-selection";
 import type { ResultRow } from "../types/extraction-types";
 
 /** Build a ResultRow with sensible defaults. */
-function row(
-  field: string,
-  overrides: Partial<ResultRow> = {},
-): ResultRow {
+function row(field: string, overrides: Partial<ResultRow> = {}): ResultRow {
   return {
     field: field as ResultRow["field"],
     value: "test",
@@ -102,11 +99,7 @@ describe("useReviewSelection", () => {
 
   describe("move", () => {
     it("moves forward by one row", () => {
-      const rows: ResultRow[] = [
-        row("subject"),
-        row("from"),
-        row("to"),
-      ];
+      const rows: ResultRow[] = [row("subject"), row("from"), row("to")];
 
       const { result } = renderHook(() => useReviewSelection(rows));
 
@@ -118,11 +111,7 @@ describe("useReviewSelection", () => {
     });
 
     it("moves backward by one row", () => {
-      const rows: ResultRow[] = [
-        row("subject"),
-        row("from"),
-        row("to"),
-      ];
+      const rows: ResultRow[] = [row("subject"), row("from"), row("to")];
 
       const { result } = renderHook(() => useReviewSelection(rows));
 
@@ -133,11 +122,7 @@ describe("useReviewSelection", () => {
     });
 
     it("wraps around from the last row to the first on forward move", () => {
-      const rows: ResultRow[] = [
-        row("subject"),
-        row("from"),
-        row("to"),
-      ];
+      const rows: ResultRow[] = [row("subject"), row("from"), row("to")];
 
       const { result } = renderHook(() => useReviewSelection(rows));
 
@@ -148,11 +133,7 @@ describe("useReviewSelection", () => {
     });
 
     it("wraps around from the first row to the last on backward move", () => {
-      const rows: ResultRow[] = [
-        row("subject"),
-        row("from"),
-        row("to"),
-      ];
+      const rows: ResultRow[] = [row("subject"), row("from"), row("to")];
 
       const { result } = renderHook(() => useReviewSelection(rows));
 
@@ -172,11 +153,7 @@ describe("useReviewSelection", () => {
 
   describe("select", () => {
     it("sets selected to the given field key", () => {
-      const rows: ResultRow[] = [
-        row("subject"),
-        row("from"),
-        row("to"),
-      ];
+      const rows: ResultRow[] = [row("subject"), row("from"), row("to")];
 
       const { result } = renderHook(() => useReviewSelection(rows));
 

@@ -21,9 +21,9 @@
 import { screen } from "@testing-library/react";
 import { Route } from "react-router";
 import { describe, expect, it, vi } from "vitest";
+import type { User } from "../../../context/currentUser/curr-user.type";
 import { LocationDisplay, renderRoutes } from "../../../tests/test-utils";
 import PermissionRoute from "./PermissionRoute";
-import type { User } from "../../../context/currentUser/curr-user.type";
 
 const { mockUseUser } = vi.hoisted(() => ({ mockUseUser: vi.fn() }));
 
@@ -79,7 +79,10 @@ describe("PermissionRoute", () => {
      * predicate returns false.  This is the "god mode" escape hatch.
      */
     mockUseUser.mockReturnValue({
-      currentUser: makeUser({ role_id: 1, permissions: { user_management_permissions: null } }),
+      currentUser: makeUser({
+        role_id: 1,
+        permissions: { user_management_permissions: null },
+      }),
       isLoading: false,
     });
 

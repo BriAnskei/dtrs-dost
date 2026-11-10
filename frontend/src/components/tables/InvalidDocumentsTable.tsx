@@ -1,8 +1,8 @@
 import axios from "axios";
+import { Eye, Search, Trash } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import KebabMenu from "../ui/kebab-menu/KebabMenu";
-import { Eye, Search, Trash } from "lucide-react";
 import MissingFieldsModal from "../ui/modal/document/MissingFieldsModal";
 import { Table, TableBody, TableCell, TableHeader, TableRow } from "../ui/table";
 
@@ -380,8 +380,17 @@ export default function InvalidDocumentsTable() {
                       <TableCell className="px-3 py-3">
                         <KebabMenu
                           actions={[
-                            { label: "View", icon: <Eye className="h-4 w-4" />, handler: () => handleOpenFieldsModal(record) },
-                            { label: "Mark as Invalid", icon: <Trash className="h-4 w-4" />, handler: () => handleMarkInvalidClick(record.id), danger: true },
+                            {
+                              label: "View",
+                              icon: <Eye className="h-4 w-4" />,
+                              handler: () => handleOpenFieldsModal(record),
+                            },
+                            {
+                              label: "Mark as Invalid",
+                              icon: <Trash className="h-4 w-4" />,
+                              handler: () => handleMarkInvalidClick(record.id),
+                              danger: true,
+                            },
                           ]}
                         />
                       </TableCell>

@@ -25,8 +25,8 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import { AxiosError } from "axios";
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { passwordResetService } from "../../services/password-reset.service";
 import { useChooseMethodStep } from "../../hooks/reset-password/use-choose-method";
+import { passwordResetService } from "../../services/password-reset.service";
 
 const { mockGetByUserId, mockCreateResetRequest, mockGetConflictBody, mockToast } =
   vi.hoisted(() => ({
@@ -129,9 +129,12 @@ describe("useChooseMethodStep", () => {
 
       const client = makeClient();
       const callbacks = makeCallbacks();
-      const { result } = renderHook(() => useChooseMethodStep({ userId: USER_ID, ...callbacks }), {
-        wrapper: makeWrapper(client),
-      });
+      const { result } = renderHook(
+        () => useChooseMethodStep({ userId: USER_ID, ...callbacks }),
+        {
+          wrapper: makeWrapper(client),
+        },
+      );
 
       await act(async () => {
         await result.current.selectMethod("direct");
@@ -157,9 +160,12 @@ describe("useChooseMethodStep", () => {
 
       const client = makeClient();
       const callbacks = makeCallbacks();
-      const { result } = renderHook(() => useChooseMethodStep({ userId: USER_ID, ...callbacks }), {
-        wrapper: makeWrapper(client),
-      });
+      const { result } = renderHook(
+        () => useChooseMethodStep({ userId: USER_ID, ...callbacks }),
+        {
+          wrapper: makeWrapper(client),
+        },
+      );
 
       await act(async () => {
         await result.current.selectMethod("link");
@@ -196,9 +202,12 @@ describe("useChooseMethodStep", () => {
       const client = makeClient();
       const callbacks = makeCallbacks();
 
-      const { result } = renderHook(() => useChooseMethodStep({ userId: USER_ID, ...callbacks }), {
-        wrapper: makeWrapper(client),
-      });
+      const { result } = renderHook(
+        () => useChooseMethodStep({ userId: USER_ID, ...callbacks }),
+        {
+          wrapper: makeWrapper(client),
+        },
+      );
 
       await act(async () => {
         // selectMethod is async; it won't resolve until getByUserId does.
@@ -236,18 +245,18 @@ describe("useChooseMethodStep", () => {
 
       const client = makeClient();
       const callbacks = makeCallbacks();
-      const { result } = renderHook(() => useChooseMethodStep({ userId: USER_ID, ...callbacks }), {
-        wrapper: makeWrapper(client),
-      });
+      const { result } = renderHook(
+        () => useChooseMethodStep({ userId: USER_ID, ...callbacks }),
+        {
+          wrapper: makeWrapper(client),
+        },
+      );
 
       await act(async () => {
         await result.current.selectMethod("link");
       });
 
-      expect(callbacks.onExistingTokenFound).toHaveBeenCalledWith(
-        EXISTING_TOKEN,
-        "link",
-      );
+      expect(callbacks.onExistingTokenFound).toHaveBeenCalledWith(EXISTING_TOKEN, "link");
       expect(callbacks.onDirectReady).not.toHaveBeenCalled();
       expect(mockCreateResetRequest).not.toHaveBeenCalled();
 
@@ -263,9 +272,12 @@ describe("useChooseMethodStep", () => {
 
       const client = makeClient();
       const callbacks = makeCallbacks();
-      const { result } = renderHook(() => useChooseMethodStep({ userId: USER_ID, ...callbacks }), {
-        wrapper: makeWrapper(client),
-      });
+      const { result } = renderHook(
+        () => useChooseMethodStep({ userId: USER_ID, ...callbacks }),
+        {
+          wrapper: makeWrapper(client),
+        },
+      );
 
       await act(async () => {
         await result.current.selectMethod("direct");
@@ -295,16 +307,26 @@ describe("useChooseMethodStep", () => {
         AxiosError.ERR_BAD_REQUEST,
         undefined,
         undefined,
-        { data: CONFLICT_BODY, status: 409, statusText: "Conflict", headers: {}, config: {} as never, request: {} },
+        {
+          data: CONFLICT_BODY,
+          status: 409,
+          statusText: "Conflict",
+          headers: {},
+          config: {} as never,
+          request: {},
+        },
       );
       mockCreateResetRequest.mockRejectedValueOnce(axiosErr);
       mockGetConflictBody.mockReturnValue(CONFLICT_BODY);
 
       const client = makeClient();
       const callbacks = makeCallbacks();
-      const { result } = renderHook(() => useChooseMethodStep({ userId: USER_ID, ...callbacks }), {
-        wrapper: makeWrapper(client),
-      });
+      const { result } = renderHook(
+        () => useChooseMethodStep({ userId: USER_ID, ...callbacks }),
+        {
+          wrapper: makeWrapper(client),
+        },
+      );
 
       await act(async () => {
         await result.current.selectMethod("link");
@@ -312,7 +334,11 @@ describe("useChooseMethodStep", () => {
 
       await waitFor(() =>
         expect(callbacks.onExistingTokenFound).toHaveBeenCalledWith(
-          { id: CONFLICT_BODY.id, user_id: USER_ID, expires_at: CONFLICT_BODY.expires_at },
+          {
+            id: CONFLICT_BODY.id,
+            user_id: USER_ID,
+            expires_at: CONFLICT_BODY.expires_at,
+          },
           "link",
         ),
       );
@@ -335,9 +361,12 @@ describe("useChooseMethodStep", () => {
 
       const client = makeClient();
       const callbacks = makeCallbacks();
-      const { result } = renderHook(() => useChooseMethodStep({ userId: USER_ID, ...callbacks }), {
-        wrapper: makeWrapper(client),
-      });
+      const { result } = renderHook(
+        () => useChooseMethodStep({ userId: USER_ID, ...callbacks }),
+        {
+          wrapper: makeWrapper(client),
+        },
+      );
 
       await act(async () => {
         await result.current.selectMethod("link");
@@ -359,9 +388,12 @@ describe("useChooseMethodStep", () => {
        */
       const client = makeClient();
       const callbacks = makeCallbacks();
-      const { result } = renderHook(() => useChooseMethodStep({ userId: USER_ID, ...callbacks }), {
-        wrapper: makeWrapper(client),
-      });
+      const { result } = renderHook(
+        () => useChooseMethodStep({ userId: USER_ID, ...callbacks }),
+        {
+          wrapper: makeWrapper(client),
+        },
+      );
 
       act(() => {
         result.current.proceedWithMethod("direct");
@@ -381,9 +413,12 @@ describe("useChooseMethodStep", () => {
 
       const client = makeClient();
       const callbacks = makeCallbacks();
-      const { result } = renderHook(() => useChooseMethodStep({ userId: USER_ID, ...callbacks }), {
-        wrapper: makeWrapper(client),
-      });
+      const { result } = renderHook(
+        () => useChooseMethodStep({ userId: USER_ID, ...callbacks }),
+        {
+          wrapper: makeWrapper(client),
+        },
+      );
 
       act(() => {
         result.current.proceedWithMethod("link");
