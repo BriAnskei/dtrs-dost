@@ -12,12 +12,14 @@ import { CreateIncomingFromQueueHandler } from "./command/create-incoming-from-q
 import { DeleteIncomingDocumentAssignmentHandler } from "./command/delete-incoming-document-assignment/delete-incoming-document-assignment.handler";
 import { DeleteIncomingDocumentRoutingHandler } from "./command/delete-incoming-document-routing/delete-incoming-document-routing.handler";
 import { IncomingDocumentController } from "./controller/incoming-document.controller";
+import { IncomingDocumentRoutingController } from "./controller/incomint-document-routing.controller";
 import { IncomingDocumentAssignmentEntity } from "./entities/incoming-document-assignment.entity";
 import { IncomingDocumentAssignmentCountEntity } from "./entities/incoming-document-assignment-count.entity";
 import { IncomingDocumentEntity } from "./entities/incoming-document-entity";
 import { IncomingDocumentRoutingEntity } from "./entities/incoming-document-routing.entity";
 import { IncomingDocumentRoutingAssignmentCounterEntity } from "./entities/incoming-document-routing-assignment-counter.entity";
 import { IncomingDocumentStatusHistoryEntity } from "./entities/incoming-document-status-history-entity";
+import { FindDivisionIncomingDocumentsHandler } from "./query/find-division-incoming-documents/find-division-incoming-documents.handler";
 import { FindIncomingDocumentsHandler } from "./query/find-incoming-documents/find-incoming-documents.handler";
 import { GetAssignedDivisionNoticeCountsHandler } from "./query/get-assigned-division-notice-counts/get-assigned-division-notice-counts.handler";
 import { GetIncomingDocumentAssignmentsHandler } from "./query/get-incoming-document-assignments/get-incoming-document-assignments.handler";
@@ -50,7 +52,7 @@ import { AssignmentCounterService } from "./services/assignment-counter.service"
     StorageModule,
     ExtractedDocumentQueueModule,
   ],
-  controllers: [IncomingDocumentController],
+  controllers: [IncomingDocumentController, IncomingDocumentRoutingController],
   providers: [
     // Repositories
     IncomingDocumentsRepository,
@@ -80,6 +82,7 @@ import { AssignmentCounterService } from "./services/assignment-counter.service"
     GetIncomingDocumentAssignmentsHandler,
     DeleteIncomingDocumentRoutingHandler,
     SearchRoutedDivisionHandler,
+    FindDivisionIncomingDocumentsHandler,
   ],
 })
 export class IncomingDocumentModule {}

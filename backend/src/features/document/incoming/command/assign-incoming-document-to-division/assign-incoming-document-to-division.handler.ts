@@ -6,7 +6,7 @@ import {
   IncomingDocumentAssignmentEntity,
   OfficeType,
 } from "../../entities/incoming-document-assignment.entity";
-import { mapIncomingDocumentError } from "../../incoming-document/exceptions/incoming-document-error.mapper";
+import { mapIncomingDocumentError } from "../../exceptions/incoming-document-error.mapper";
 import { IncomingDocumentsRepository } from "../../repository/incoming-document.repository";
 import { IncomingDocumentAssignmentsRepository } from "../../repository/incoming-document-assignment.repository";
 import { IncomingDocumentRoutingRepository } from "../../repository/incoming-document-routing-repository";

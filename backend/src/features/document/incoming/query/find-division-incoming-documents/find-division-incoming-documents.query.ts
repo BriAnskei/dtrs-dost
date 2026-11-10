@@ -1,8 +1,8 @@
-import { FindDivisionIncomingDocumentsQueryDto } from "./find-division-incoming-documents.dto";
+import { FindDivisionIncomingDocumentsQueryDto } from "../../dto/find-division-incoming-documents-query.dto";
 
 export class FindDivisionIncomingDocumentsQuery {
   constructor(
-    public readonly divisionId: string,
+    public readonly userId: string,
     public readonly filters: FindDivisionIncomingDocumentsQueryDto,
   ) {}
 }

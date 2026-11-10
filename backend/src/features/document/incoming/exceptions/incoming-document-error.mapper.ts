@@ -1,8 +1,5 @@
 import { ConflictException, HttpException, NotFoundException } from "@nestjs/common";
-import {
-  getPostgresError,
-  isPostgresError,
-} from "../../../../../common/database/postgres-error.utils";
+import { isPostgresError } from "../../../../common/database/postgres-error.utils";
 
 export function mapIncomingDocumentError(error: unknown): HttpException | null {
   if (isPostgresError(error, "23505", "uq_incoming_document_routing")) {
