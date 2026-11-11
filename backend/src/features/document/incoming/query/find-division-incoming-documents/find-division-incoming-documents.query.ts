@@ -2,7 +2,7 @@ import { FindDivisionIncomingDocumentsQueryDto } from "../../dto/find-division-i
 
 export class FindDivisionIncomingDocumentsQuery {
   constructor(
-    public readonly userId: string,
+    public readonly division_id: string | null,
     public readonly filters: FindDivisionIncomingDocumentsQueryDto,
   ) {}
 }

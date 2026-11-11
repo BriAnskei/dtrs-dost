@@ -41,6 +41,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       id: user.id,
       email: user.email,
       role_id: Number(user.role_id),
+      division_id: user.division_id,
       permissions: {
         user_management_permissions:
           Number(user.role_id) === Role.Admin &&

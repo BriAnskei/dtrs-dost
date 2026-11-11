@@ -3,6 +3,7 @@ import { ValidationPipe } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 import cookieParser from "cookie-parser";
 import { config as dotenvConfig } from "dotenv";
+import morgan from "morgan";
 import { AppModule } from "./app.module";
 import { withRateLimit } from "./middleware/rateLimit";
 
@@ -10,6 +11,11 @@ dotenvConfig({ path: resolve(process.cwd(), ".env") });
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  if (process.env.NODE_ENV !== "production") {
+    app.use(morgan("dev"));
+  }
+
   app.use(cookieParser());
   app.enableCors({
     origin: process.env.FRONTEND_URL || "http://localhost:5173",

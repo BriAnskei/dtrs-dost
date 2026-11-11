@@ -1,10 +1,12 @@
-import { Controller, Get, Query, Req } from "@nestjs/common";
+import { Controller, Get, Param, ParseUUIDPipe, Query, Req } from "@nestjs/common";
 import { CommandBus, QueryBus } from "@nestjs/cqrs";
 import type { AuthenticatedRequest } from "../../../../auth/authentication/types/authenticated-request";
 import { Roles } from "../../../../auth/authorization/decorator/roles.decorator";
 import { Role } from "../../../../auth/authorization/enum/roles.enum";
 import { FindDivisionIncomingDocumentsQueryDto } from "../dto/find-division-incoming-documents-query.dto";
+import { RoutedIncomingDocumentDetailsDto } from "../dto/get-division-incoming-document-details-dto";
 import { FindDivisionIncomingDocumentsQuery } from "../query/find-division-incoming-documents/find-division-incoming-documents.query";
+import { GetDivisionIncomingDocumentDetailsQuery } from "../query/get-division-incoming-document-details/get-division-incoming-document-details.query";
 
 @Controller("incoming-document-routing")
 export class IncomingDocumentRoutingController {
@@ -20,7 +22,18 @@ export class IncomingDocumentRoutingController {
     @Query() query: FindDivisionIncomingDocumentsQueryDto,
   ) {
     return this.queryBus.execute(
-      new FindDivisionIncomingDocumentsQuery(req.user.id, query),
+      new FindDivisionIncomingDocumentsQuery(req.user.division_id, query),
+    );
+  }
+
+  @Get(":incomingDocumentId/divisions/:divisionId/details")
+  @Roles(Role.Division)
+  async getDivisionIncomingDocumentDetails(
+    @Param("incomingDocumentId", ParseUUIDPipe) incomingDocumentId: string,
+    @Param("divisionId", ParseUUIDPipe) divisionId: string,
+  ): Promise<RoutedIncomingDocumentDetailsDto> {
+    return this.queryBus.execute(
+      new GetDivisionIncomingDocumentDetailsQuery(incomingDocumentId, divisionId),
     );
   }
 }

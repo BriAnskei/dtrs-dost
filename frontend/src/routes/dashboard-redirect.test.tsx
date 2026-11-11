@@ -61,7 +61,7 @@ describe("DashboardRedirect", () => {
     [1, "/super-admin/dashboard"],
     [2, "/admin/dashboard"],
     [3, "/receiving-officer/dashboard"],
-    [4, "/division/assigned-documents"],
+    [4, "/division/routed-documents"],
   ])("routes role %i to %s", (role, destination) => {
     mockUseUser.mockReturnValue({ currentUser: userWith(role), isLoading: false });
 

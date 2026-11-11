@@ -26,7 +26,6 @@ import AdminDashboard from "../pages/Dashboard/AdminDashboard";
 import ReceiverDashboard from "../pages/Dashboard/ReceiverDashboard";
 import StaleDocumentsPage from "../pages/Dashboard/StaleDocumentsPage";
 import SuperAdminDashboard from "../pages/Dashboard/SuperAdminDashboard";
-import AssignedDocumentPage from "../pages/Division/AssignedDocumentPage";
 import InvalidDocumentPage from "../pages/document/InvalidDocumentPage";
 import InvalidDocumentsPage from "../pages/document/InvalidDocumentsPage";
 import SystemLogsPage from "../pages/Logs/SystemLogsPage";
@@ -243,7 +242,7 @@ const RECEIVING_OFFICER_ROUTES: RouteType[] = [
 
 const DIVISION_ROUTE: RouteType[] = [
   {
-    path: "/division/assigned-documents",
+    path: "/division/routed-documents",
     element: <DivisionIncomingDocumentsPage />,
   },
 ];

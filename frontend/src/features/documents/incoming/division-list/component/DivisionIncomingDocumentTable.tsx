@@ -75,18 +75,6 @@ export default function DivisionIncomingDocumentsTable({
       ),
     },
     {
-      label: "Recipient",
-      width: "w-40",
-      render: (doc) => (
-        <span
-          className="block truncate max-w-[220px] text-gray-500 text-theme-sm dark:text-gray-400"
-          title={doc.recipient}
-        >
-          {doc.recipient}
-        </span>
-      ),
-    },
-    {
       label: "Date Routed",
       width: "w-28",
       render: (doc) => (
@@ -171,14 +159,6 @@ export default function DivisionIncomingDocumentsTable({
               </p>
               <p className="text-theme-xs text-gray-700 dark:text-gray-300 mt-0.5">
                 {formatDateTime(doc.routed_at)}
-              </p>
-            </div>
-            <div className="col-span-2">
-              <p className="text-theme-xs text-gray-400 dark:text-gray-500 font-medium uppercase tracking-wide">
-                Recipient
-              </p>
-              <p className="text-theme-xs text-gray-700 dark:text-gray-300 mt-0.5 wrap-break-word">
-                {doc.recipient}
               </p>
             </div>
           </div>

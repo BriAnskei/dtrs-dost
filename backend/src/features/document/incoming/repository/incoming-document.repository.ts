@@ -6,12 +6,14 @@ import { applyCursorCondition } from "../../../../common/pagination/cursor-query
 import { PaginatedResponse } from "../../../../common/pagination/paginated-response";
 import { escapeLike } from "../../../../util/escapeLike";
 import { FindIncomingDocumentsQueryDto } from "../dto/find-incoming-documents-query.dto";
+import { RoutedIncomingDocumentDetailsDto } from "../dto/get-division-incoming-document-details-dto";
 import {
   IncomingDocumentEntity,
   IncomingDocumentStatus,
 } from "../entities/incoming-document-entity";
 import { IncomingDocumentDateField } from "../enums/incoming-document-date-field.enum";
 import { IncomingDocumentSortOrder } from "../enums/incoming-document-sort-order.enum";
+import { IncomingDocumentDetailsRaw } from "../types/get-division-incoming-document-details.types";
 import { IncomingDocumentCursor } from "../types/incoming-document-cursor";
 
 type IncomingQueryBuilder = SelectQueryBuilder<IncomingDocumentEntity>;
@@ -31,6 +33,59 @@ export class IncomingDocumentsRepository {
   ): Promise<IncomingDocumentEntity> {
     const repository = manager.getRepository(IncomingDocumentEntity);
     return repository.save(repository.create(data));
+  }
+
+  async findDetailsByDivision(
+    incomingDocumentId: string,
+    divisionId: string,
+  ): Promise<RoutedIncomingDocumentDetailsDto | null> {
+    const raw = await this.repository
+      .createQueryBuilder("document")
+      .innerJoin("document.document_file", "file")
+      .innerJoin("document.routings", "routing", "routing.division_id = :divisionId", {
+        divisionId,
+      })
+      .leftJoin("routing.assignment_counters", "routingCounter")
+      .select("document.id", "id")
+      .addSelect("file.code", "code")
+      .addSelect("document.subject", "subject")
+      .addSelect("document.summary", "summary")
+      .addSelect("document.document_from", "sender")
+      .addSelect("document.recipient", "recipient")
+      .addSelect("document.date_received", "dateReceived")
+      .addSelect("document.created_at", "createdAt")
+      .addSelect("document.updated_at", "updatedAt")
+      .addSelect("COALESCE(routingCounter.total, 0)::text", "routingAssignmentTotal")
+      .addSelect("COALESCE(routingCounter.ongoing, 0)::text", "routingAssignmentOngoing")
+      .addSelect(
+        "COALESCE(routingCounter.complete, 0)::text",
+        "routingAssignmentComplete",
+      )
+      .where("document.id = :incomingDocumentId", {
+        incomingDocumentId,
+      })
+      .getRawOne<IncomingDocumentDetailsRaw>();
+
+    if (!raw) {
+      return null;
+    }
+
+    return {
+      id: raw.id,
+      code: raw.code,
+      subject: raw.subject,
+      summary: raw.summary,
+      sender: raw.sender,
+      recipient: raw.recipient,
+      dateReceived: raw.dateReceived,
+      createdAt: raw.createdAt,
+      updatedAt: raw.updatedAt,
+      routingAssignmentCounts: {
+        total: raw.routingAssignmentTotal,
+        ongoing: raw.routingAssignmentOngoing,
+        complete: raw.routingAssignmentComplete,
+      },
+    };
   }
 
   async findAllWithRelation(

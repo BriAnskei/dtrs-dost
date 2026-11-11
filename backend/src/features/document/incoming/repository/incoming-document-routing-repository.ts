@@ -1,11 +1,9 @@
 import { BadRequestException, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { isUUID } from "class-validator";
 import { EntityManager, Repository, SelectQueryBuilder } from "typeorm";
 import { decodeCursor, encodeCursor } from "../../../../common/pagination/cursor";
 import { PaginatedResponse } from "../../../../common/pagination/paginated-response";
 import { escapeLike } from "../../../../util/escapeLike";
-import { DivisionIncomingDocumentResponseDto } from "../dto/division-incoming-document-response.dto";
 import { FindDivisionIncomingDocumentsQueryDto } from "../dto/find-division-incoming-documents-query.dto";
 import { IncomingDocumentStatus } from "../entities/incoming-document-entity";
 import { IncomingDocumentRoutingEntity } from "../entities/incoming-document-routing.entity";
@@ -49,7 +47,6 @@ export class IncomingDocumentRoutingRepository {
 
         "incoming.id",
         "incoming.subject",
-        "incoming.recipient",
         "incoming.status",
 
         "documentFile.id",

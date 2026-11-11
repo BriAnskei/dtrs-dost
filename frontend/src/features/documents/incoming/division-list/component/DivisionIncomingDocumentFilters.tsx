@@ -45,7 +45,7 @@ export default function DivisionIncomingDocumentsFilters({
           name="division-incoming-search-no-autofill"
           data-form-type="other"
           onChange={(e) => onSearchChange(e.target.value)}
-          placeholder="Search code, subject or recipient..."
+          placeholder="Search code or subject..."
           autoComplete="new-password"
         />
       </div>

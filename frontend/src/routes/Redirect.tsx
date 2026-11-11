@@ -29,7 +29,7 @@ export function DashboardRedirect() {
     superAdmin: "dashboard",
     admin: "dashboard",
     receiving_officer: "dashboard",
-    division: "assigned-documents", // no dashboard
+    division: "routed-documents", // no dashboard
   })[role];
 
   if (!dashboardPath) return <Navigate to="notFound" />;

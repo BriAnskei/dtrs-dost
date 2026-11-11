@@ -16,7 +16,6 @@ export interface DivisionIncomingDocument {
   id: string;
   code: string | null;
   subject: string;
-  recipient: string;
   status: IncomingDocumentStatus;
   routed_at: string;
 }

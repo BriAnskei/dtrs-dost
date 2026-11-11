@@ -24,6 +24,8 @@ import { ReactComponent as ChevronLeftIcon } from "./chevron-left.svg?react";
 import { ReactComponent as ChevronUpIcon } from "./chevron-up.svg?react";
 import { ReactComponent as CloseIcon } from "./close.svg?react";
 import { ReactComponent as CloseLineIcon } from "./close-line.svg?react";
+import { ReactComponent as FullLogo } from "./company-logo/company-logo-full.svg?react";
+import { ReactComponent as LogoMark } from "./company-logo/company-logo-mark.svg?react";
 import { ReactComponent as CopyIcon } from "./copy.svg?react";
 import { ReactComponent as DocsIcon } from "./docs.svg?react";
 import { ReactComponent as Document } from "./document.svg?react";
@@ -103,12 +105,14 @@ export {
   EyeIcon,
   FileIcon,
   FolderIcon,
+  FullLogo,
   GridIcon,
   GroupIcon,
   HorizontaLDots,
   InfoIcon,
   ListIcon,
   LockIcon,
+  LogoMark,
   MailIcon,
   MoreDotIcon,
   Notification,
