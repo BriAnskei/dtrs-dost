@@ -3,22 +3,19 @@ import { DivisionIncomingDocumentService } from "../../../service/division-incom
 
 interface UseDivisionIncomingDocumentDetailsParams {
   incomingDocumentId: string;
-  divisionId: string;
 }
 
 export function useDivisionIncomingDocumentDetails({
   incomingDocumentId,
-  divisionId,
 }: UseDivisionIncomingDocumentDetailsParams) {
   return useQuery({
-    queryKey: ["division-incoming-document-details", incomingDocumentId, divisionId],
+    queryKey: ["division-incoming-document-details", incomingDocumentId],
     queryFn: ({ signal }) =>
       DivisionIncomingDocumentService.getDivisionIncomingDocumentDetails(
         incomingDocumentId,
-        divisionId,
         signal,
       ),
-    enabled: Boolean(incomingDocumentId) && Boolean(divisionId),
+    enabled: Boolean(incomingDocumentId),
     staleTime: 5 * 60_000,
     retry: 1,
   });

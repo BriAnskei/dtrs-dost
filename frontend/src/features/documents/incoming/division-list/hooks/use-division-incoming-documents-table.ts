@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
+import { useNavigate } from "react-router";
 import { useDebounce } from "use-debounce";
 import {
   type DateRange,
@@ -15,6 +16,8 @@ import type {
 import { useDivisionIncomingDocuments } from "./api/use-division-incoming-documents";
 
 export function useDivisionIncomingDocumentsTable() {
+  const navigate = useNavigate();
+
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<StatusFilter>(DEFAULT_STATUS);
   // DateRangeFilter only emits a complete range or an empty one.
@@ -61,6 +64,11 @@ export function useDivisionIncomingDocumentsTable() {
     if (hasNextPage && !isFetchingNextPage) fetchNextPage();
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
+  const openDetails = useCallback(
+    (doc: DivisionIncomingDocument) => navigate(`/incoming-route/${doc.id}`),
+    [navigate],
+  );
+
   const mobileScroll = useInfiniteScrollSentinel<HTMLDivElement>({
     onIntersect: loadMore,
     enabled: hasNextPage,
@@ -77,10 +85,8 @@ export function useDivisionIncomingDocumentsTable() {
     setSort(DEFAULT_DIVISION_SORT);
   }, []);
 
-  // Target of the kebab "View details" action (panel not built yet).
-  const [detailTarget, setDetailTarget] = useState<DivisionIncomingDocument | null>(null);
-
   return {
+    openDetails,
     isLoading,
     isError,
     error,
@@ -101,7 +107,5 @@ export function useDivisionIncomingDocumentsTable() {
     mobileSentinelRef: mobileScroll.sentinelRef,
     desktopScrollRef: desktopScroll.rootRef,
     desktopSentinelRef: desktopScroll.sentinelRef,
-    detailTarget,
-    setDetailTarget,
   };
 }

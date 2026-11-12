@@ -131,7 +131,7 @@ export class IncomingDocumentController {
   }
 
   @Get(":id/file")
-  @Roles(Role.SuperAdmin, Role.Admin)
+  @Roles(Role.SuperAdmin, Role.Admin, Role.Division)
   async file(@Param("id", ParseUUIDPipe) id: string) {
     const { stream, filename } = await this.queryBus.execute(
       new GetIncomingDocumentFileStreamQuery(id),

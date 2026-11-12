@@ -4,7 +4,7 @@ import { RoutedIncomingDocumentDetailsDto } from "../../dto/get-division-incomin
 export class GetDivisionIncomingDocumentDetailsQuery extends Query<RoutedIncomingDocumentDetailsDto> {
   constructor(
     public readonly incomingDocumentId: string,
-    public readonly divisionId: string,
+    public readonly divisionId: string | null,
   ) {
     super();
   }

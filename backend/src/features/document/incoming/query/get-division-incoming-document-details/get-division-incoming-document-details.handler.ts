@@ -1,4 +1,4 @@
-import { NotFoundException } from "@nestjs/common";
+import { ForbiddenException, NotFoundException } from "@nestjs/common";
 import { IQueryHandler, QueryHandler } from "@nestjs/cqrs";
 import { RoutedIncomingDocumentDetailsDto } from "../../dto/get-division-incoming-document-details-dto";
 import { IncomingDocumentsRepository } from "../../repository/incoming-document.repository";
@@ -14,6 +14,10 @@ export class GetDivisionIncomingDocumentDetailsHandler
     query: GetDivisionIncomingDocumentDetailsQuery,
   ): Promise<RoutedIncomingDocumentDetailsDto> {
     const { incomingDocumentId, divisionId } = query;
+
+    if (!divisionId) {
+      throw new ForbiddenException("Division access is not associated with this user.");
+    }
 
     const document = await this.incomingDocumentRepository.findDetailsByDivision(
       incomingDocumentId,

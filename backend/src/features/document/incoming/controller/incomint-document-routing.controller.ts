@@ -26,14 +26,18 @@ export class IncomingDocumentRoutingController {
     );
   }
 
-  @Get(":incomingDocumentId/divisions/:divisionId/details")
+  @Get(":incomingDocumentId/division/details")
   @Roles(Role.Division)
   async getDivisionIncomingDocumentDetails(
-    @Param("incomingDocumentId", ParseUUIDPipe) incomingDocumentId: string,
-    @Param("divisionId", ParseUUIDPipe) divisionId: string,
+    @Req() req: AuthenticatedRequest,
+    @Param("incomingDocumentId", ParseUUIDPipe)
+    incomingDocumentId: string,
   ): Promise<RoutedIncomingDocumentDetailsDto> {
     return this.queryBus.execute(
-      new GetDivisionIncomingDocumentDetailsQuery(incomingDocumentId, divisionId),
+      new GetDivisionIncomingDocumentDetailsQuery(
+        incomingDocumentId,
+        req.user.division_id,
+      ),
     );
   }
 }

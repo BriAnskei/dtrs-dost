@@ -37,14 +37,14 @@ export default function DivisionIncomingDocumentsTable({
     mobileSentinelRef,
     desktopScrollRef,
     desktopSentinelRef,
-    setDetailTarget,
+    openDetails,
   } = useDivisionIncomingDocumentsTable();
 
   const documentActions = (doc: DivisionIncomingDocument) => [
     {
       label: "View details",
       icon: <Eye className="h-4 w-4" />,
-      handler: () => setDetailTarget(doc),
+      handler: () => openDetails(doc),
     },
   ];
 

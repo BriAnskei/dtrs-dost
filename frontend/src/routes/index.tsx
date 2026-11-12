@@ -17,6 +17,7 @@ import MyUploadedDocumentDetailsPage from "../features/documents/extracted-queue
 import DirectUploadPage from "../features/documents/extraction/admins/components/DirectUploadPage";
 import ReceiverUploadPage from "../features/documents/extraction/receiver/components/ReceiverUploadPage";
 import IncomingDocumentDetailsPage from "../features/documents/incoming/detials-page/components/IncomingDocumentDetailsPage";
+import DivisionIncomingDocumentDetailsPage from "../features/documents/incoming/division-details-page/components/DivisionIncomingDocumentPage";
 import DivisionIncomingDocumentsPage from "../features/documents/incoming/division-list/component/DivisionIncomingDocumentPage";
 import IncomingDocumentsPage from "../features/documents/incoming/list/components/IncomingDocumentsPage";
 import OutgoingDocumentsPage from "../features/documents/outgoing/components/OutgoingDocumentPage";
@@ -244,6 +245,15 @@ const DIVISION_ROUTE: RouteType[] = [
   {
     path: "/division/routed-documents",
     element: <DivisionIncomingDocumentsPage />,
+  },
+
+  {
+    path: "/incoming-route/:incomingDocumentId",
+    element: (
+      <RoleRoute allowedRoles={[4]}>
+        <DivisionIncomingDocumentDetailsPage />
+      </RoleRoute>
+    ),
   },
 ];
 

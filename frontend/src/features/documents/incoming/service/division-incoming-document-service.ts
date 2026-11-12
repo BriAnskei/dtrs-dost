@@ -24,11 +24,10 @@ export const DivisionIncomingDocumentService = {
 
   async getDivisionIncomingDocumentDetails(
     incomingDocumentId: string,
-    divisionId: string,
     signal?: AbortSignal,
   ): Promise<RoutedIncomingDocumentDetailsDto> {
     const { data } = await apiClient.get<RoutedIncomingDocumentDetailsDto>(
-      `/incoming-document-routings/${incomingDocumentId}/divisions/${divisionId}/details`,
+      `${INCOMING_ROUTING_ENDPOINT}/${incomingDocumentId}/division/details`,
       { signal },
     );
 

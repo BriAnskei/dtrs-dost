@@ -4,7 +4,6 @@ import { hasUserManagementPermission } from "../features/auth/authorization/help
 import {
   AdministrationIcon,
   AssignedDocumentsIcon,
-  BoxCubeIcon,
   Document,
   GridIcon,
   Notification,
