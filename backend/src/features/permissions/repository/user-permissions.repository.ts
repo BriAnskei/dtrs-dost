@@ -101,6 +101,25 @@ export class UserPermissionsRepository {
     });
   }
 
+  /**
+   * Locks the `user_permissions` row scoped by `user_id` (unique) for the
+   * duration of the transaction. When no row exists yet, the gap lock on the
+   * unique index blocks concurrent inserts of the same `user_id`, so
+   * `setUserManagementPermission` can check-then-create without a
+   * duplicate-key race.
+   */
+  async findByUserIdForUpdate(
+    user_id: string,
+    manager: EntityManager,
+  ): Promise<UserPermissionsEntity | null> {
+    return manager
+      .getRepository(UserPermissionsEntity)
+      .createQueryBuilder("userPermission")
+      .setLock("pessimistic_write")
+      .where("userPermission.user_id = :userId", { userId: user_id })
+      .getOne();
+  }
+
   async delete(id: string, manager?: EntityManager): Promise<boolean> {
     const repo = !manager
       ? this.repository

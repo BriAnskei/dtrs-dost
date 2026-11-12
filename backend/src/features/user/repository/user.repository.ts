@@ -28,6 +28,24 @@ export class UserRepository {
     });
   }
 
+  /**
+   * Locks the `users` row scoped by `email` (unique) for the duration of the
+   * transaction. When no row exists yet, the gap lock on the unique index
+   * blocks concurrent inserts of the same `email`, so `create` can
+   * check-then-insert without a duplicate-key race.
+   */
+  async findByEmailForUpdate(
+    email: string,
+    manager: EntityManager,
+  ): Promise<UserEntity | null> {
+    return manager
+      .getRepository(UserEntity)
+      .createQueryBuilder("user")
+      .setLock("pessimistic_write")
+      .where("user.email = :email", { email })
+      .getOne();
+  }
+
   async findById(id: string, manager?: EntityManager): Promise<UserEntity | null> {
     const repo = manager ? manager.getRepository(UserEntity) : this.repository;
 
@@ -41,6 +59,22 @@ export class UserRepository {
     });
   }
 
+  /**
+   * Locks the `users` row by primary key for the duration of the transaction,
+   * serializing concurrent updates to the same user.
+   */
+  async findByIdForUpdate(
+    id: string,
+    manager: EntityManager,
+  ): Promise<UserEntity | null> {
+    return manager
+      .getRepository(UserEntity)
+      .createQueryBuilder("user")
+      .setLock("pessimistic_write")
+      .where("user.id = :id", { id })
+      .getOne();
+  }
+
   async findCurrentUser(id: string): Promise<UserEntity | null> {
     return this.repository.findOne({
       where: { id },
@@ -50,6 +84,24 @@ export class UserRepository {
         },
       },
     });
+  }
+
+  /**
+   * Locks the `users` row for the duration of the transaction so that
+   * concurrent writes targeting the same user (e.g. setting management
+   * permissions) are serialized instead of racing on the
+   * `user_permissions.user_id` unique constraint.
+   */
+  async findByIdForUpdate(
+    id: string,
+    manager: EntityManager,
+  ): Promise<UserEntity | null> {
+    return manager
+      .getRepository(UserEntity)
+      .createQueryBuilder("user")
+      .setLock("pessimistic_write")
+      .where("user.id = :id", { id })
+      .getOne();
   }
 
   async findByIdWithRelation(id: string, manager?: EntityManager): Promise<UserEntity> {

@@ -63,6 +63,18 @@ export class UserPermissionService {
   ): Promise<void> {
     this.validateManagementPermissions(dto);
     await this.dataSource.transaction(async (manager) => {
+      // Lock the user row first: concurrent PUTs for the same user are
+      // serialized, so the check-then-create of the user_permissions row
+      // cannot race on the user_id unique constraint.
+      const user = await this.userPermissionRepository.findByUserIdForUpdate(
+        userId,
+        manager,
+      );
+
+      if (!user) {
+        throw new NotFoundException("User not found");
+      }
+
       const userPermission = await this.createUserPermissionAsync(userId, manager);
 
       await this.userManagementPermissionRepository.save(

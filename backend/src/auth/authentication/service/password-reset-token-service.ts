@@ -37,31 +37,37 @@ export class PasswordResetService {
     token: string;
     expires_at: Date;
   }> {
-    const existingToken = await this.findByUserId(userId);
+    return this.dataSource.transaction(async (manager) => {
+      const existingToken = await this.passwordResetRepository.findByUserIdForUpdate(
+        userId,
+        manager,
+      );
 
-    if (existingToken) {
-      throw new ConflictException({
-        message: "A password reset request already exists.",
-        error: "PASSWORD_RESET_ALREADY_EXISTS",
-        expires_at: existingToken.expires_at,
-      });
-    }
+      if (existingToken) {
+        throw new ConflictException({
+          message: "A password reset request already exists.",
+          error: "PASSWORD_RESET_ALREADY_EXISTS",
+          expires_at: existingToken.expires_at,
+        });
+      }
 
-    const rawToken = this.generateToken();
-    const tokenHash = this.hashToken(rawToken);
-    const expiresAt = new Date(Date.now() + this.resetTokenTtlMs);
+      const rawToken = this.generateToken();
+      const tokenHash = this.hashToken(rawToken);
+      const expiresAt = new Date(Date.now() + this.resetTokenTtlMs);
 
-    const created = await this.passwordResetRepository.createToken(
-      userId,
-      tokenHash,
-      expiresAt,
-    );
+      const created = await this.passwordResetRepository.createToken(
+        userId,
+        tokenHash,
+        expiresAt,
+        manager,
+      );
 
-    return {
-      id: created.id,
-      token: rawToken,
-      expires_at: expiresAt,
-    };
+      return {
+        id: created.id,
+        token: rawToken,
+        expires_at: expiresAt,
+      };
+    });
   }
 
   async findByUserId(userId: string): Promise<PasswordResetTokenEntity | null> {

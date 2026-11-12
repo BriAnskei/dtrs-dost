@@ -14,18 +14,26 @@ export class PasswordResetRepository {
     userId: string,
     tokenHash: string,
     expiresAt: Date,
+    manager?: EntityManager,
   ): Promise<PasswordResetTokenEntity> {
-    const token = this.repository.create({
+    const repo = manager ? manager.getRepository(PasswordResetTokenEntity) : this.repository;
+
+    const token = repo.create({
       user_id: userId,
       token_hash: tokenHash,
       expires_at: expiresAt,
     });
 
-    return this.repository.save(token);
+    return repo.save(token);
   }
 
-  async findByUserId(userId: string): Promise<PasswordResetTokenEntity | null> {
-    return this.repository.findOne({
+  async findByUserId(
+    userId: string,
+    manager?: EntityManager,
+  ): Promise<PasswordResetTokenEntity | null> {
+    const repo = manager ? manager.getRepository(PasswordResetTokenEntity) : this.repository;
+
+    return repo.findOne({
       where: {
         user_id: userId,
       },
@@ -50,6 +58,26 @@ export class PasswordResetRepository {
       .setLock("pessimistic_write")
       .where("reset.token_hash = :tokenHash", {
         tokenHash,
+      })
+      .getOne();
+  }
+
+  /**
+   * Locks the reset-token row scoped by `user_id` (unique) for the duration of
+   * the transaction. When no row exists yet, the gap lock on the unique index
+   * blocks concurrent inserts of the same `user_id`, so `createResetRequest`
+   * can check-then-create without a duplicate-key race.
+   */
+  async findByUserIdForUpdate(
+    userId: string,
+    manager: EntityManager,
+  ): Promise<PasswordResetTokenEntity | null> {
+    return manager
+      .getRepository(PasswordResetTokenEntity)
+      .createQueryBuilder("reset")
+      .setLock("pessimistic_write")
+      .where("reset.user_id = :userId", {
+        userId,
       })
       .getOne();
   }

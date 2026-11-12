@@ -54,8 +54,11 @@ export class UserService {
 
   async create(userData: CreateUserDto): Promise<void> {
     return this.dataSource.transaction(async (manager) => {
-      const existingUserWithThisEmail = await this.userRepository.findByEmail(
+      // Lock the email slot (unique) so concurrent creates of the same
+      // email cannot both pass the existence check and race on insert.
+      const existingUserWithThisEmail = await this.userRepository.findByEmailForUpdate(
         userData.email,
+        manager,
       );
 
       if (existingUserWithThisEmail) {
@@ -240,14 +243,19 @@ export class UserService {
 
   async update(id: string, dto: UpdateUserDto): Promise<void> {
     await this.dataSource.transaction(async (manager) => {
-      const user = await this.userRepository.findById(id, manager);
+      // Lock the target user row so concurrent updates to the same user
+      // are serialized instead of racing on the email unique constraint.
+      const user = await this.userRepository.findByIdForUpdate(id, manager);
 
       if (!user) {
         throw new NotFoundException("User not found.");
       }
 
       if (dto.email && dto.email !== user.email) {
-        const existingUser = await this.userRepository.findByEmail(dto.email, manager);
+        const existingUser = await this.userRepository.findByEmailForUpdate(
+          dto.email,
+          manager,
+        );
 
         if (existingUser && existingUser.id !== id) {
           throw new ConflictException({

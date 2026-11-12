@@ -50,6 +50,7 @@ describe("PasswordResetService", () => {
   let passwordResetRepository: {
     createToken: jest.Mock;
     findByUserId: jest.Mock;
+    findByUserIdForUpdate: jest.Mock;
     findByTokenHash: jest.Mock;
     findByTokenHashForUpdate: jest.Mock;
     delete: jest.Mock;
@@ -73,6 +74,7 @@ describe("PasswordResetService", () => {
     passwordResetRepository = {
       createToken: jest.fn(),
       findByUserId: jest.fn(),
+      findByUserIdForUpdate: jest.fn(),
       findByTokenHash: jest.fn(),
       findByTokenHashForUpdate: jest.fn(),
       delete: jest.fn(),
@@ -134,9 +136,13 @@ describe("PasswordResetService", () => {
      * - The correct 15-minute TTL
      * - A token hash passed to the repository that matches the hash of
      *   the raw token
+     *
+     * The lookup now uses `findByUserIdForUpdate` (pessimistic write lock)
+     * inside a transaction so concurrent reset requests for the same user
+     * cannot race on the `user_id` unique constraint.
      */
     it("should create a password reset token when no existing token found", async () => {
-      passwordResetRepository.findByUserId.mockResolvedValue(null);
+      passwordResetRepository.findByUserIdForUpdate.mockResolvedValue(null);
       const expectedExpiresAt = new Date(Date.now() + TOKEN_TTL_MS);
 
       const fakeCreatedToken = {
@@ -150,12 +156,17 @@ describe("PasswordResetService", () => {
 
       const result = await service.createResetRequest(mockUserId);
 
-      expect(passwordResetRepository.findByUserId).toHaveBeenCalledWith(mockUserId);
+      expect(dataSource.transaction).toHaveBeenCalledTimes(1);
+      expect(passwordResetRepository.findByUserIdForUpdate).toHaveBeenCalledWith(
+        mockUserId,
+        mockEntityManager,
+      );
       expect(randomBytes).toHaveBeenCalledWith(32);
       expect(passwordResetRepository.createToken).toHaveBeenCalledWith(
         mockUserId,
         fixedTokenHash,
         expect.any(Date),
+        mockEntityManager,
       );
       expect(passwordResetRepository.createToken).toHaveBeenLastCalledWith(
         mockUserId,
@@ -163,6 +174,7 @@ describe("PasswordResetService", () => {
         expect.objectContaining({
           getTime: expect.any(Function),
         }),
+        mockEntityManager,
       );
 
       expect(result.id).toBe("created-token-id");
@@ -184,7 +196,7 @@ describe("PasswordResetService", () => {
         user_id: mockUserId,
         created_at: new Date(),
       };
-      passwordResetRepository.findByUserId.mockResolvedValue(existingToken);
+      passwordResetRepository.findByUserIdForUpdate.mockResolvedValue(existingToken);
 
       await expect(service.createResetRequest(mockUserId)).rejects.toThrow(
         ConflictException,
