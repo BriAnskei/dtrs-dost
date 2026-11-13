@@ -1,40 +1,30 @@
 import { BadRequestException, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { EntityManager, Repository, SelectQueryBuilder } from "typeorm";
-import { decodeCursor, encodeCursor } from "../../../../common/pagination/cursor";
-import { PaginatedResponse } from "../../../../common/pagination/paginated-response";
-import { escapeLike } from "../../../../util/escapeLike";
-import { AssignmentSort } from "../dto/get-incoming-document-assignments-dto";
+import { decodeCursor, encodeCursor } from "../../../../../common/pagination/cursor";
+import { PaginatedResponse } from "../../../../../common/pagination/paginated-response";
+import { escapeLike } from "../../../../../util/escapeLike";
+import { GetDivisionIncomingDocumentAssignmentsDto } from "../../dto/get-division-incoming-document-assignments.dto";
+import { AssignmentSort } from "../../dto/get-incoming-document-assignments-dto";
 import {
   IncomingDocumentAssignmentEntity,
   OfficeType,
-} from "../entities/incoming-document-assignment.entity";
-import { IncomingDocumentRoutingEntity } from "../entities/incoming-document-routing.entity";
-import { AssignmentStatus } from "../enums/assignment-status.enum";
+} from "../../entities/incoming-document-assignment.entity";
+import { IncomingDocumentRoutingEntity } from "../../entities/incoming-document-routing.entity";
+import { AssignmentStatus } from "../../enums/assignment-status.enum";
 import {
   GetIncomingDocumentAssignmentsFilters,
   IncomingDocumentAssignmentCursor,
-} from "../types/get-incoming-document-assignment.type";
+} from "../../types/get-incoming-document-assignment.type";
 
 type AssignmentQueryBuilder = SelectQueryBuilder<IncomingDocumentAssignmentEntity>;
 
 @Injectable()
-export class IncomingDocumentAssignmentsRepository {
+export class IncomingDocumentAssignmentsReadRepository {
   constructor(
     @InjectRepository(IncomingDocumentAssignmentEntity)
     private readonly repository: Repository<IncomingDocumentAssignmentEntity>,
   ) {}
-
-  async insertMany(
-    assignments: Partial<IncomingDocumentAssignmentEntity>[],
-    manager: EntityManager,
-  ): Promise<void> {
-    if (assignments.length === 0) {
-      return;
-    }
-
-    await manager.getRepository(IncomingDocumentAssignmentEntity).insert(assignments);
-  }
 
   async findAllByRoutingId(
     routingId: string,
@@ -55,6 +45,86 @@ export class IncomingDocumentAssignmentsRepository {
       .leftJoinAndSelect("assignment.action_taken_by", "action_taken_by")
       .where("routing.id = :routingId", { routingId })
       .getMany();
+  }
+
+  async findAllByRoutedDivision(
+    divisionId: string,
+    filters: GetDivisionIncomingDocumentAssignmentsDto,
+  ): Promise<PaginatedResponse<IncomingDocumentAssignmentEntity>> {
+    const { limit, search, status, cursor, sort } = filters;
+
+    const queryBuilder = this.repository
+      .createQueryBuilder("assignment")
+
+      // Assigned by
+      .leftJoin("assignment.created_by", "createdBy")
+      .addSelect(["createdBy.id", "createdBy.full_name", "createdBy.position"])
+
+      // Division
+      .leftJoin("assignment.division", "division")
+      .addSelect(["division.id", "division.division_name"])
+
+      // Action taken by
+      .leftJoin("assignment.action_taken_by", "actionTakenBy")
+      .addSelect([
+        "actionTakenBy.id",
+        "actionTakenBy.full_name",
+        "actionTakenBy.position",
+      ])
+
+      // Match assignments with their routed division
+      .innerJoin(
+        IncomingDocumentRoutingEntity,
+        "routing",
+        `
+        routing.incoming_document_id = assignment.incoming_document_id
+        AND routing.division_id = assignment.division_id
+      `,
+      )
+
+      .where("assignment.office_type = :officeType", {
+        officeType: OfficeType.DIVISION,
+      });
+
+    // Division filter
+    if (divisionId) {
+      queryBuilder.andWhere("routing.division_id = :divisionId", {
+        divisionId,
+      });
+    }
+
+    this.applySearchFilter(queryBuilder, search);
+    this.applyStatusFilter(queryBuilder, status);
+
+    if (cursor) {
+      this.applyCursor(queryBuilder, cursor, sort);
+    }
+
+    this.applySorting(queryBuilder, sort);
+
+    const assignments = await queryBuilder.limit(limit + 1).getMany();
+
+    const hasNextPage = assignments.length > limit;
+
+    if (hasNextPage) {
+      assignments.pop();
+    }
+
+    const lastAssignment = assignments.at(-1);
+
+    const nextCursor =
+      hasNextPage && lastAssignment
+        ? encodeCursor<IncomingDocumentAssignmentCursor>({
+            id: lastAssignment.id,
+            sort,
+            sortValue: lastAssignment.created_at.toISOString(),
+          })
+        : null;
+
+    return {
+      data: assignments,
+      nextCursor,
+    };
   }
 
   async findAllByIncomingDocumentId(
@@ -126,6 +196,39 @@ export class IncomingDocumentAssignmentsRepository {
       data: assignments,
       nextCursor,
     };
+  }
+
+  async existsByStatuses(
+    incomingDocumentId: string,
+    divisionId: string,
+    statuses: AssignmentStatus[],
+    manager: EntityManager,
+  ): Promise<boolean> {
+    return manager
+      .getRepository(IncomingDocumentAssignmentEntity)
+      .createQueryBuilder("assignment")
+      .where("assignment.incoming_document_id = :incomingDocumentId", {
+        incomingDocumentId,
+      })
+      .andWhere("assignment.division_id = :divisionId", {
+        divisionId,
+      })
+      .andWhere("assignment.status IN (:...statuses)", {
+        statuses,
+      })
+      .getExists();
+  }
+
+  async findById(
+    id: string,
+    manager?: EntityManager,
+  ): Promise<IncomingDocumentAssignmentEntity | null> {
+    const repo =
+      manager?.getRepository(IncomingDocumentAssignmentEntity) ?? this.repository;
+
+    return repo.findOne({
+      where: { id },
+    });
   }
 
   private applySearchFilter(queryBuilder: AssignmentQueryBuilder, search?: string): void {
@@ -235,83 +338,5 @@ export class IncomingDocumentAssignmentsRepository {
       default:
         throw new BadRequestException("Unsupported sort order");
     }
-  }
-
-  async existsByStatuses(
-    incomingDocumentId: string,
-    divisionId: string,
-    statuses: AssignmentStatus[],
-    manager: EntityManager,
-  ): Promise<boolean> {
-    return manager
-      .getRepository(IncomingDocumentAssignmentEntity)
-      .createQueryBuilder("assignment")
-      .where("assignment.incoming_document_id = :incomingDocumentId", {
-        incomingDocumentId,
-      })
-      .andWhere("assignment.division_id = :divisionId", {
-        divisionId,
-      })
-      .andWhere("assignment.status IN (:...statuses)", {
-        statuses,
-      })
-      .getExists();
-  }
-
-  async findForUpdate(
-    assignmentId: string,
-    manager: EntityManager,
-  ): Promise<IncomingDocumentAssignmentEntity | null> {
-    return manager
-      .getRepository(IncomingDocumentAssignmentEntity)
-      .createQueryBuilder("assignment")
-      .setLock("pessimistic_write")
-      .where("assignment.id = :assignmentId", { assignmentId })
-      .getOne();
-  }
-
-  async findById(
-    id: string,
-    manager?: EntityManager,
-  ): Promise<IncomingDocumentAssignmentEntity | null> {
-    const repo =
-      manager?.getRepository(IncomingDocumentAssignmentEntity) ?? this.repository;
-
-    return repo.findOne({
-      where: { id },
-    });
-  }
-
-  async complete(
-    assignmentId: string,
-    actionTaken: string,
-    actionTakenById: string,
-    manager: EntityManager,
-  ): Promise<boolean> {
-    const result = await manager
-      .createQueryBuilder()
-      .update(IncomingDocumentAssignmentEntity)
-      .set({
-        status: AssignmentStatus.COMPLETE,
-        action_taken: actionTaken,
-        action_taken_at: () => "CURRENT_TIMESTAMP",
-        action_taken_by_id: actionTakenById,
-      })
-      .where("id = :assignmentId", { assignmentId })
-      .andWhere("status IN (:...statuses)", {
-        statuses: [AssignmentStatus.PENDING, AssignmentStatus.ONGOING],
-      })
-      .execute();
-
-    return (result.affected ?? 0) > 0;
-  }
-
-  async delete(id: string, manager?: EntityManager): Promise<boolean> {
-    const repo =
-      manager?.getRepository(IncomingDocumentAssignmentEntity) ?? this.repository;
-
-    const res = await repo.delete(id);
-
-    return (res.affected ?? 0) > 0;
   }
 }

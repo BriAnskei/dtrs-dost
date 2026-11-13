@@ -4,7 +4,7 @@ import { DataSource } from "typeorm";
 import { Role } from "../../../../../auth/authorization/enum/roles.enum";
 import { OfficeType } from "../../entities/incoming-document-assignment.entity";
 import { AssignmentStatus } from "../../enums/assignment-status.enum";
-import { IncomingDocumentAssignmentsRepository } from "../../repository/incoming-document-assignment.repository";
+import { IncomingDocumentAssignmentsWriteRepository } from "../../repository/incoming-document-assignment-repository/incoming-document-assignment.write.repository";
 import { CompleteIncomingDocumentAssignmentCommand } from "./complete-incoming-document-assignment.command";
 
 @CommandHandler(CompleteIncomingDocumentAssignmentCommand)
@@ -12,7 +12,7 @@ export class CompleteIncomingDocumentAssignmentHandler
   implements ICommandHandler<CompleteIncomingDocumentAssignmentCommand>
 {
   constructor(
-    private readonly assignmentRepository: IncomingDocumentAssignmentsRepository,
+    private readonly assignmentWriteRepository: IncomingDocumentAssignmentsWriteRepository,
     private readonly dataSource: DataSource,
   ) {}
 
@@ -23,7 +23,7 @@ export class CompleteIncomingDocumentAssignmentHandler
     const DIVISION_TYPE_ROLE_ALLOWED = [Role.Division];
 
     await this.dataSource.transaction(async (manager) => {
-      const assignment = await this.assignmentRepository.findForUpdate(
+      const assignment = await this.assignmentWriteRepository.findForUpdate(
         assignmentId,
         manager,
       );
@@ -55,18 +55,18 @@ export class CompleteIncomingDocumentAssignmentHandler
       ) {
         throw new ConflictException("Incoming document assignment cannot be completed.");
       }
-      if (
-        !(await this.assignmentRepository.complete(
-          assignmentId,
-          dto.actionTaken.trim(),
-          userId,
-          manager,
-        ))
-      ) {
+
+      const res = await this.assignmentWriteRepository.complete(
+        assignmentId,
+        dto.actionTaken.trim(),
+        userId,
+        manager,
+      );
+
+      if (!res)
         throw new ConflictException(
           "Incoming document assignment could not be completed.",
         );
-      }
     });
   }
 }

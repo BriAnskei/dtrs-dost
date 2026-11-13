@@ -7,8 +7,9 @@ import {
   OfficeType,
 } from "../../entities/incoming-document-assignment.entity";
 import { mapIncomingDocumentError } from "../../exceptions/incoming-document-error.mapper";
-import { IncomingDocumentsRepository } from "../../repository/incoming-document.repository";
-import { IncomingDocumentAssignmentsRepository } from "../../repository/incoming-document-assignment.repository";
+import { IncomingDocumentAssignmentsWriteRepository } from "../../repository/incoming-document-assignment-repository/incoming-document-assignment.write.repository";
+import { IncomingDocumentsReadRepository } from "../../repository/incoming-document-repository/incoming-document.read.repository";
+import { IncomingDocumentsWriteRepository } from "../../repository/incoming-document-repository/incoming-document.write.repository";
 import { IncomingDocumentRoutingRepository } from "../../repository/incoming-document-routing-repository";
 import { AssignmentCounterService } from "../../services/assignment-counter.service";
 import { AssignIncomingDocumentToDivisionCommand } from "./assign-incoming-document-to-division.command";
@@ -19,9 +20,10 @@ export class AssignIncomingDocumentToDivisionHandler
 {
   constructor(
     private readonly dataSource: DataSource,
-    private readonly incomingRepository: IncomingDocumentsRepository,
+    private readonly incomingWriteRepository: IncomingDocumentsWriteRepository,
+    private readonly incomingReadRepository: IncomingDocumentsReadRepository,
     private readonly routingRepository: IncomingDocumentRoutingRepository,
-    private readonly assignmentsRepository: IncomingDocumentAssignmentsRepository,
+    private readonly assignmentWriteRepository: IncomingDocumentAssignmentsWriteRepository,
     private readonly divisionService: DivisionService,
     private readonly counterService: AssignmentCounterService,
   ) {}
@@ -33,7 +35,7 @@ export class AssignIncomingDocumentToDivisionHandler
 
     try {
       return await this.dataSource.transaction(async (manager) => {
-        const incomingDocument = await this.incomingRepository.findById(
+        const incomingDocument = await this.incomingReadRepository.findById(
           dto.incomingDocumentId,
           manager,
         );
@@ -73,7 +75,7 @@ export class AssignIncomingDocumentToDivisionHandler
             created_by_id: createdById,
           }));
 
-        await this.assignmentsRepository.insertMany(assignments, manager);
+        await this.assignmentWriteRepository.insertMany(assignments, manager);
 
         await this.createCounters(
           {
@@ -84,7 +86,7 @@ export class AssignIncomingDocumentToDivisionHandler
           manager,
         );
 
-        await this.incomingRepository.update(
+        await this.incomingWriteRepository.update(
           dto.incomingDocumentId,
           { updated_at: new Date() },
           manager,

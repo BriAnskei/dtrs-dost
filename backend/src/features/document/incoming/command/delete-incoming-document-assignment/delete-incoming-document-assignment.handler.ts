@@ -6,8 +6,8 @@ import {
   OfficeType,
 } from "../../entities/incoming-document-assignment.entity";
 import { AssignmentStatus } from "../../enums/assignment-status.enum";
-import { IncomingDocumentsRepository } from "../../repository/incoming-document.repository";
-import { IncomingDocumentAssignmentsRepository } from "../../repository/incoming-document-assignment.repository";
+import { IncomingDocumentAssignmentsWriteRepository } from "../../repository/incoming-document-assignment-repository/incoming-document-assignment.write.repository";
+import { IncomingDocumentsWriteRepository } from "../../repository/incoming-document-repository/incoming-document.write.repository";
 import { IncomingDocumentRoutingRepository } from "../../repository/incoming-document-routing-repository";
 import { AssignmentCounterService } from "../../services/assignment-counter.service";
 import { DeleteIncomingDocumentAssignmentCommand } from "./delete-incoming-document-assignment.command";
@@ -18,9 +18,9 @@ export class DeleteIncomingDocumentAssignmentHandler
 {
   constructor(
     private readonly dataSource: DataSource,
-    private readonly assignmentRepository: IncomingDocumentAssignmentsRepository,
+    private readonly assignmentWriteRepository: IncomingDocumentAssignmentsWriteRepository,
     private readonly routingRepository: IncomingDocumentRoutingRepository,
-    private readonly incomingRepository: IncomingDocumentsRepository,
+    private readonly incomingWriteRepository: IncomingDocumentsWriteRepository,
     private readonly counterService: AssignmentCounterService,
   ) {}
 
@@ -38,7 +38,7 @@ export class DeleteIncomingDocumentAssignmentHandler
 
       const routingId = await this.findRoutingId(assignment, manager);
 
-      await this.assignmentRepository.delete(assignmentId, manager);
+      await this.assignmentWriteRepository.delete(assignmentId, manager);
 
       await this.adjustCounters(
         incomingDocumentId,
@@ -56,7 +56,7 @@ export class DeleteIncomingDocumentAssignmentHandler
     incomingDocumentId: string,
     manager: EntityManager,
   ): Promise<IncomingDocumentAssignmentEntity> {
-    const assignment = await this.assignmentRepository.findForUpdate(
+    const assignment = await this.assignmentWriteRepository.findForUpdate(
       assignmentId,
       manager,
     );
@@ -117,7 +117,7 @@ export class DeleteIncomingDocumentAssignmentHandler
     incomingDocumentId: string,
     manager: EntityManager,
   ): Promise<void> {
-    await this.incomingRepository.update(
+    await this.incomingWriteRepository.update(
       incomingDocumentId,
       { updated_at: new Date() },
       manager,

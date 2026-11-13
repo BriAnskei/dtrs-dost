@@ -6,8 +6,9 @@ import {
   OfficeType,
 } from "../../entities/incoming-document-assignment.entity";
 import { AssignmentStatus } from "../../enums/assignment-status.enum";
-import { IncomingDocumentsRepository } from "../../repository/incoming-document.repository";
-import { IncomingDocumentAssignmentsRepository } from "../../repository/incoming-document-assignment.repository";
+import { IncomingDocumentAssignmentsWriteRepository } from "../../repository/incoming-document-assignment-repository/incoming-document-assignment.write.repository";
+import { IncomingDocumentsReadRepository } from "../../repository/incoming-document-repository/incoming-document.read.repository";
+import { IncomingDocumentsWriteRepository } from "../../repository/incoming-document-repository/incoming-document.write.repository";
 import { IncomingDocumentRoutingRepository } from "../../repository/incoming-document-routing-repository";
 import { AssignmentCounterService } from "../../services/assignment-counter.service";
 import { CreateIncomingDocumentAssignmentsCommand } from "./create-incoming-document-assigments.command";
@@ -18,9 +19,10 @@ export class CreateIncomingDocumentAssignmentsHandler
 {
   constructor(
     private readonly dataSource: DataSource,
-    private readonly incomingRepository: IncomingDocumentsRepository,
+    private readonly incomingReadRepository: IncomingDocumentsReadRepository,
+    private readonly incomingWriteRepository: IncomingDocumentsWriteRepository,
     private readonly routingRepository: IncomingDocumentRoutingRepository,
-    private readonly assignmentsRepository: IncomingDocumentAssignmentsRepository,
+    private readonly assignmentWriteRepository: IncomingDocumentAssignmentsWriteRepository,
     private readonly counterService: AssignmentCounterService,
   ) {}
 
@@ -45,7 +47,7 @@ export class CreateIncomingDocumentAssignmentsHandler
         context,
       );
 
-      await this.assignmentsRepository.insertMany(assignments, manager);
+      await this.assignmentWriteRepository.insertMany(assignments, manager);
 
       await this.adjustCounters(
         incomingDocumentId,
@@ -62,7 +64,7 @@ export class CreateIncomingDocumentAssignmentsHandler
     incomingDocumentId: string,
     manager: EntityManager,
   ): Promise<void> {
-    const incomingDocument = await this.incomingRepository.findById(
+    const incomingDocument = await this.incomingReadRepository.findById(
       incomingDocumentId,
       manager,
     );
@@ -154,7 +156,7 @@ export class CreateIncomingDocumentAssignmentsHandler
     incomingDocumentId: string,
     manager: EntityManager,
   ): Promise<void> {
-    await this.incomingRepository.update(
+    await this.incomingWriteRepository.update(
       incomingDocumentId,
       { updated_at: new Date() },
       manager,

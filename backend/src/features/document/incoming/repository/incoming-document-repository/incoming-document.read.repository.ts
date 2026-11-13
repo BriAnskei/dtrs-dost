@@ -1,39 +1,31 @@
 import { BadRequestException, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { EntityManager, Repository, SelectQueryBuilder } from "typeorm";
-import { decodeCursor, encodeCursor } from "../../../../common/pagination/cursor";
-import { applyCursorCondition } from "../../../../common/pagination/cursor-query.util";
-import { PaginatedResponse } from "../../../../common/pagination/paginated-response";
-import { escapeLike } from "../../../../util/escapeLike";
-import { FindIncomingDocumentsQueryDto } from "../dto/find-incoming-documents-query.dto";
-import { RoutedIncomingDocumentDetailsDto } from "../dto/get-division-incoming-document-details-dto";
+import { decodeCursor, encodeCursor } from "../../../../../common/pagination/cursor";
+import { applyCursorCondition } from "../../../../../common/pagination/cursor-query.util";
+import { PaginatedResponse } from "../../../../../common/pagination/paginated-response";
+import { escapeLike } from "../../../../../util/escapeLike";
+import { FindIncomingDocumentsQueryDto } from "../../dto/find-incoming-documents-query.dto";
+import { RoutedIncomingDocumentDetailsDto } from "../../dto/get-division-incoming-document-details-dto";
 import {
   IncomingDocumentEntity,
   IncomingDocumentStatus,
-} from "../entities/incoming-document-entity";
-import { IncomingDocumentDateField } from "../enums/incoming-document-date-field.enum";
-import { IncomingDocumentSortOrder } from "../enums/incoming-document-sort-order.enum";
-import { IncomingDocumentDetailsRaw } from "../types/get-division-incoming-document-details.types";
-import { IncomingDocumentCursor } from "../types/incoming-document-cursor";
+} from "../../entities/incoming-document-entity";
+import { IncomingDocumentDateField } from "../../enums/incoming-document-date-field.enum";
+import { IncomingDocumentSortOrder } from "../../enums/incoming-document-sort-order.enum";
+import { IncomingDocumentDetailsRaw } from "../../types/get-division-incoming-document-details.types";
+import { IncomingDocumentCursor } from "../../types/incoming-document-cursor";
 
 type IncomingQueryBuilder = SelectQueryBuilder<IncomingDocumentEntity>;
 
 @Injectable()
-export class IncomingDocumentsRepository {
+export class IncomingDocumentsReadRepository {
   private static readonly APP_TIME_ZONE = "Asia/Manila";
 
   constructor(
     @InjectRepository(IncomingDocumentEntity)
     private readonly repository: Repository<IncomingDocumentEntity>,
   ) {}
-
-  async create(
-    data: Partial<IncomingDocumentEntity>,
-    manager: EntityManager,
-  ): Promise<IncomingDocumentEntity> {
-    const repository = manager.getRepository(IncomingDocumentEntity);
-    return repository.save(repository.create(data));
-  }
 
   async findDetailsByDivision(
     incomingDocumentId: string,
@@ -194,7 +186,7 @@ export class IncomingDocumentsRepository {
       // Convert the date-only bounds to Manila-midnight instants so the filter
       // doesn't depend on the DB session timezone. The column stays untouched,
       // so idx_incoming_documents_created_id can be used.
-      const tz = IncomingDocumentsRepository.APP_TIME_ZONE;
+      const tz = IncomingDocumentsReadRepository.APP_TIME_ZONE;
 
       if (startDate) {
         queryBuilder.andWhere(
@@ -437,15 +429,5 @@ export class IncomingDocumentsRepository {
       document,
       assignedDivisionCount: Number(routingCount?.assigned_division_count ?? 0),
     };
-  }
-
-  async update(
-    id: string,
-    payload: Partial<IncomingDocumentEntity>,
-    manager: EntityManager,
-  ): Promise<boolean> {
-    const result = await manager.update(IncomingDocumentEntity, id, payload);
-
-    return (result.affected ?? 0) > 0;
   }
 }

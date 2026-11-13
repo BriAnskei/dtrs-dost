@@ -5,8 +5,8 @@ import { capitalizeWords } from "../../../../../util/capitalizer";
 import { DocumentFileService } from "../../../document-file/service/document-file.service";
 import { ExtractedDocumentQueueService } from "../../../extracted-document-queue/service/extracted-document-queue.service";
 import { generateDocumentCode } from "../../../utils/document-code.util";
-import { IncomingDocumentsRepository } from "../../repository/incoming-document.repository";
 import { IncomingDocumentAssignmentCountRepository } from "../../repository/incoming-document-assignment-counts.repository";
+import { IncomingDocumentsWriteRepository } from "../../repository/incoming-document-repository/incoming-document.write.repository";
 import { AssignmentCounterService } from "../../services/assignment-counter.service";
 import { CreateIncomingFromQueueCommand } from "./create-incoming-from-queue.command";
 
@@ -18,7 +18,7 @@ export class CreateIncomingFromQueueHandler
   constructor(
     private readonly dataSource: DataSource,
     private readonly extractedDocumentQueueService: ExtractedDocumentQueueService,
-    private readonly incomingDocumentsRepository: IncomingDocumentsRepository,
+    private readonly incomingWriteRepository: IncomingDocumentsWriteRepository,
     private readonly documentFileService: DocumentFileService,
     private readonly assignmentCountRepository: IncomingDocumentAssignmentCountRepository,
 
@@ -36,7 +36,7 @@ export class CreateIncomingFromQueueHandler
 
       const documentFileId = queue.document_file_id;
 
-      const savedDocument = await this.incomingDocumentsRepository.create(
+      const savedDocument = await this.incomingWriteRepository.create(
         {
           document_file_id: documentFileId,
           subject: capitalizeWords(dto.subject),

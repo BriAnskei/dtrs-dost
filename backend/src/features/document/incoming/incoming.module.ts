@@ -29,9 +29,11 @@ import { GetIncomingDocumentDetailsHandler } from "./query/get-incoming-document
 import { GetIncomingDocumentFileStreamHandler } from "./query/get-incoming-file-stream/get-incoming-document-file-stream.handler";
 import { GetReceiverQueueDetailsHandler } from "./query/get-receiver-queue-details/get-incoming-document-by-queue.handler";
 import { SearchRoutedDivisionHandler } from "./query/search-routed-division/search-routed-division.handler";
-import { IncomingDocumentsRepository } from "./repository/incoming-document.repository";
-import { IncomingDocumentAssignmentsRepository } from "./repository/incoming-document-assignment.repository";
 import { IncomingDocumentAssignmentCountRepository } from "./repository/incoming-document-assignment-counts.repository";
+import { IncomingDocumentAssignmentsReadRepository } from "./repository/incoming-document-assignment-repository/incoming-document-assignment.read.repository";
+import { IncomingDocumentAssignmentsWriteRepository } from "./repository/incoming-document-assignment-repository/incoming-document-assignment.write.repository";
+import { IncomingDocumentsReadRepository } from "./repository/incoming-document-repository/incoming-document.read.repository";
+import { IncomingDocumentsWriteRepository } from "./repository/incoming-document-repository/incoming-document.write.repository";
 import { IncomingDocumentRoutingAssignmentCounterRepository } from "./repository/incoming-document-routing-assignment-counter.repository";
 import { IncomingDocumentRoutingRepository } from "./repository/incoming-document-routing-repository";
 import { AssignmentCounterService } from "./services/assignment-counter.service";
@@ -56,9 +58,11 @@ import { AssignmentCounterService } from "./services/assignment-counter.service"
   controllers: [IncomingDocumentController, IncomingDocumentRoutingController],
   providers: [
     // Repositories
-    IncomingDocumentsRepository,
+    IncomingDocumentsReadRepository,
+    IncomingDocumentsWriteRepository,
     IncomingDocumentRoutingRepository,
-    IncomingDocumentAssignmentsRepository,
+    IncomingDocumentAssignmentsWriteRepository,
+    IncomingDocumentAssignmentsReadRepository,
     IncomingDocumentAssignmentCountRepository,
     IncomingDocumentRoutingAssignmentCounterRepository,
 

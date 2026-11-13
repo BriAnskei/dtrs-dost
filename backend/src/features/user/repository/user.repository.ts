@@ -59,22 +59,6 @@ export class UserRepository {
     });
   }
 
-  /**
-   * Locks the `users` row by primary key for the duration of the transaction,
-   * serializing concurrent updates to the same user.
-   */
-  async findByIdForUpdate(
-    id: string,
-    manager: EntityManager,
-  ): Promise<UserEntity | null> {
-    return manager
-      .getRepository(UserEntity)
-      .createQueryBuilder("user")
-      .setLock("pessimistic_write")
-      .where("user.id = :id", { id })
-      .getOne();
-  }
-
   async findCurrentUser(id: string): Promise<UserEntity | null> {
     return this.repository.findOne({
       where: { id },

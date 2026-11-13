@@ -6,7 +6,7 @@ import { S3Service } from "../../../../../storage/s3/s3.service";
 import { capitalizeWords } from "../../../../../util/capitalizer";
 import { DocumentFileService } from "../../../document-file/service/document-file.service";
 import { generateDocumentCode } from "../../../utils/document-code.util";
-import { IncomingDocumentsRepository } from "../../repository/incoming-document.repository";
+import { IncomingDocumentsWriteRepository } from "../../repository/incoming-document-repository/incoming-document.write.repository";
 import { AssignmentCounterService } from "../../services/assignment-counter.service";
 import { CreateIncomingDocumentCommand } from "./create-incoming-document.command";
 
@@ -18,7 +18,7 @@ export class CreateIncomingDocumentHandler
   private readonly logger = new Logger(CreateIncomingDocumentHandler.name);
 
   constructor(
-    private readonly repository: IncomingDocumentsRepository,
+    private readonly incomingWriteRepository: IncomingDocumentsWriteRepository,
     private readonly dataSource: DataSource,
     private readonly documentFileService: DocumentFileService,
     private readonly s3Service: S3Service,
@@ -48,7 +48,7 @@ export class CreateIncomingDocumentHandler
           manager,
         );
 
-        const savedDocument = await this.repository.create(
+        const savedDocument = await this.incomingWriteRepository.create(
           {
             document_file_id: documentFile.id,
             subject: capitalizeWords(dto.subject),
@@ -87,7 +87,7 @@ export class CreateIncomingDocumentHandler
       //   ),
       // );
 
-      return;
+      return result;
     } catch (error) {
       if (uploadCompleted) {
         try {

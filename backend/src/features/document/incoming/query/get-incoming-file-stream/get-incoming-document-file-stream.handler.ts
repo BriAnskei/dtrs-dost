@@ -3,7 +3,7 @@ import { NotFoundException } from "@nestjs/common";
 import { IQueryHandler, QueryHandler } from "@nestjs/cqrs";
 import { FileStreamResponse } from "../../../../../common/file-stream/document-file-stream.type";
 import { S3Service } from "../../../../../storage/s3/s3.service";
-import { IncomingDocumentsRepository } from "../../repository/incoming-document.repository";
+import { IncomingDocumentsReadRepository } from "../../repository/incoming-document-repository/incoming-document.read.repository";
 import { GetIncomingDocumentFileStreamQuery } from "./get-incoming-document-file-stream.query";
 
 @QueryHandler(GetIncomingDocumentFileStreamQuery)
@@ -11,12 +11,12 @@ export class GetIncomingDocumentFileStreamHandler
   implements IQueryHandler<GetIncomingDocumentFileStreamQuery, FileStreamResponse>
 {
   constructor(
-    private readonly incomingRepository: IncomingDocumentsRepository,
+    private readonly incomingReadRepository: IncomingDocumentsReadRepository,
     private readonly s3Service: S3Service,
   ) {}
 
   async execute(query: GetIncomingDocumentFileStreamQuery): Promise<FileStreamResponse> {
-    const incoming = await this.incomingRepository.findByIdWithFile(query.id);
+    const incoming = await this.incomingReadRepository.findByIdWithFile(query.id);
 
     if (!incoming) throw new NotFoundException("Cannot find data");
 

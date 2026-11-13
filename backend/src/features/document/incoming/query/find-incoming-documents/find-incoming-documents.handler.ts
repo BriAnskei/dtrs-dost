@@ -3,7 +3,7 @@ import { IQueryHandler, QueryHandler } from "@nestjs/cqrs";
 import { PaginatedResponse } from "../../../../../common/pagination/paginated-response";
 import { IncomingDocumentResponseDto } from "../../dto/incoming-document-response.dto";
 import { IncomingDocumentEntity } from "../../entities/incoming-document-entity";
-import { IncomingDocumentsRepository } from "../../repository/incoming-document.repository";
+import { IncomingDocumentsReadRepository } from "../../repository/incoming-document-repository/incoming-document.read.repository";
 import { FindIncomingDocumentsQuery } from "./find-incoming-documents.query";
 
 @Injectable()
@@ -11,12 +11,14 @@ import { FindIncomingDocumentsQuery } from "./find-incoming-documents.query";
 export class FindIncomingDocumentsHandler
   implements IQueryHandler<FindIncomingDocumentsQuery>
 {
-  constructor(private readonly repository: IncomingDocumentsRepository) {}
+  constructor(private readonly incomingReadRepository: IncomingDocumentsReadRepository) {}
 
   async execute(
     query: FindIncomingDocumentsQuery,
   ): Promise<PaginatedResponse<IncomingDocumentResponseDto>> {
-    const { data, nextCursor } = await this.repository.findAllWithRelation(query.filters);
+    const { data, nextCursor } = await this.incomingReadRepository.findAllWithRelation(
+      query.filters,
+    );
 
     return {
       data: data.map((document) => this.toDto(document)),

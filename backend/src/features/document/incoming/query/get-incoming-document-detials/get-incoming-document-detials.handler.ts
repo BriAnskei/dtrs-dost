@@ -1,23 +1,19 @@
 import { NotFoundException } from "@nestjs/common";
 import { IQueryHandler, QueryHandler } from "@nestjs/cqrs";
 import { IncomingDocumentDetailsDto } from "../../dto/incoming-document-details.dto";
-import { IncomingDocumentsRepository } from "../../repository/incoming-document.repository";
+import { IncomingDocumentsReadRepository } from "../../repository/incoming-document-repository/incoming-document.read.repository";
 import { GetIncomingDocumentDetailsQuery } from "./get-incoming-document-details.query";
 
 @QueryHandler(GetIncomingDocumentDetailsQuery)
 export class GetIncomingDocumentDetailsHandler
   implements IQueryHandler<GetIncomingDocumentDetailsQuery>
 {
-  constructor(
-    private readonly incomingDocumentsRepository: IncomingDocumentsRepository,
-  ) {}
+  constructor(private readonly incomingReadRepository: IncomingDocumentsReadRepository) {}
 
   async execute(
     query: GetIncomingDocumentDetailsQuery,
   ): Promise<IncomingDocumentDetailsDto> {
-    const result = await this.incomingDocumentsRepository.findByIdWithFullDetails(
-      query.id,
-    );
+    const result = await this.incomingReadRepository.findByIdWithFullDetails(query.id);
 
     if (!result) {
       throw new NotFoundException("Incoming document not found");

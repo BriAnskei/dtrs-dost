@@ -6,7 +6,7 @@ import {
   ReceiverIncomingDocumentDetailsDto,
   ReceiverInvalidationResponseDto,
 } from "../../dto/get-receiver-queue-details.dto";
-import { IncomingDocumentsRepository } from "../../repository/incoming-document.repository";
+import { IncomingDocumentsReadRepository } from "../../repository/incoming-document-repository/incoming-document.read.repository";
 import { GetReceiverQueueDetailsQuery } from "./get-receiver-queue-details.query";
 
 @QueryHandler(GetReceiverQueueDetailsQuery)
@@ -15,7 +15,7 @@ export class GetReceiverQueueDetailsHandler
 {
   constructor(
     private readonly extractedDocumentQueueService: ExtractedDocumentQueueService,
-    private readonly incomingDocumentsRepository: IncomingDocumentsRepository,
+    private readonly incomingReadRepository: IncomingDocumentsReadRepository,
     private readonly invalidationResponseRepository: InvalidationResponseRepository,
   ) {}
 
@@ -28,7 +28,7 @@ export class GetReceiverQueueDetailsHandler
 
     switch (queue.status) {
       case ExtractedDocumentQueueStatus.APPROVED: {
-        const incoming = await this.incomingDocumentsRepository.findByDocumentFileId(
+        const incoming = await this.incomingReadRepository.findByDocumentFileId(
           queue.document_file_id,
         );
 
