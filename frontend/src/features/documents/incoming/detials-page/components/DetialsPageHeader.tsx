@@ -10,18 +10,22 @@ interface DetailsPageHeaderProps {
   trackingNo: string;
   subject: string;
   status: IncomingDocumentStatus;
+  backPath?: string;
+  backLabel?: string;
 }
 
 export default function DetailsPageHeader({
   trackingNo,
   subject,
   status,
+  backPath = BACK_PATH,
+  backLabel = "Back to incoming documents",
 }: DetailsPageHeaderProps) {
   return (
     <header className="space-y-3">
-      <Link to={BACK_PATH} className={backLinkClass}>
+      <Link to={backPath} className={backLinkClass}>
         <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-        Back to incoming documents
+        {backLabel}
       </Link>
 
       <div className="flex flex-wrap items-center gap-3">

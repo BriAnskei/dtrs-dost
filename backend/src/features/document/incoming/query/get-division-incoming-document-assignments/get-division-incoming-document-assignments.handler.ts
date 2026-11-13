@@ -1,4 +1,4 @@
-import { BadRequestException } from "@nestjs/common";
+import { ForbiddenException } from "@nestjs/common";
 import { IQueryHandler, QueryHandler } from "@nestjs/cqrs";
 import { PaginatedResponse } from "../../../../../common/pagination/paginated-response";
 import { toIncomingDocumentAssignmentResponse } from "../../mapper/incoming-document-assignment-mapper";
@@ -17,20 +17,25 @@ export class GetDivisionIncomingDocumentAssignmentsHandler
   async execute(
     query: GetDivisionIncomingDocumentAssignmentsQuery,
   ): Promise<PaginatedResponse<IncomingDocumentAssignmentResponse>> {
-    const { divisionId } = query;
+    const { incomingDocumentId, divisionId, filters } = query;
 
+    // Division is extracted from the jwt handler, if there is no division added
+    // this user is not assignment to division, and cannot retrive details of assignments
     if (!divisionId) {
-      throw new BadRequestException("Only division users can access this request.");
+      throw new ForbiddenException(
+        "Division users can only access assignments associated with their division.",
+      );
     }
 
     const { data, nextCursor } =
       await this.assignmentReadRepository.findAllByRoutedDivision(
+        incomingDocumentId,
         divisionId,
-        query.filters,
+        filters,
       );
 
     return {
-      data: data.map((assignment) => toIncomingDocumentAssignmentResponse(assignment)),
+      data: data.map(toIncomingDocumentAssignmentResponse),
       nextCursor,
     };
   }

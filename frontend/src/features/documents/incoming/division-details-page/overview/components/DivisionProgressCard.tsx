@@ -1,4 +1,4 @@
-import DetailsCard from "../../detials-page/overview/component/DetialsCard";
+import DetailsCard from "../../../detials-page/overview/component/DetialsCard";
 
 export interface DivisionAssignmentProgress {
   /** All assignments routed to this division. */

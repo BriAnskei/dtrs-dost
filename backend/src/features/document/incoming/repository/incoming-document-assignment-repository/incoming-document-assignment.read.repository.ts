@@ -48,6 +48,7 @@ export class IncomingDocumentAssignmentsReadRepository {
   }
 
   async findAllByRoutedDivision(
+    incomingDocumentId: string,
     divisionId: string,
     filters: GetDivisionIncomingDocumentAssignmentsDto,
   ): Promise<PaginatedResponse<IncomingDocumentAssignmentEntity>> {
@@ -72,26 +73,35 @@ export class IncomingDocumentAssignmentsReadRepository {
         "actionTakenBy.position",
       ])
 
-      // Match assignments with their routed division
+      // Verify that the document is currently routed to this division.
       .innerJoin(
         IncomingDocumentRoutingEntity,
         "routing",
         `
         routing.incoming_document_id = assignment.incoming_document_id
-        AND routing.division_id = assignment.division_id
+        AND routing.incoming_document_id = :incomingDocumentId
+        AND routing.division_id = :divisionId
       `,
+        {
+          incomingDocumentId,
+          divisionId,
+        },
       )
 
-      .where("assignment.office_type = :officeType", {
+      // Specific document only
+      .where("assignment.incoming_document_id = :incomingDocumentId", {
+        incomingDocumentId,
+      })
+
+      // Assignments belonging to this division only
+      .andWhere("assignment.division_id = :divisionId", {
+        divisionId,
+      })
+
+      // Exclude MAIN assignments
+      .andWhere("assignment.office_type = :officeType", {
         officeType: OfficeType.DIVISION,
       });
-
-    // Division filter
-    if (divisionId) {
-      queryBuilder.andWhere("routing.division_id = :divisionId", {
-        divisionId,
-      });
-    }
 
     this.applySearchFilter(queryBuilder, search);
     this.applyStatusFilter(queryBuilder, status);

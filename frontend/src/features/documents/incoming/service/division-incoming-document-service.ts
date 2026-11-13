@@ -1,5 +1,7 @@
 import { apiClient } from "../../../../lib/api-client";
 import type { PaginatedResponse } from "../../../../type/paginated-response.type";
+import type { IncomingDocumentAssignment } from "../detials-page/assignment/types/incoming-document-assignment";
+import type { GetDivisionIncomingDocumentAssignmentsParams } from "../division-details-page/assignment/types/division-incoming-document-assignment";
 import type {
   DivisionIncomingDocument,
   FindDivisionIncomingDocumentsParams,
@@ -29,6 +31,24 @@ export const DivisionIncomingDocumentService = {
     const { data } = await apiClient.get<RoutedIncomingDocumentDetailsDto>(
       `${INCOMING_ROUTING_ENDPOINT}/${incomingDocumentId}/division/details`,
       { signal },
+    );
+
+    return data;
+  },
+
+  async getDivisionIncomingDocumentAssignments(
+    incomingDocumentId: string,
+    params?: GetDivisionIncomingDocumentAssignmentsParams,
+    cursor?: string,
+  ): Promise<PaginatedResponse<IncomingDocumentAssignment>> {
+    const { data } = await apiClient.get<PaginatedResponse<IncomingDocumentAssignment>>(
+      `${INCOMING_ROUTING_ENDPOINT}/division/${incomingDocumentId}/assignments`,
+      {
+        params: {
+          ...params,
+          cursor,
+        },
+      },
     );
 
     return data;

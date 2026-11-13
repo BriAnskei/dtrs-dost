@@ -2,6 +2,7 @@ import { GetDivisionIncomingDocumentAssignmentsDto } from "../../dto/get-divisio
 
 export class GetDivisionIncomingDocumentAssignmentsQuery {
   constructor(
+    public readonly incomingDocumentId: string,
     public readonly divisionId: string | null,
     public readonly filters: GetDivisionIncomingDocumentAssignmentsDto,
   ) {}

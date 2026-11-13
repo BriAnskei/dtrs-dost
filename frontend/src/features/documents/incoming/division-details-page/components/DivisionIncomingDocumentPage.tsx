@@ -1,14 +1,16 @@
 import PageMeta from "../../../../../components/common/PageMeta";
+import DetailsPageHeader from "../../detials-page/components/DetialsPageHeader";
 import DetailsPageSkeleton from "../../detials-page/components/DetialsPageSkeleton";
 import TabPlaceholder from "../../detials-page/components/TabPlaceHolder";
 import { panelDomId, tabDomId } from "../../detials-page/constant";
+import DivisionAssignmentsTab from "../assignment/components/DivisionAssignmentTab";
+import { DIVISION_BACK_PATH } from "../contants";
 import {
   DIVISION_DETAIL_TABS,
   useDivisionIncomingDocumentDetailsPage,
 } from "../hooks/use-division-incoming-document-details-page";
-import DivisionOverviewTab from "../overview/DivisionOverviewTab";
+import DivisionOverviewTab from "../overview/components/DivisionOverviewTab";
 import DivisionDetailsErrorState from "./DivisionDetailsErrorState";
-import DivisionDetailsPageHeader from "./DivisionDetailsHeader";
 import DivisionDetailsTabs from "./DivisionDetailsTabs";
 
 export default function DivisionIncomingDocumentDetailsPage() {
@@ -30,9 +32,11 @@ export default function DivisionIncomingDocumentDetailsPage() {
         ) : (
           <>
             <div className="space-y-2">
-              <DivisionDetailsPageHeader
-                trackingNo={trackingNo ?? null}
+              <DetailsPageHeader
+                trackingNo={trackingNo ?? ""}
                 subject={doc.subject}
+                status={doc.status}
+                backPath={DIVISION_BACK_PATH}
               />
               <DivisionDetailsTabs activeTab={tab} onChange={setTab} />
             </div>
@@ -40,11 +44,14 @@ export default function DivisionIncomingDocumentDetailsPage() {
               role="tabpanel"
               id={panelDomId(tab)}
               aria-labelledby={tabDomId(tab)}
+              // biome-ignore lint/a11y/noNoninteractiveTabindex: accessible tab interface using the WAI-ARIA tab pattern.
               tabIndex={0}
               className="focus:outline-none"
             >
               {tab === "overview" ? (
                 <DivisionOverviewTab doc={doc} progress={progress} file={file} />
+              ) : tab === "assignments" ? (
+                <DivisionAssignmentsTab incomingDocumentId={doc.id} />
               ) : (
                 <TabPlaceholder
                   label={DIVISION_DETAIL_TABS.find((t) => t.id === tab)?.label ?? ""}

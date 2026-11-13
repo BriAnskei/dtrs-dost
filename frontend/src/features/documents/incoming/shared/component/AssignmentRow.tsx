@@ -8,6 +8,7 @@ import {
   type LucideIcon,
   Trash2,
 } from "lucide-react";
+import type { ReactNode } from "react";
 import Skeleton from "react-loading-skeleton";
 import { formatDateTime } from "../../../../../utils/dateFormatter";
 import CompleteAssignmentPanel from "../../detials-page/assignment/components/CompleteAssignmentPanel";
@@ -122,6 +123,14 @@ function OfficePill({ a }: { a: IncomingDocumentAssignment }) {
 /*  Row                                                                       */
 /* -------------------------------------------------------------------------- */
 
+/** What `renderCompletePanel` receives. Same wiring the default panel gets. */
+export interface CompletePanelRenderArgs<T extends AssignmentLike> {
+  assignment: T;
+  panelId: string;
+  onCancel: () => void;
+  onCompleted: () => void;
+}
+
 export interface AssignmentRowProps<T extends AssignmentLike> {
   a: T;
   incomingDocumentId: string;
@@ -135,6 +144,18 @@ export interface AssignmentRowProps<T extends AssignmentLike> {
   onCompleted?: () => void;
   /** Label above the creator. Defaults to "Assigned by". */
   assignedByLabel?: string;
+  /**
+   * Decides whether the "Submit action" button shows for a row.
+   * Defaults to the admin rule (`canCompleteHere`: ONGOING + MAIN office).
+   */
+  canCompleteRow?: (a: T) => boolean;
+  /** Hide the office pill, e.g. in the division view where every row is the same office. */
+  hideOffice?: boolean;
+  /**
+   * Replaces the default (admin) inline Complete panel. Omit to keep
+   * `CompleteAssignmentPanel`.
+   */
+  renderCompletePanel?: (args: CompletePanelRenderArgs<T>) => ReactNode;
 }
 
 /**
@@ -158,13 +179,16 @@ export default function AssignmentRow<T extends AssignmentLike>({
   onCancelComplete,
   onCompleted,
   assignedByLabel = "Assigned by",
+  canCompleteRow = canCompleteHere,
+  hideOffice = false,
+  renderCompletePanel,
 }: AssignmentRowProps<T>) {
   const { icon: Icon, className, bg, line } = STATUS_ICON[a.status];
   const isComplete = a.status === "COMPLETE";
   // Only pending and ongoing notices can be deleted.
   const canDelete = !isComplete;
-  // Only ongoing MAIN notices are completed from here.
-  const canComplete = Boolean(onComplete) && canCompleteHere(a);
+  // Admin default: only ongoing MAIN notices. Override with `canCompleteRow`.
+  const canComplete = Boolean(onComplete) && canCompleteRow(a);
   const showPanel = isCompleting && canComplete;
   const panelId = `complete-panel-${a.id}`;
 
@@ -203,7 +227,7 @@ export default function AssignmentRow<T extends AssignmentLike>({
       <div className="min-w-0 flex-1 space-y-3">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
           <div className="order-2 min-w-0 space-y-1.5 sm:order-1">
-            <OfficePill a={a} />
+            {!hideOffice && <OfficePill a={a} />}
             <p className="wrap-break-word text-theme-sm font-medium text-gray-800 dark:text-white/90">
               {a.notice_of_action}
             </p>
@@ -243,15 +267,23 @@ export default function AssignmentRow<T extends AssignmentLike>({
           </div>
         </div>
 
-        {showPanel && (
-          <CompleteAssignmentPanel
-            incomingDocumentId={incomingDocumentId}
-            assignment={a}
-            panelId={panelId}
-            onCancel={onCancelComplete ?? noop}
-            onCompleted={onCompleted ?? noop}
-          />
-        )}
+        {showPanel &&
+          (renderCompletePanel ? (
+            renderCompletePanel({
+              assignment: a,
+              panelId,
+              onCancel: onCancelComplete ?? noop,
+              onCompleted: onCompleted ?? noop,
+            })
+          ) : (
+            <CompleteAssignmentPanel
+              incomingDocumentId={incomingDocumentId}
+              assignment={a}
+              panelId={panelId}
+              onCancel={onCancelComplete ?? noop}
+              onCompleted={onCompleted ?? noop}
+            />
+          ))}
 
         {isComplete && a.action_taken && (
           <div>

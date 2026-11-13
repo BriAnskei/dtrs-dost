@@ -5,6 +5,7 @@ export interface RoutedIncomingDocumentDetailsDto {
   summary: string | null;
   sender: string;
   recipient: string;
+  status: "pending" | "ongoing" | "complete";
   dateReceived: string;
   createdAt: string;
   updatedAt: string;

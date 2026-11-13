@@ -45,6 +45,7 @@ export class IncomingDocumentsReadRepository {
       .addSelect("document.document_from", "sender")
       .addSelect("document.recipient", "recipient")
       .addSelect("document.date_received", "dateReceived")
+      .addSelect("document.status", "status")
       .addSelect("document.created_at", "createdAt")
       .addSelect("document.updated_at", "updatedAt")
       .addSelect("COALESCE(routingCounter.total, 0)::text", "routingAssignmentTotal")
@@ -70,6 +71,7 @@ export class IncomingDocumentsReadRepository {
       sender: raw.sender,
       recipient: raw.recipient,
       dateReceived: raw.dateReceived,
+      status: raw.status,
       createdAt: raw.createdAt,
       updatedAt: raw.updatedAt,
       routingAssignmentCounts: {

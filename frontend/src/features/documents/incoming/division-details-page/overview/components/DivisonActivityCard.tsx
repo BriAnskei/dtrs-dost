@@ -1,7 +1,7 @@
 import { ClipboardList, Clock, type LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
-import { formatDateTime } from "../../../../../utils/dateFormatter";
-import DetailsCard from "../../detials-page/overview/component/DetialsCard";
+import { formatDateTime } from "../../../../../../utils/dateFormatter";
+import DetailsCard from "../../../detials-page/overview/component/DetialsCard";
 
 function ControlRow({
   icon: Icon,

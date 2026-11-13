@@ -1,9 +1,8 @@
 import { FileText, History, ListChecks, type LucideIcon } from "lucide-react";
 import { useCallback } from "react";
 import { useParams, useSearchParams } from "react-router";
-import { useUser } from "../../../../../context/currentUser/use-user";
 import { useIncomingDocumentFile } from "../../shared/hooks/api/use-incoming-document-file";
-import type { DivisionAssignmentProgress } from "../overview/DivisionProgressCard";
+import type { DivisionAssignmentProgress } from "../overview/components/DivisionProgressCard";
 import { useDivisionIncomingDocumentDetails } from "./api/use-division-incoming-document-details";
 
 export const DIVISION_DETAIL_TABS = [
@@ -30,7 +29,6 @@ const toCount = (value: string | undefined): number => {
 };
 
 export function useDivisionIncomingDocumentDetailsPage() {
-  const { currentUser } = useUser();
   const { incomingDocumentId = "" } = useParams<{
     incomingDocumentId: string;
   }>();

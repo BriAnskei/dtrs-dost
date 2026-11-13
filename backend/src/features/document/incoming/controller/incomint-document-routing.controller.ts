@@ -44,14 +44,19 @@ export class IncomingDocumentRoutingController {
     );
   }
 
-  @Get("division/assignments")
+  @Get("division/:incomingDocumentId/assignments")
   @Roles(Role.Division)
   async getDivisionAssignments(
+    @Param("incomingDocumentId", ParseUUIDPipe) incomingDocumentId: string,
     @Query() filters: GetDivisionIncomingDocumentAssignmentsDto,
     @Req() req: AuthenticatedRequest,
   ) {
     return this.queryBus.execute(
-      new GetDivisionIncomingDocumentAssignmentsQuery(req.user.division_id, filters),
+      new GetDivisionIncomingDocumentAssignmentsQuery(
+        incomingDocumentId,
+        req.user.division_id,
+        filters,
+      ),
     );
   }
 }

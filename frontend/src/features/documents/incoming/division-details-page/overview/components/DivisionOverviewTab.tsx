@@ -1,13 +1,14 @@
+import { formatDate } from "@fullcalendar/core/index.js";
 import {
   DetailField,
   DetailFieldGrid,
-} from "../../../../../components/master-detail/DetailPanel";
-import { formatDate, formatDateTime } from "../../../../../utils/dateFormatter";
-import DetailsCard from "../../detials-page/overview/component/DetialsCard";
+} from "../../../../../../components/master-detail/DetailPanel";
+import { formatDateTime } from "../../../../../../utils/dateFormatter";
+import DetailsCard from "../../../detials-page/overview/component/DetialsCard";
 import DocumentFilePreview, {
   type DocumentFileState,
-} from "../../detials-page/overview/component/DocumentFilePreview";
-import type { RoutedIncomingDocumentDetailsDto } from "../../types/get-division-incoming-document-details";
+} from "../../../detials-page/overview/component/DocumentFilePreview";
+import type { RoutedIncomingDocumentDetailsDto } from "../../../types/get-division-incoming-document-details";
 import DivisionProgressCard, {
   type DivisionAssignmentProgress,
 } from "./DivisionProgressCard";
