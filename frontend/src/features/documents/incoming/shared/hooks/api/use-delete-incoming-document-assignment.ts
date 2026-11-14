@@ -15,7 +15,7 @@ export function useDeleteIncomingDocumentAssignment() {
       routingId?: string;
     }) => IncomingDocumentService.deleteAssignment(incomingDocumentId, assignmentId),
 
-    onSuccess: (_, { incomingDocumentId, routingId }) => {
+    onSuccess: (_, { incomingDocumentId }) => {
       queryClient.invalidateQueries({
         queryKey: ["incoming-documents", "details", incomingDocumentId],
       });
@@ -23,10 +23,9 @@ export function useDeleteIncomingDocumentAssignment() {
         queryKey: ["assigned-division-notice-counts", incomingDocumentId],
       });
 
-      if (routingId)
-        queryClient.invalidateQueries({
-          queryKey: ["incoming-document-assignments", routingId],
-        });
+      queryClient.invalidateQueries({
+        queryKey: ["incoming-document-assignments", incomingDocumentId],
+      });
 
       toast.success("Assignment deleted successfully.");
     },

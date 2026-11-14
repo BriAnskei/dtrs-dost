@@ -94,7 +94,7 @@ export class CompleteIncomingDocumentAssignmentHandler
   ): Promise<void> {
     // PENDING/ONGOING -> COMPLETE: moves one unit out of `ongoing` into
     // `complete`. `total` is unchanged, the assignment still exists.
-    const changes = this.counterService.statusTransitionChanges(
+    const changes = AssignmentCounterService.statusTransitionChanges(
       assignment.status,
       AssignmentStatus.COMPLETE,
     );

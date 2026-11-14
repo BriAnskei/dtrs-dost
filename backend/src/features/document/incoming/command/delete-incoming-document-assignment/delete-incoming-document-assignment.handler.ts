@@ -100,10 +100,7 @@ export class DeleteIncomingDocumentAssignmentHandler
     // `total` always drops; the assignment leaves its bucket too (PENDING and
     // ONGOING are both "active", so both decrement `ongoing`). Deleting a
     // COMPLETE assignment is blocked upstream, so `complete` is never hit here.
-    const changes = {
-      total: -1,
-      ...this.counterService.unassignChanges(status),
-    };
+    const changes = AssignmentCounterService.unassignChanges(status);
 
     if (routingId) {
       await this.counterService.adjustIncomingRoutingtCounts(routingId, changes, manager);

@@ -11,33 +11,32 @@ import { AssignmentCountChanges, AssignmentCountField } from "../types/assignmen
  * Each counter row tracks three buckets over its set of assignments:
  *
  *   total    - every assignment, regardless of status
- *   ongoing  - assignments that are NOT yet complete
- *              (status PENDING or ONGOING)
+ *              (PENDING, ONGOING, or COMPLETE)
+ *   ongoing  - assignments that have been started, i.e. status ONGOING.
+ *              PENDING assignments are NOT counted here yet.
  *   complete - assignments with status COMPLETE
  *
- * Invariant: `total == ongoing + complete`. Every write path below preserves
- * it, so the three fields always reflect the real status distribution.
+ * Note: there is no invariant tying the three together. A PENDING assignment
+ * lives in `total` only, so `total` may be greater than `ongoing + complete`.
  *
  * Status -> bucket
  * ----------------
- * PENDING  -> ongoing   division assignments start here. A future "ongoing"
- *                        mutation handler will flip PENDING -> ONGOING, which is
- *                        a NO-OP for the counters: both statuses are active.
- * ONGOING  -> ongoing   MAIN assignments are created directly in ONGOING.
+ * PENDING  -> (none)   division assignments start here. They only touch
+ *                      `total` until a division user starts them.
+ * ONGOING  -> ongoing  MAIN assignments are created directly in ONGOING.
  * COMPLETE -> complete
  *
- * Status-transition deltas
- * -----------------------
- * To keep the invariant intact, a transition only ever moves a count between
- * the `ongoing` and `complete` buckets; `total` only changes when an assignment
- * is created or deleted:
+ * Assignment lifecycle deltas
+ * --------------------------
+ *   create MAIN (ONGOING)      -> total +1, ongoing +1
+ *   create DIVISION (PENDING)   -> total +1
+ *   start (PENDING -> ONGOING)  -> ongoing +1
+ *   complete (ONGOING -> COMPLETE)-> ongoing -1, complete +1
+ *   delete PENDING              -> total -1
+ *   delete ONGOING              -> total -1, ongoing -1
+ *   delete COMPLETE             -> blocked upstream (complete guard)
  *
- *   create              -> total +1, ongoing +1
- *   active -> complete   -> ongoing -1, complete +1   (complete action)
- *   active -> deleted    -> total -1, ongoing -1        (delete assignment)
- *   complete -> deleted  -> total -1, complete -1       (delete completed)
- *
- * Use `statusTransitionChanges()` to derive the delta for any status mutation
+ * Use the static helpers below to derive the delta for any mutation
  * instead of hand-rolling it in each handler.
  */
 @Injectable()
@@ -58,6 +57,10 @@ export class AssignmentCounterService {
     await this.routingCounterRepository.create(routingId, manager);
   }
 
+  /**
+   * Adjusts both the global (per-document) and routing (per-division) counters
+   * atomically. Use this for mutations that affect both counters (create, complete, delete).
+   */
   async adjustDocumentAssignmentCounts(
     payload: {
       incomingDocumentId: string;
@@ -108,6 +111,10 @@ export class AssignmentCounterService {
     }
   }
 
+  /* ──────────────────────────────────────────────────────────────
+   * Static helpers – pure counter-delta builders
+   * ────────────────────────────────────────────────────────────── */
+
   /**
    * Returns the counter bucket a status contributes to, or null for statuses
    * that are not tracked (e.g. a deleted row's pre-delete status is handled by
@@ -115,7 +122,6 @@ export class AssignmentCounterService {
    */
   static bucketOf(status: AssignmentStatus): AssignmentCountField | null {
     switch (status) {
-      case AssignmentStatus.PENDING:
       case AssignmentStatus.ONGOING:
         return "ongoing";
       case AssignmentStatus.COMPLETE:
@@ -126,28 +132,48 @@ export class AssignmentCounterService {
   }
 
   /**
-   * Delta for removing an assignment that currently has `status`. `total` is
-   * always decremented separately by the caller; this only removes the
-   * assignment from its bucket (PENDING/ONGING -> ongoing, COMPLETE -> complete).
+   * Delta for creating N new assignments. `total` always grows by `count`.
+   * `ongoing` only grows when the assignments are born in ONGOING (MAIN);
+   * DIVISION assignments are created in PENDING, which is not tracked as
+   * ongoing until a division user starts them.
    */
-  unassignChanges(status: AssignmentStatus): AssignmentCountChanges {
+  static createAssignmentChanges(
+    count: number,
+    status: AssignmentStatus,
+  ): AssignmentCountChanges {
+    if (count <= 0) return {};
+    const delta: AssignmentCountChanges = { total: count };
+    if (AssignmentCounterService.bucketOf(status) === "ongoing") {
+      delta.ongoing = count;
+    }
+    return delta;
+  }
+
+  /**
+   * Delta for removing an assignment that currently has `status`.
+   * `total` is always decremented; the assignment also leaves its bucket
+   * (ONGOING -> ongoing, COMPLETE -> complete). PENDING assignments only
+   * touch `total`, so they produce { total: -1 }.
+   */
+  static unassignChanges(status: AssignmentStatus): AssignmentCountChanges {
     const bucket = AssignmentCounterService.bucketOf(status);
-    return bucket ? { [bucket]: -1 } : {};
+    const delta: AssignmentCountChanges = { total: -1 };
+    if (bucket) delta[bucket] = -1;
+    return delta;
   }
 
   /**
    * Builds the counter delta for a single assignment status transition.
    *
-   * `from` is the previous status, `to` the new status. The assignment moves
-   * out of one bucket and into another, so the net `total` is unchanged. Call
-   * this from any handler that mutates an assignment's status (complete, or a
-   * future PENDING -> ONGOING transition) instead of hand-rolling the delta.
+   * `from` is the previous status, `to` the new status. `total` is unchanged:
+   * the assignment still exists, only its status moved. Call this from any
+   * handler that mutates an assignment's status (start, complete) instead of
+   * hand-rolling the delta.
    *
-   * Both directions are covered:
-   *   active -> complete -> { ongoing: -1, complete: +1 }
-   *   complete -> active -> { ongoing: +1, complete: -1 }
+   * PENDING -> ONGOING -> { ongoing: +1 }  (start action)
+   * ONGOING -> COMPLETE  -> { ongoing: -1, complete: +1 }  (complete action)
    */
-  statusTransitionChanges(
+  static statusTransitionChanges(
     from: AssignmentStatus,
     to: AssignmentStatus,
   ): AssignmentCountChanges {

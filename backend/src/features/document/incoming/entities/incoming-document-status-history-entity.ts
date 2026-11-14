@@ -6,6 +6,7 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from "typeorm";
+
 import { UserEntity } from "../../../user/entities/user.entity";
 import {
   IncomingDocumentEntity,
@@ -36,7 +37,14 @@ export class IncomingDocumentStatusHistoryEntity {
     enum: IncomingDocumentStatus,
     enumName: "incoming_document_status",
   })
-  status!: IncomingDocumentStatus;
+  status_from!: IncomingDocumentStatus;
+
+  @Column({
+    type: "enum",
+    enum: IncomingDocumentStatus,
+    enumName: "incoming_document_status",
+  })
+  status_to!: IncomingDocumentStatus;
 
   @Column({ type: "text", nullable: true })
   remarks!: string | null;

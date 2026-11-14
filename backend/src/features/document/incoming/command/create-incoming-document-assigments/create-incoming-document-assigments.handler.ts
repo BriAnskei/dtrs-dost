@@ -53,6 +53,7 @@ export class CreateIncomingDocumentAssignmentsHandler
         incomingDocumentId,
         context.routingId,
         assignments.length,
+        context.status,
         manager,
       );
 
@@ -135,13 +136,18 @@ export class CreateIncomingDocumentAssignmentsHandler
     incomingDocumentId: string,
     routingId: string | null,
     assignmentCount: number,
+    status: AssignmentStatus,
     manager: EntityManager,
   ): Promise<void> {
     if (assignmentCount === 0) return;
 
-    // New assignments are always active (MAIN -> ONGOING, DIVISION -> PENDING),
-    // so they land in the `ongoing` bucket.
-    const changes = { total: assignmentCount, ongoing: assignmentCount };
+    // `total` always grows. `ongoing` only grows for MAIN assignments, which
+    // are born in ONGOING; DIVISION assignments are born in PENDING and are
+    // not counted as ongoing until a division user starts them.
+    const changes = AssignmentCounterService.createAssignmentChanges(
+      assignmentCount,
+      status,
+    );
 
     if (routingId) {
       await this.counterService.adjustIncomingRoutingtCounts(routingId, changes, manager);

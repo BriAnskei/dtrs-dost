@@ -76,9 +76,7 @@ export class StartIncomingDocumentAssignmentHandler
         );
       }
 
-      await this.dataSource.transaction((manager) =>
-        this.adjustCounters(assignment, manager),
-      );
+      await this.adjustCounters(assignment, manager);
     });
   }
 
@@ -96,7 +94,7 @@ export class StartIncomingDocumentAssignmentHandler
     assignment: IncomingDocumentAssignmentEntity,
     manager: import("typeorm").EntityManager,
   ): Promise<void> {
-    const changes = this.counterService.statusTransitionChanges(
+    const changes = AssignmentCounterService.statusTransitionChanges(
       assignment.status,
       AssignmentStatus.ONGOING,
     );

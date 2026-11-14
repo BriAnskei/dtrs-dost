@@ -6,6 +6,7 @@ import {
   IncomingDocumentAssignmentEntity,
   OfficeType,
 } from "../../entities/incoming-document-assignment.entity";
+import { AssignmentStatus } from "../../enums/assignment-status.enum";
 import { mapIncomingDocumentError } from "../../exceptions/incoming-document-error.mapper";
 import { IncomingDocumentAssignmentsWriteRepository } from "../../repository/incoming-document-assignment-repository/incoming-document-assignment.write.repository";
 import { IncomingDocumentsReadRepository } from "../../repository/incoming-document-repository/incoming-document.read.repository";
@@ -115,13 +116,17 @@ export class AssignIncomingDocumentToDivisionHandler
 
     if (assignmentSum === 0) return;
 
-    // New division assignments are created in PENDING, which is an active bucket,
-    // so both `total` and `ongoing` are incremented.
+    // New division assignments are created in PENDING, so only `total` grows;
+    // `ongoing` does not grow until a division user starts the assignment.
+    const changes = AssignmentCounterService.createAssignmentChanges(
+      assignmentSum,
+      AssignmentStatus.PENDING,
+    );
     await this.counterService.adjustDocumentAssignmentCounts(
       {
         incomingDocumentId: incomingId,
         routingId,
-        changes: { total: assignmentSum, ongoing: assignmentSum },
+        changes,
       },
       manager,
     );
