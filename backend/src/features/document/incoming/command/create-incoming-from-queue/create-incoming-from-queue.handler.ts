@@ -5,7 +5,6 @@ import { capitalizeWords } from "../../../../../util/capitalizer";
 import { DocumentFileService } from "../../../document-file/service/document-file.service";
 import { ExtractedDocumentQueueService } from "../../../extracted-document-queue/service/extracted-document-queue.service";
 import { generateDocumentCode } from "../../../utils/document-code.util";
-import { IncomingDocumentAssignmentCountRepository } from "../../repository/incoming-document-assignment-counts.repository";
 import { IncomingDocumentsWriteRepository } from "../../repository/incoming-document-repository/incoming-document.write.repository";
 import { AssignmentCounterService } from "../../services/assignment-counter.service";
 import { CreateIncomingFromQueueCommand } from "./create-incoming-from-queue.command";
@@ -20,8 +19,6 @@ export class CreateIncomingFromQueueHandler
     private readonly extractedDocumentQueueService: ExtractedDocumentQueueService,
     private readonly incomingWriteRepository: IncomingDocumentsWriteRepository,
     private readonly documentFileService: DocumentFileService,
-    private readonly assignmentCountRepository: IncomingDocumentAssignmentCountRepository,
-
     private readonly counterService: AssignmentCounterService,
   ) {}
 
@@ -51,14 +48,10 @@ export class CreateIncomingFromQueueHandler
       const code = generateDocumentCode("incoming", savedDocument.tracking_sequence);
       await this.documentFileService.updateCode(documentFileId, code, manager);
 
-      // create assginment counter matrix
-      await this.assignmentCountRepository.create(
-        savedDocument.document_file_id,
-        manager,
-      );
-
+      // create assignment counter matrix (global counter only; routing
+      // counters are created when a division is routed to the document)
       await this.counterService.createIncomingDocumentCount(
-        savedDocument.document_file_id,
+        savedDocument.id,
         manager,
       );
 

@@ -115,8 +115,14 @@ export class AssignIncomingDocumentToDivisionHandler
 
     if (assignmentSum === 0) return;
 
+    // New division assignments are created in PENDING, which is an active bucket,
+    // so both `total` and `ongoing` are incremented.
     await this.counterService.adjustDocumentAssignmentCounts(
-      { incomingDocumentId: incomingId, routingId, changes: { total: assignmentSum } },
+      {
+        incomingDocumentId: incomingId,
+        routingId,
+        changes: { total: assignmentSum, ongoing: assignmentSum },
+      },
       manager,
     );
   }

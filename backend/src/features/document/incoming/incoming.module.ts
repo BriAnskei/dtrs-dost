@@ -11,6 +11,7 @@ import { CreateIncomingDocumentAssignmentsHandler } from "./command/create-incom
 import { CreateIncomingFromQueueHandler } from "./command/create-incoming-from-queue/create-incoming-from-queue.handler";
 import { DeleteIncomingDocumentAssignmentHandler } from "./command/delete-incoming-document-assignment/delete-incoming-document-assignment.handler";
 import { DeleteIncomingDocumentRoutingHandler } from "./command/delete-incoming-document-routing/delete-incoming-document-routing.handler";
+import { StartIncomingDocumentAssignmentHandler } from "./command/start-incoming-document-assignment/start-incoming-document-assignment.handler";
 import { IncomingDocumentController } from "./controller/incoming-document.controller";
 import { IncomingDocumentRoutingController } from "./controller/incomint-document-routing.controller";
 import { IncomingDocumentAssignmentEntity } from "./entities/incoming-document-assignment.entity";
@@ -90,6 +91,7 @@ import { AssignmentCounterService } from "./services/assignment-counter.service"
     SearchRoutedDivisionHandler,
     FindDivisionIncomingDocumentsHandler,
     GetDivisionIncomingDocumentDetailsHandler,
+    StartIncomingDocumentAssignmentHandler,
     GetDivisionIncomingDocumentAssignmentsHandler,
   ],
 })

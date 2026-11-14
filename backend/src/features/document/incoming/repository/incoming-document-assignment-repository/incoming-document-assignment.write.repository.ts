@@ -34,6 +34,27 @@ export class IncomingDocumentAssignmentsWriteRepository {
       .getOne();
   }
 
+  async updatePendingToOngoing(
+    assignmentId: string,
+    manager?: EntityManager,
+  ): Promise<boolean> {
+    const result = await (
+      manager?.getRepository(IncomingDocumentAssignmentEntity) ?? this.repository
+    )
+      .createQueryBuilder()
+      .update(IncomingDocumentAssignmentEntity)
+      .set({
+        status: AssignmentStatus.ONGOING,
+      })
+      .where("id = :assignmentId", { assignmentId })
+      .andWhere("status = :status", {
+        status: AssignmentStatus.PENDING,
+      })
+      .execute();
+
+    return (result.affected ?? 0) > 0;
+  }
+
   async complete(
     assignmentId: string,
     actionTaken: string,

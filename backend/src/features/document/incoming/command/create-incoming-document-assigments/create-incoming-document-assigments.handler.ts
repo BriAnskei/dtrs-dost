@@ -139,7 +139,9 @@ export class CreateIncomingDocumentAssignmentsHandler
   ): Promise<void> {
     if (assignmentCount === 0) return;
 
-    const changes = { total: assignmentCount };
+    // New assignments are always active (MAIN -> ONGOING, DIVISION -> PENDING),
+    // so they land in the `ongoing` bucket.
+    const changes = { total: assignmentCount, ongoing: assignmentCount };
 
     if (routingId) {
       await this.counterService.adjustIncomingRoutingtCounts(routingId, changes, manager);

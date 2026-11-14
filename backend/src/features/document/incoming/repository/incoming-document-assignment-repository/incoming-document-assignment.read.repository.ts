@@ -26,6 +26,23 @@ export class IncomingDocumentAssignmentsReadRepository {
     private readonly repository: Repository<IncomingDocumentAssignmentEntity>,
   ) {}
 
+  async existsOngoingDivisionAssignment(
+    incomingDocumentId: string,
+    divisionId: string,
+    manager?: EntityManager,
+  ): Promise<boolean> {
+    return (
+      manager?.getRepository(IncomingDocumentAssignmentEntity) ?? this.repository
+    ).exists({
+      where: {
+        incoming_document_id: incomingDocumentId,
+        division_id: divisionId,
+        office_type: OfficeType.DIVISION,
+        status: AssignmentStatus.ONGOING,
+      },
+    });
+  }
+
   async findAllByRoutingId(
     routingId: string,
   ): Promise<IncomingDocumentAssignmentEntity[]> {

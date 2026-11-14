@@ -1,9 +1,8 @@
-import { formatDate } from "@fullcalendar/core/index.js";
 import {
   DetailField,
   DetailFieldGrid,
 } from "../../../../../../components/master-detail/DetailPanel";
-import { formatDateTime } from "../../../../../../utils/dateFormatter";
+import { formatDate, formatDateTime } from "../../../../../../utils/dateFormatter";
 import DetailsCard from "../../../detials-page/overview/component/DetialsCard";
 import DocumentFilePreview, {
   type DocumentFileState,

@@ -12,8 +12,12 @@ import type {
 } from "../../../detials-page/assignment/types/incoming-document-assignment";
 import type { GetDivisionIncomingDocumentAssignmentsParams } from "../types/division-incoming-document-assignment";
 import { useDivisionIncomingDocumentAssignments } from "./api/use-division-incoming-document-assignments";
+import {
+  canStartInDivision,
+  useDivisionStartAssignment,
+} from "./use-division-start-assignment-modal";
 
-export { STATUS_FILTERS, type StatusFilter };
+export { canStartInDivision, STATUS_FILTERS, type StatusFilter };
 
 const SEARCH_DEBOUNCE_MS = 400;
 
@@ -33,7 +37,9 @@ export function canCompleteInDivision(a: IncomingDocumentAssignment) {
  * - no office filter (the endpoint is already scoped to this division)
  * - no "Add new" modal
  * - no delete modal
- * The inline "Submit action" panel is kept (UI only for now).
+ * The inline "Submit action" panel is kept (UI only for now). The
+ * PENDING -> ONGOING "Start" confirm flow lives in `useDivisionStartAssignment`
+ * and is returned as `start`.
  */
 export function useDivisionAssignmentsTab(incomingDocumentId: string) {
   const [status, setStatus] = useState<StatusFilter>("ALL");
@@ -118,6 +124,14 @@ export function useDivisionAssignmentsTab(incomingDocumentId: string) {
     [searchInput],
   );
 
+  /* ------------------------- start (PENDING -> ONGOING) ------------------- */
+
+  const start = useDivisionStartAssignment({
+    incomingDocumentId,
+    items,
+    listRef: scrollRef,
+  });
+
   /* ------------------------- inline submit-action panel ------------------- */
 
   // Opening a panel on another row replaces the current one (and its draft).
@@ -181,6 +195,9 @@ export function useDivisionAssignmentsTab(incomingDocumentId: string) {
     searchRef,
     clearSearch,
     handleSearchKeyDown,
+
+    /** The Start confirm flow: `target`, `isPending`, `request`, `cancel`, `confirm`. */
+    start,
 
     /** Id of the row with its inline Submit-action panel open, or null. */
     completingId,

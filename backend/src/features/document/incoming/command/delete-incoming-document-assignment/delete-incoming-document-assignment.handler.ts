@@ -97,9 +97,12 @@ export class DeleteIncomingDocumentAssignmentHandler
     status: AssignmentStatus,
     manager: EntityManager,
   ): Promise<void> {
+    // `total` always drops; the assignment leaves its bucket too (PENDING and
+    // ONGOING are both "active", so both decrement `ongoing`). Deleting a
+    // COMPLETE assignment is blocked upstream, so `complete` is never hit here.
     const changes = {
       total: -1,
-      ...(status === AssignmentStatus.ONGOING && { ongoing: -1 }),
+      ...this.counterService.unassignChanges(status),
     };
 
     if (routingId) {

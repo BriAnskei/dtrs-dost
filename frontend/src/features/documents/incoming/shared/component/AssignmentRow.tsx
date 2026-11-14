@@ -6,6 +6,7 @@ import {
   Clock,
   GitBranch,
   type LucideIcon,
+  Stamp,
   Trash2,
 } from "lucide-react";
 import type { ReactNode } from "react";
@@ -30,6 +31,9 @@ const COMPLETED_NOTICE_HINT =
   "Completed notices can't be deleted because their action is already recorded.";
 
 const noop = () => {};
+
+/** Default rule for the "Start" button: only pending notices can be started. */
+const canStartPending = (a: AssignmentLike) => a.status === "PENDING";
 
 /**
  * One distinct icon shape per status (not just a colour change), always shown
@@ -142,6 +146,11 @@ export interface AssignmentRowProps<T extends AssignmentLike> {
   onComplete?: (a: T) => void;
   onCancelComplete?: () => void;
   onCompleted?: () => void;
+  /**
+   * Omit to hide the "Acknowledge and start" button (e.g. on the admin side). The row only
+   * reports the click; the parent owns the confirmation UI and the request.
+   */
+  onStart?: (a: T) => void;
   /** Label above the creator. Defaults to "Assigned by". */
   assignedByLabel?: string;
   /**
@@ -149,6 +158,11 @@ export interface AssignmentRowProps<T extends AssignmentLike> {
    * Defaults to the admin rule (`canCompleteHere`: ONGOING + MAIN office).
    */
   canCompleteRow?: (a: T) => boolean;
+  /**
+   * Decides whether the "Acknowledge and start" button shows for a row (only used when
+   * `onStart` is passed). Defaults to PENDING rows.
+   */
+  canStartRow?: (a: T) => boolean;
   /** Hide the office pill, e.g. in the division view where every row is the same office. */
   hideOffice?: boolean;
   /**
@@ -163,12 +177,17 @@ export interface AssignmentRowProps<T extends AssignmentLike> {
  * it inside a `<ul>` / `<ol>`.
  *
  * Layout:
- * - sm and up: tinted status icon in its own left column with a vertical line
- *   below it (hidden on the last row), status + delete top-right, people on
- *   the left and the submit button bottom-right.
+ * - sm and up: tinted status icon in its own left column, joined to its
+ *   neighbours by a vertical line. The line is hidden on the last row, unless
+ *   that row is also the only one, so a single record still shows a line
+ *   running down from its icon. Status + delete top-right, then a divided
+ *   footer: people on the left, start / submit button on the right.
  * - mobile: no icon column. A header line (tinted status icon + label, delete
- *   on the right) comes first, then office, title and description, then a
- *   divided footer with the people and a full-width submit button.
+ *   on the right) comes first, then office, title and description, then the
+ *   same divided footer with the people and a full-width start / submit button.
+ *
+ * The "Acknowledge and start" (PENDING) and "Submit action" (ONGOING) buttons never show at
+ * the same time, because each one is gated by a different status.
  */
 export default function AssignmentRow<T extends AssignmentLike>({
   a,
@@ -178,8 +197,10 @@ export default function AssignmentRow<T extends AssignmentLike>({
   onComplete,
   onCancelComplete,
   onCompleted,
+  onStart,
   assignedByLabel = "Assigned by",
   canCompleteRow = canCompleteHere,
+  canStartRow = canStartPending,
   hideOffice = false,
   renderCompletePanel,
 }: AssignmentRowProps<T>) {
@@ -190,6 +211,8 @@ export default function AssignmentRow<T extends AssignmentLike>({
   // Admin default: only ongoing MAIN notices. Override with `canCompleteRow`.
   const canComplete = Boolean(onComplete) && canCompleteRow(a);
   const showPanel = isCompleting && canComplete;
+  // Division view: pending notices can be started. Admin passes no `onStart`.
+  const canStart = Boolean(onStart) && canStartRow(a);
   const panelId = `complete-panel-${a.id}`;
 
   return (
@@ -201,7 +224,9 @@ export default function AssignmentRow<T extends AssignmentLike>({
           border) down to the icon.
         - bottom piece: from the icon down to the row's bottom edge.
         Because each piece touches the row edge, consecutive rows join with no
-        gap. The first row has no top piece and the last row has no bottom piece.
+        gap. The first row has no top piece. The last row has no bottom piece,
+        except when it is also the only row: then the bottom piece stays so a
+        single record still shows a line running down from its icon.
         Offsets: sm:px-6 (24px) + half of the 36px icon (18px) - half the 2px
         line (1px) = 41px; the icon spans 20px (py-5) to 56px from the row top.
         Hidden on mobile, where the icon lives in the header line instead.
@@ -212,7 +237,7 @@ export default function AssignmentRow<T extends AssignmentLike>({
       />
       <span
         aria-hidden="true"
-        className={`absolute bottom-0 left-[41px] top-14 hidden w-0.5 group-last:hidden sm:block ${line}`}
+        className={`absolute bottom-0 left-[41px] top-14 hidden w-0.5 group-[:last-child:not(:first-child)]:hidden sm:block ${line}`}
       />
 
       {/* Desktop status icon column (the tinted circle). */}
@@ -295,12 +320,15 @@ export default function AssignmentRow<T extends AssignmentLike>({
         )}
 
         {/*
-          People + submit button.
-          Mobile: divided footer, people first, full-width button below, so the
-          button can never overlap the person block.
+          People + start/submit button, in a footer separated from the notice by
+          a divider on every screen size. The divider marks "what" (notice) vs.
+          "who / when / what to do" (people + action), which keeps the row easy
+          to read even when it is the only record in the list.
+          Mobile: people first, full-width button below, so the button can never
+          overlap the person block.
           sm and up: same line, button bottom-right.
         */}
-        <div className="flex flex-col gap-3 border-t border-gray-100 pt-3 dark:border-white/5 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between sm:gap-x-6 sm:border-t-0 sm:pt-0">
+        <div className="flex flex-col gap-3 border-t border-gray-100 pt-3 dark:border-white/5 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between sm:gap-x-6">
           <div className="grid w-full min-w-0 gap-x-6 gap-y-3 sm:w-auto sm:flex-1 sm:grid-cols-2">
             <PersonMeta
               label={assignedByLabel}
@@ -315,6 +343,25 @@ export default function AssignmentRow<T extends AssignmentLike>({
               />
             )}
           </div>
+
+          {/*
+            Start: PENDING rows, when the parent passes `onStart`. Stays visible
+            while the parent's confirm dialog is open so it can get focus back
+            on cancel.
+          */}
+          {canStart && onStart && (
+            <button
+              type="button"
+              data-start-trigger={a.id}
+              onClick={() => onStart(a)}
+              // `relative`: same reason as the Submit button below.
+              className={`${primaryButton} relative min-h-11 w-full justify-center sm:ml-auto sm:min-h-0 sm:w-auto sm:shrink-0`}
+            >
+              <Stamp className="h-4 w-4" aria-hidden="true" />
+              Acknowledge and start
+              <span className="sr-only">: {a.notice_of_action}</span>
+            </button>
+          )}
 
           {/* Hidden while the panel is open. */}
           {canComplete && !showPanel && onComplete && (

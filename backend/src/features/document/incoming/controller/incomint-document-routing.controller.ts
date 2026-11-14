@@ -1,12 +1,12 @@
-import { Controller, Get, Param, ParseUUIDPipe, Query, Req } from "@nestjs/common";
+import { Controller, Get, Param, ParseUUIDPipe, Patch, Query, Req } from "@nestjs/common";
 import { CommandBus, QueryBus } from "@nestjs/cqrs";
 import type { AuthenticatedRequest } from "../../../../auth/authentication/types/authenticated-request";
 import { Roles } from "../../../../auth/authorization/decorator/roles.decorator";
 import { Role } from "../../../../auth/authorization/enum/roles.enum";
+import { StartIncomingDocumentAssignmentCommand } from "../command/start-incoming-document-assignment/start-incoming-document-assignment.command";
 import { FindDivisionIncomingDocumentsQueryDto } from "../dto/find-division-incoming-documents-query.dto";
 import { GetDivisionIncomingDocumentAssignmentsDto } from "../dto/get-division-incoming-document-assignments.dto";
 import { RoutedIncomingDocumentDetailsDto } from "../dto/get-division-incoming-document-details-dto";
-
 import { FindDivisionIncomingDocumentsQuery } from "../query/find-division-incoming-documents/find-division-incoming-documents.query";
 import { GetDivisionIncomingDocumentAssignmentsQuery } from "../query/get-division-incoming-document-assignments/get-division-incoming-document-assignments.query";
 import { GetDivisionIncomingDocumentDetailsQuery } from "../query/get-division-incoming-document-details/get-division-incoming-document-details.query";
@@ -57,6 +57,17 @@ export class IncomingDocumentRoutingController {
         req.user.division_id,
         filters,
       ),
+    );
+  }
+
+  @Patch("assignments/:assignmentId/start")
+  @Roles(Role.Division)
+  async startAssignment(
+    @Param("assignmentId", ParseUUIDPipe) assignmentId: string,
+    @Req() req: AuthenticatedRequest,
+  ): Promise<void> {
+    await this.commandBus.execute(
+      new StartIncomingDocumentAssignmentCommand(assignmentId, req.user.division_id),
     );
   }
 }

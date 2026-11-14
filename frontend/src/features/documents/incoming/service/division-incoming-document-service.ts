@@ -53,4 +53,10 @@ export const DivisionIncomingDocumentService = {
 
     return data;
   },
+
+  async startAssignment(assignmentId: string): Promise<void> {
+    await apiClient.patch(
+      `${INCOMING_ROUTING_ENDPOINT}/assignments/${assignmentId}/start`,
+    );
+  },
 };

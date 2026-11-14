@@ -9,10 +9,12 @@ import AssignmentRow, {
 import { secondaryButton } from "../../../shared/detial-panel-form-style-constant";
 import {
   canCompleteInDivision,
+  canStartInDivision,
   STATUS_FILTERS,
   useDivisionAssignmentsTab,
 } from "../hooks/use-division-assignments-tab";
 import DivisionCompleteAssignmentPanel from "./DivisionCompleteAssignmentPanel";
+import DivisionStartAssignmentModal from "./modal/DivisionStartAssingmentModal";
 
 interface DivisionAssignmentsTabProps {
   incomingDocumentId: string;
@@ -144,6 +146,7 @@ export default function DivisionAssignmentsTab({
     searchRef,
     clearSearch,
     handleSearchKeyDown,
+    start,
     completingId,
     requestComplete,
     closeComplete,
@@ -192,14 +195,17 @@ export default function DivisionAssignmentsTab({
               incomingDocumentId={incomingDocumentId}
               isCompleting={completingId === a.id}
               // No onDelete: divisions can't delete assignments.
+              onStart={start.request}
               onComplete={requestComplete}
               onCancelComplete={closeComplete}
               onCompleted={handleCompleted}
               // Props added to the shared AssignmentRow (see the notes):
+              canStartRow={canStartInDivision}
               canCompleteRow={canCompleteInDivision}
               hideOffice
               renderCompletePanel={({ assignment, panelId, onCancel, onCompleted }) => (
                 <DivisionCompleteAssignmentPanel
+                  incomingDocumentId={incomingDocumentId}
                   assignment={assignment}
                   panelId={panelId}
                   onCancel={onCancel}
@@ -352,6 +358,15 @@ export default function DivisionAssignmentsTab({
           </div>
         )}
       </div>
+
+      {/* Confirm step for PENDING -> ONGOING. Rendered in a portal by <Modal>. */}
+      <DivisionStartAssignmentModal
+        assignment={start.target}
+        isPending={start.isPending}
+        onConfirm={start.confirm}
+        onCancel={start.cancel}
+        error={start.errorMessage}
+      />
     </section>
   );
 }

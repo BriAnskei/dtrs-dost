@@ -1,3 +1,4 @@
+import { TriangleAlert } from "lucide-react";
 import { type KeyboardEvent, useEffect, useId, useRef } from "react";
 import {
   errorClass,
@@ -38,6 +39,7 @@ export default function CompleteAssignmentPanel({
   const textareaId = `${id}-action-taken`;
   const counterId = `${id}-counter`;
   const errorId = `${id}-error`;
+  const warningId = `${id}-warning`;
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -88,7 +90,9 @@ export default function CompleteAssignmentPanel({
         disabled={f.isSubmitting}
         aria-required="true"
         aria-invalid={f.error ? true : undefined}
-        aria-describedby={f.error ? `${counterId} ${errorId}` : counterId}
+        aria-describedby={
+          f.error ? `${counterId} ${errorId} ${warningId}` : `${counterId} ${warningId}`
+        }
         placeholder="What was done to address this notice?"
         className={`w-full resize-y rounded-lg border bg-white px-3 py-2 text-theme-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-secondary/40 disabled:opacity-60 dark:bg-gray-900 dark:text-white/90 ${
           f.error ? "border-error-500" : "border-gray-200 dark:border-white/8"
@@ -111,27 +115,48 @@ export default function CompleteAssignmentPanel({
         </p>
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-theme-xs text-gray-500 dark:text-gray-400">
-          Once completed, this notice can't be edited or deleted.
-        </p>
-        <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={onCancel}
-            disabled={f.isSubmitting}
-            className={`${secondaryButton} !px-3 !py-1.5`}
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            disabled={f.isSubmitting || !f.canComplete}
-            className={`${primaryButton} !px-3 !py-1.5`}
-          >
-            {f.isSubmitting ? "Completing…" : "Mark as complete"}
-          </button>
+      {/*
+        Irreversibility notice. Static (not role="alert") so it isn't announced
+        every time the panel opens; it's read when the textarea or the submit
+        button receives focus, via aria-describedby.
+      */}
+      <div
+        id={warningId}
+        className="flex gap-3 rounded-lg border border-warning-200 bg-warning-50 p-3 dark:border-warning-500/30 dark:bg-warning-500/10"
+      >
+        <TriangleAlert
+          className="mt-0.5 h-5 w-5 shrink-0 text-warning-600 dark:text-warning-400"
+          aria-hidden="true"
+        />
+        <div className="min-w-0 space-y-0.5">
+          <p className="text-theme-sm font-medium text-gray-800 dark:text-white/90">
+            This can't be undone
+          </p>
+          <p className="text-theme-xs text-gray-600 dark:text-gray-300">
+            Once completed,{" "}
+            <span className="font-medium">{assignment.notice_of_action}</span> can't be
+            edited or deleted. Review your action taken before you continue.
+          </p>
         </div>
+      </div>
+
+      <div className="flex justify-end gap-2">
+        <button
+          type="button"
+          onClick={onCancel}
+          disabled={f.isSubmitting}
+          className={`${secondaryButton} !px-3 !py-1.5`}
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          disabled={f.isSubmitting || !f.canComplete}
+          aria-describedby={warningId}
+          className={`${primaryButton} !px-3 !py-1.5`}
+        >
+          {f.isSubmitting ? "Completing…" : "Mark as complete"}
+        </button>
       </div>
     </form>
   );
