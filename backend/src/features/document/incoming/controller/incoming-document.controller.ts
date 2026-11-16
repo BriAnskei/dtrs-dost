@@ -212,14 +212,20 @@ export class IncomingDocumentController {
   }
 
   @Patch(":id/status")
-  @Roles(Role.ReceiverOfficer, Role.SuperAdmin, Role.Admin)
+  @Roles(Role.Division, Role.SuperAdmin, Role.Admin)
   async updateStatus(
     @Param("id", ParseUUIDPipe) id: string,
     @Body() dto: UpdateIncomingDocumentStatusDto,
     @Req() req: AuthenticatedRequest,
   ) {
     return this.commandBus.execute(
-      new UpdateIncomingDocumentStatusCommand(id, dto.status, req.user.id, dto.remarks),
+      new UpdateIncomingDocumentStatusCommand(
+        id,
+        dto.status,
+        req.user.id,
+        req.user.division_id,
+        dto.remarks,
+      ),
     );
   }
 

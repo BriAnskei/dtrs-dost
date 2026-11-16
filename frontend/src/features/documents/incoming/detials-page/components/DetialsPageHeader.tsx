@@ -3,6 +3,7 @@ import { Link } from "react-router";
 import StatusBadge, {
   INCOMING_STATUS_BADGE,
 } from "../../../../../components/ui/badge/StatusBadge";
+import { secondaryButton } from "../../shared/detial-panel-form-style-constant";
 import type { IncomingDocumentStatus } from "../../types/incoming-document.type";
 import { BACK_PATH, backLinkClass } from "../constant";
 
@@ -12,6 +13,8 @@ interface DetailsPageHeaderProps {
   status: IncomingDocumentStatus;
   backPath?: string;
   backLabel?: string;
+  /** When provided, a "Change status" button is shown next to the badge. */
+  onChangeStatus?: () => void;
 }
 
 export default function DetailsPageHeader({
@@ -20,6 +23,7 @@ export default function DetailsPageHeader({
   status,
   backPath = BACK_PATH,
   backLabel = "Back to incoming documents",
+  onChangeStatus,
 }: DetailsPageHeaderProps) {
   return (
     <header className="space-y-3">
@@ -34,6 +38,12 @@ export default function DetailsPageHeader({
         </p>
 
         <StatusBadge config={INCOMING_STATUS_BADGE[status]} />
+
+        {onChangeStatus && (
+          <button type="button" onClick={onChangeStatus} className={secondaryButton}>
+            Change status
+          </button>
+        )}
       </div>
 
       <h1 className="text-2xl font-semibold leading-snug text-gray-800 wrap-break-word dark:text-white/90">

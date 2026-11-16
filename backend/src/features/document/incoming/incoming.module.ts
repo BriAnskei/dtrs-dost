@@ -12,6 +12,7 @@ import { CreateIncomingFromQueueHandler } from "./command/create-incoming-from-q
 import { DeleteIncomingDocumentAssignmentHandler } from "./command/delete-incoming-document-assignment/delete-incoming-document-assignment.handler";
 import { DeleteIncomingDocumentRoutingHandler } from "./command/delete-incoming-document-routing/delete-incoming-document-routing.handler";
 import { StartIncomingDocumentAssignmentHandler } from "./command/start-incoming-document-assignment/start-incoming-document-assignment.handler";
+import { UpdateIncomingDocumentStatusHandler } from "./command/update-incoming-document-status/update-incoming-document-status.handler";
 import { IncomingDocumentController } from "./controller/incoming-document.controller";
 import { IncomingDocumentRoutingController } from "./controller/incomint-document-routing.controller";
 import { IncomingDocumentAssignmentEntity } from "./entities/incoming-document-assignment.entity";
@@ -38,6 +39,7 @@ import { IncomingDocumentsReadRepository } from "./repository/incoming-document-
 import { IncomingDocumentsWriteRepository } from "./repository/incoming-document-repository/incoming-document.write.repository";
 import { IncomingDocumentRoutingAssignmentCounterRepository } from "./repository/incoming-document-routing-assignment-counter.repository";
 import { IncomingDocumentRoutingRepository } from "./repository/incoming-document-routing-repository";
+import { IncomingDocumentStatusRepository } from "./repository/incoming-document-status-history.repository";
 import { AssignmentCounterService } from "./services/assignment-counter.service";
 
 @Module({
@@ -67,6 +69,7 @@ import { AssignmentCounterService } from "./services/assignment-counter.service"
     IncomingDocumentAssignmentsReadRepository,
     IncomingDocumentAssignmentCountRepository,
     IncomingDocumentRoutingAssignmentCounterRepository,
+    IncomingDocumentStatusRepository,
 
     // Service
     AssignmentCounterService,
@@ -93,6 +96,7 @@ import { AssignmentCounterService } from "./services/assignment-counter.service"
     GetDivisionIncomingDocumentDetailsHandler,
     StartIncomingDocumentAssignmentHandler,
     GetDivisionIncomingDocumentAssignmentsHandler,
+    UpdateIncomingDocumentStatusHandler,
   ],
 })
 export class IncomingDocumentModule {}

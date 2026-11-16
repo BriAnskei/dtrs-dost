@@ -1,4 +1,5 @@
 import PageMeta from "../../../../../components/common/PageMeta";
+import ChangeStatusModal from "../../shared/component/modal/ChangeStatusModal";
 import ActionAssignmentsTab from "../assignment/components/ActionAssignmentsTab";
 import { panelDomId, tabDomId } from "../constant";
 import {
@@ -14,8 +15,18 @@ import DetailsTabs from "./DetialsTabs";
 import TabPlaceholder from "./TabPlaceHolder";
 
 export default function IncomingDocumentDetailsPage() {
-  const { tab, setTab, doc, trackingNo, isLoading, isError, retry, progress, file } =
-    useIncomingDocumentDetailsPage();
+  const {
+    tab,
+    setTab,
+    doc,
+    trackingNo,
+    isLoading,
+    isError,
+    retry,
+    progress,
+    file,
+    statusModal,
+  } = useIncomingDocumentDetailsPage();
 
   return (
     <>
@@ -36,6 +47,7 @@ export default function IncomingDocumentDetailsPage() {
                 trackingNo={trackingNo ?? doc.tracking_sequence}
                 subject={doc.subject}
                 status={doc.status}
+                onChangeStatus={statusModal.open}
               />
               <DetailsTabs activeTab={tab} onChange={setTab} />
             </div>
@@ -52,6 +64,16 @@ export default function IncomingDocumentDetailsPage() {
                 />
               )}
             </div>
+
+            {/* Mounted only while open so the form state resets on every open. */}
+            {statusModal.isOpen && (
+              <ChangeStatusModal
+                incomingDocumentId={doc.id}
+                trackingNo={trackingNo ?? doc.tracking_sequence}
+                currentStatus={doc.status}
+                onClose={statusModal.close}
+              />
+            )}
           </>
         )}
       </div>
