@@ -27,6 +27,18 @@ export class IncomingDocumentsReadRepository {
     private readonly repository: Repository<IncomingDocumentEntity>,
   ) {}
 
+  async findForUpdate(
+    manager: EntityManager,
+    id: string,
+  ): Promise<IncomingDocumentEntity | null> {
+    return manager.getRepository(IncomingDocumentEntity).findOne({
+      where: { id },
+      lock: {
+        mode: "pessimistic_write",
+      },
+    });
+  }
+
   async findDetailsByDivision(
     incomingDocumentId: string,
     divisionId: string,

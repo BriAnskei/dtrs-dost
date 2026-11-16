@@ -31,6 +31,7 @@ import { CreateIncomingDocumentAssignmentsCommand } from "../command/create-inco
 import { CreateIncomingFromQueueCommand } from "../command/create-incoming-from-queue/create-incoming-from-queue.command";
 import { DeleteIncomingDocumentAssignmentCommand } from "../command/delete-incoming-document-assignment/delete-incoming-document-assignment.command";
 import { DeleteIncomingDocumentRoutingCommand } from "../command/delete-incoming-document-routing/delete-incoming-document-routing.command";
+import { UpdateIncomingDocumentStatusCommand } from "../command/update-incoming-document-status/update-incoming-document-status.command";
 import { AssignIncomingDocumentToDivisionDto } from "../dto/assign-incoming-document-to-division";
 import { CompleteIncomingDocumentAssignmentDto } from "../dto/complete-incoming-document-assignment-dto";
 import { CreateIncomingDocumentDto } from "../dto/create-incoming-document.dto";
@@ -38,6 +39,7 @@ import { CreateIncomingDocumentAssignmentsDto } from "../dto/create-incoming-doc
 import { FindIncomingDocumentsQueryDto } from "../dto/find-incoming-documents-query.dto";
 import { GetIncomingDocumentAssignmentsDto } from "../dto/get-incoming-document-assignments-dto";
 import { IncomingDocumentDetailsDto } from "../dto/incoming-document-details.dto";
+import { UpdateIncomingDocumentStatusDto } from "../dto/update-incoming-document-status.dto";
 import { FindIncomingDocumentsQuery } from "../query/find-incoming-documents/find-incoming-documents.query";
 import { GetAssignedDivisionNoticeCountsQuery } from "../query/get-assigned-division-notice-counts/get-assigned-division-notice-counts.query";
 import { GetIncomingDocumentAssignmentsQuery } from "../query/get-incoming-document-assignments/get-incoming-document-assignments.query";
@@ -206,6 +208,18 @@ export class IncomingDocumentController {
         req.user.role_id,
         dto,
       ),
+    );
+  }
+
+  @Patch(":id/status")
+  @Roles(Role.ReceiverOfficer, Role.SuperAdmin, Role.Admin)
+  async updateStatus(
+    @Param("id", ParseUUIDPipe) id: string,
+    @Body() dto: UpdateIncomingDocumentStatusDto,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    return this.commandBus.execute(
+      new UpdateIncomingDocumentStatusCommand(id, dto.status, req.user.id, dto.remarks),
     );
   }
 
