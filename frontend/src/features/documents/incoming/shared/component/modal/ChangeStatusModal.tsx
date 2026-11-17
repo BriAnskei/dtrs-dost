@@ -159,7 +159,6 @@ export default function ChangeStatusModal({
           </div>
 
           <fieldset
-            aria-required="true"
             aria-invalid={targetError ? true : undefined}
             aria-describedby={targetError ? groupErrorId : undefined}
             disabled={isSubmitting}
@@ -211,57 +210,54 @@ export default function ChangeStatusModal({
             </p>
           )}
 
-          <div className="space-y-1.5">
-            <label
-              htmlFor={remarksId}
-              className="block text-theme-sm font-semibold text-gray-800 dark:text-white/90"
-            >
-              Remarks{" "}
-              <span
-                className={`font-normal ${
-                  isRollback
-                    ? "text-error-600 dark:text-error-400"
-                    : "text-gray-500 dark:text-gray-400"
+          {/* Remarks only exist for rollbacks, where they are required. */}
+          {isRollback && (
+            <div className="space-y-1.5">
+              <label
+                htmlFor={remarksId}
+                className="block text-theme-sm font-semibold text-gray-800 dark:text-white/90"
+              >
+                Remarks{" "}
+                <span className="text-error-500" aria-hidden="true">
+                  *
+                </span>
+              </label>
+              <textarea
+                ref={remarksRef}
+                id={remarksId}
+                value={remarks}
+                onChange={(e) => setRemarks(e.target.value)}
+                disabled={isSubmitting}
+                rows={3}
+                aria-required="true"
+                aria-invalid={remarksError ? true : undefined}
+                aria-describedby={
+                  remarksError ? `${remarksHintId} ${remarksErrorId}` : remarksHintId
+                }
+                placeholder="Why is this being rolled back?"
+                className={`w-full resize-y rounded-lg border bg-transparent px-3 py-2 text-base text-gray-800 placeholder:text-gray-400 disabled:opacity-60 dark:text-white/90 sm:text-theme-sm ${fieldFocus} ${
+                  remarksError
+                    ? "border-error-500"
+                    : "border-gray-200 dark:border-white/8"
                 }`}
-              >
-                {isRollback ? "(required)" : "(optional)"}
-              </span>
-            </label>
-            <textarea
-              ref={remarksRef}
-              id={remarksId}
-              value={remarks}
-              onChange={(e) => setRemarks(e.target.value)}
-              disabled={isSubmitting}
-              rows={3}
-              aria-required={isRollback}
-              aria-invalid={remarksError ? true : undefined}
-              aria-describedby={
-                remarksError ? `${remarksHintId} ${remarksErrorId}` : remarksHintId
-              }
-              placeholder={
-                isRollback ? "Why is this being rolled back?" : "Add a note (optional)"
-              }
-              className={`w-full resize-y rounded-lg border bg-transparent px-3 py-2 text-base text-gray-800 placeholder:text-gray-400 disabled:opacity-60 dark:text-white/90 sm:text-theme-sm ${fieldFocus} ${
-                remarksError ? "border-error-500" : "border-gray-200 dark:border-white/8"
-              }`}
-            />
-            <p
-              id={remarksHintId}
-              className="text-theme-xs text-gray-500 dark:text-gray-400"
-            >
-              Saved to the document's status history.
-            </p>
-            {remarksError && (
+              />
               <p
-                id={remarksErrorId}
-                role="alert"
-                className="text-theme-xs text-error-600 dark:text-error-400"
+                id={remarksHintId}
+                className="text-theme-xs text-gray-500 dark:text-gray-400"
               >
-                {remarksError}
+                Saved to the document's status history.
               </p>
-            )}
-          </div>
+              {remarksError && (
+                <p
+                  id={remarksErrorId}
+                  role="alert"
+                  className="text-theme-xs text-error-600 dark:text-error-400"
+                >
+                  {remarksError}
+                </p>
+              )}
+            </div>
+          )}
         </div>
       }
       footer={

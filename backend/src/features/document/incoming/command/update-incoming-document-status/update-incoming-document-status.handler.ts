@@ -101,12 +101,6 @@ export class UpdateIncomingDocumentStatusHandler
 
     const isRollback = targetRank < currentRank;
 
-    if (!isRollback && targetRank !== currentRank + 1) {
-      throw new BadRequestException(
-        "Invalid status transition. The document must follow the defined status workflow.",
-      );
-    }
-
     const normalizedRemarks = remarks?.trim() || null;
 
     if (isRollback && !normalizedRemarks) {

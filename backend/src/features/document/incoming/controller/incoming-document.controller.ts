@@ -36,10 +36,12 @@ import { AssignIncomingDocumentToDivisionDto } from "../dto/assign-incoming-docu
 import { CompleteIncomingDocumentAssignmentDto } from "../dto/complete-incoming-document-assignment-dto";
 import { CreateIncomingDocumentDto } from "../dto/create-incoming-document.dto";
 import { CreateIncomingDocumentAssignmentsDto } from "../dto/create-incoming-document-assignments-dto";
+import { FindIncomingDocumentStatusHistoriesQueryDto } from "../dto/find-incoming-document-status-histories-query.dto";
 import { FindIncomingDocumentsQueryDto } from "../dto/find-incoming-documents-query.dto";
 import { GetIncomingDocumentAssignmentsDto } from "../dto/get-incoming-document-assignments-dto";
 import { IncomingDocumentDetailsDto } from "../dto/incoming-document-details.dto";
 import { UpdateIncomingDocumentStatusDto } from "../dto/update-incoming-document-status.dto";
+import { FindIncomingDocumentStatusHistoriesQuery } from "../query/find-incoming-document-status-histories/find-incoming-document-status-histories.query";
 import { FindIncomingDocumentsQuery } from "../query/find-incoming-documents/find-incoming-documents.query";
 import { GetAssignedDivisionNoticeCountsQuery } from "../query/get-assigned-division-notice-counts/get-assigned-division-notice-counts.query";
 import { GetIncomingDocumentAssignmentsQuery } from "../query/get-incoming-document-assignments/get-incoming-document-assignments.query";
@@ -227,6 +229,15 @@ export class IncomingDocumentController {
         dto.remarks,
       ),
     );
+  }
+
+  @Get(":id/status-histories")
+  @Roles(Role.SuperAdmin, Role.Admin, Role.Division)
+  findStatusHistories(
+    @Param("id", ParseUUIDPipe) id: string,
+    @Query() query: FindIncomingDocumentStatusHistoriesQueryDto,
+  ) {
+    return this.queryBus.execute(new FindIncomingDocumentStatusHistoriesQuery(id, query));
   }
 
   @Delete(":incomingDocumentId/assignments/:assignmentId")

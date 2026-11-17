@@ -22,6 +22,7 @@ import { IncomingDocumentRoutingEntity } from "./entities/incoming-document-rout
 import { IncomingDocumentRoutingAssignmentCounterEntity } from "./entities/incoming-document-routing-assignment-counter.entity";
 import { IncomingDocumentStatusHistoryEntity } from "./entities/incoming-document-status-history-entity";
 import { FindDivisionIncomingDocumentsHandler } from "./query/find-division-incoming-documents/find-division-incoming-documents.handler";
+import { FindIncomingDocumentStatusHistoriesHandler } from "./query/find-incoming-document-status-histories/ find-incoming-document-status-histories.handler";
 import { FindIncomingDocumentsHandler } from "./query/find-incoming-documents/find-incoming-documents.handler";
 import { GetAssignedDivisionNoticeCountsHandler } from "./query/get-assigned-division-notice-counts/get-assigned-division-notice-counts.handler";
 import { GetDivisionIncomingDocumentAssignmentsHandler } from "./query/get-division-incoming-document-assignments/get-division-incoming-document-assignments.handler";
@@ -97,6 +98,7 @@ import { AssignmentCounterService } from "./services/assignment-counter.service"
     StartIncomingDocumentAssignmentHandler,
     GetDivisionIncomingDocumentAssignmentsHandler,
     UpdateIncomingDocumentStatusHandler,
+    FindIncomingDocumentStatusHistoriesHandler,
   ],
 })
 export class IncomingDocumentModule {}

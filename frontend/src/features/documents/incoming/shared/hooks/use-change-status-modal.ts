@@ -50,13 +50,17 @@ export function useChangeStatusModal({
   const options = ALL_STATUSES.filter((s) => s !== currentStatus);
   const isRollback = target !== null && isRollbackMove(currentStatus, target);
 
-  const setTarget = useCallback((next: IncomingDocumentStatus) => {
-    setTargetState(next);
-    setTargetError(null);
-    setSubmitError(null);
-    // Switching direction changes whether remarks are required; clear a stale error.
-    setRemarksError(null);
-  }, []);
+  const setTarget = useCallback(
+    (next: IncomingDocumentStatus) => {
+      setTargetState(next);
+      setTargetError(null);
+      setSubmitError(null);
+      setRemarksError(null);
+      // Remarks only apply to rollbacks; drop anything typed for a previous target.
+      if (!isRollbackMove(currentStatus, next)) setRemarksState("");
+    },
+    [currentStatus],
+  );
 
   const setRemarks = useCallback((next: string) => {
     setRemarksState(next);
@@ -74,8 +78,10 @@ export function useChangeStatusModal({
       return;
     }
 
+    // Remarks are required for a rollback and never sent for a forward move.
+    const rollback = isRollbackMove(currentStatus, target);
     const trimmed = remarks.trim();
-    if (isRollbackMove(currentStatus, target) && trimmed.length === 0) {
+    if (rollback && trimmed.length === 0) {
       setRemarksError("Remarks are required when rolling back a status.");
       return;
     }
@@ -86,7 +92,7 @@ export function useChangeStatusModal({
         id: incomingDocumentId,
         payload: {
           status: target,
-          ...(trimmed ? { remarks: trimmed } : {}),
+          ...(rollback ? { remarks: trimmed } : {}),
         },
       },
       {

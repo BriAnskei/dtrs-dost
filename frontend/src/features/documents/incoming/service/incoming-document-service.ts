@@ -16,7 +16,7 @@ import type {
 import type { IncomingDocumentDetails } from "../types/incoming-document-details.type";
 import type { RoutedDivisionAssignment } from "../types/routed-division-assignments.type";
 
-const INCOMING_DOCUMENTS_ENDPOINT = "/incoming-documents";
+export const INCOMING_DOCUMENTS_ENDPOINT = "/incoming-documents";
 
 export const IncomingDocumentService = {
   async findAll(
