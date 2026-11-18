@@ -1,6 +1,6 @@
 import PageMeta from "../../../../../components/common/PageMeta";
 import ChangeStatusModal from "../../shared/component/modal/ChangeStatusModal";
-import StatusHistoryTab from "../../shared/status-history/components/status-history-tab";
+import StatusHistoryTab from "../../shared/status-history/components/StatusHistoryTab";
 import ActionAssignmentsTab from "../assignment/components/ActionAssignmentsTab";
 import { panelDomId, tabDomId } from "../constant";
 import { useIncomingDocumentDetailsPage } from "../hooks/use-incoming-document-details-page";

@@ -6,6 +6,7 @@ import {
   toYmd,
 } from "../../../../../../components/ui/date/date-constants";
 import { useInfiniteScrollSentinel } from "../../../../../../hooks/user-infinite-scroll-sentinel";
+import { formatDayLabel } from "../../../../../../utils/dateFormatter";
 import type { IncomingDocumentStatusHistory } from "../../../shared/types/incoming-document-status-history.types";
 import { useIncomingDocumentStatusHistories } from "./api/use-incoming-document-status-histories";
 
@@ -17,21 +18,6 @@ export interface StatusHistoryGroup {
   entries: IncomingDocumentStatusHistory[];
 }
 
-const dayFormat = new Intl.DateTimeFormat("en-US", {
-  weekday: "short",
-  month: "short",
-  day: "numeric",
-  year: "numeric",
-});
-
-function dayLabel(key: string, date: Date): string {
-  const now = new Date();
-  if (key === toYmd(now)) return "Today";
-  const yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
-  if (key === toYmd(yesterday)) return "Yesterday";
-  return dayFormat.format(date);
-}
-
 /**
  * Splits newest-first entries into consecutive same-day groups (local time).
  * Grouping runs over every loaded page, so a day that spans two pages still
@@ -41,6 +27,8 @@ export function groupByDay(
   entries: IncomingDocumentStatusHistory[],
 ): StatusHistoryGroup[] {
   const groups: StatusHistoryGroup[] = [];
+  const now = new Date();
+
   for (const entry of entries) {
     const date = new Date(entry.created_at);
     const key = toYmd(date);
@@ -48,7 +36,7 @@ export function groupByDay(
     if (last && last.key === key) {
       last.entries.push(entry);
     } else {
-      groups.push({ key, label: dayLabel(key, date), entries: [entry] });
+      groups.push({ key, label: formatDayLabel(date, now), entries: [entry] });
     }
   }
   return groups;

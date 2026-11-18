@@ -14,7 +14,7 @@ export default function DetailsCard({ title, eyebrow, children }: DetailsCardPro
         <header className="mb-4">
           {eyebrow && <h2 className={eyebrowClass}>{eyebrow}</h2>}
           {title && (
-            <h2 className="mt-0.5 text-base font-semibold text-gray-800 dark:text-white/90">
+            <h2 className="mt-0.5 text-theme-sm font-semibold text-gray-800 dark:text-white/90">
               {title}
             </h2>
           )}

@@ -38,7 +38,7 @@ export default function DetailsPageHeader({
       </Link>
 
       <div className="flex flex-wrap items-center gap-3">
-        <p className="break-all font-mono text-base font-semibold tracking-wide text-primary dark:text-secondary sm:text-lg">
+        <p className="break-all font-mono text-theme-sm font-semibold tracking-wide text-primary dark:text-secondary sm:text-theme-base">
           {trackingNo}
         </p>
 

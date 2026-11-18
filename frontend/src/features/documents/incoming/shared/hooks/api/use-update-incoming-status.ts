@@ -18,7 +18,7 @@ export const useUpdateIncomingDocumentStatus = () => {
         }),
 
         queryClient.invalidateQueries({
-          queryKey: ["incoming-document-status-history", id],
+          queryKey: ["incoming-document-status-histories", id],
         }),
 
         queryClient.invalidateQueries({

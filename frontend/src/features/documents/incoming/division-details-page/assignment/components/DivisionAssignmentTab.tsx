@@ -47,7 +47,7 @@ function StatusSelect({
         id={id}
         value={value}
         onChange={(e) => onChange(e.target.value as typeof value)}
-        className={`h-11 w-full rounded-lg border bg-transparent px-3 text-base dark:bg-gray-900 sm:h-9 sm:w-auto sm:text-theme-sm ${fieldFocus} ${
+        className={`h-11 w-full rounded-lg border bg-transparent px-3 text-theme-sm dark:bg-gray-900 sm:h-9 sm:w-auto ${fieldFocus} ${
           value === STATUS_FILTERS[0].id
             ? "border-gray-200 text-gray-600 dark:border-white/8 dark:text-gray-300"
             : "border-primary/50 text-gray-800 dark:text-white/90"
@@ -272,7 +272,7 @@ export default function DivisionAssignmentsTab({
                   onKeyDown={handleSearchKeyDown}
                   placeholder="Search notice of action…"
                   autoComplete="off"
-                  className={`h-11 w-full rounded-lg border border-gray-200 bg-transparent pl-9 pr-10 text-base text-gray-800 placeholder:text-gray-400 dark:border-white/8 dark:text-white/90 sm:h-9 sm:pr-9 sm:text-theme-sm [&::-webkit-search-cancel-button]:hidden ${fieldFocus}`}
+                  className={`h-11 w-full rounded-lg border border-gray-200 bg-transparent pl-9 pr-10 text-theme-sm text-gray-800 placeholder:text-gray-400 dark:border-white/8 dark:text-white/90 sm:h-9 sm:pr-9 [&::-webkit-search-cancel-button]:hidden ${fieldFocus}`}
                 />
                 {searchInput && (
                   <button

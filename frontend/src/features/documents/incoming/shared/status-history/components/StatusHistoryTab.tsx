@@ -6,7 +6,7 @@ import { THIN_SCROLLBAR } from "../../../../../../contant/ThinScrollBar";
 import { SKELETON_BASE, SKELETON_HIGHLIGHT } from "../../../detials-page/constant";
 import { secondaryButton } from "../../detial-panel-form-style-constant";
 import { useStatusHistoryTab } from "../hooks/use-status-history-tab";
-import StatusHistoryEntry, { StatusHistoryEntrySkeleton } from "./status-history-entry";
+import StatusHistoryEntry, { StatusHistoryEntrySkeleton } from "./StatusHistoryEntry";
 
 interface StatusHistoryTabProps {
   incomingDocumentId: string;
@@ -141,12 +141,23 @@ export default function StatusHistoryTab({
               </h3>
               <ol className="my-4 ml-4 border-l border-gray-200 pr-4 dark:border-white/10 sm:ml-6 sm:pr-6">
                 {group.entries.map((entry) => (
-                  <StatusHistoryEntry key={entry.id} entry={entry} />
+                  <StatusHistoryEntry
+                    key={entry.id}
+                    entry={entry}
+                    isLatest={!hasActiveFilters && entry.id === items[0]?.id}
+                  />
                 ))}
               </ol>
             </li>
           ))}
         </ol>
+
+        {/* End of history: tells the reader they've reached the first change. */}
+        {!hasMore && !isLoadingMore && (
+          <p className="px-4 py-4 text-center text-theme-xs text-gray-400 dark:text-gray-500 sm:px-6">
+            {hasActiveFilters ? "No more changes in this date range" : "Start of history"}
+          </p>
+        )}
 
         {/* Reaching this element loads the next page. */}
         <div ref={sentinelRef} className="h-px" aria-hidden="true" />
@@ -178,8 +189,7 @@ export default function StatusHistoryTab({
             is just a calendar icon until a range is applied. */}
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 p-4 dark:border-white/8">
           <p className="min-w-0 flex-1 text-theme-sm text-gray-500 dark:text-gray-400">
-            Every status change on this document, newest first. Rollbacks include the
-            reason that was given.
+            Who changed this document's status, and when. Newest first, grouped by day.
           </p>
 
           {showToolbar && (
