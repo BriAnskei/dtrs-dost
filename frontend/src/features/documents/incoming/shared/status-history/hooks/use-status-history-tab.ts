@@ -22,6 +22,9 @@ export interface StatusHistoryGroup {
  * Splits newest-first entries into consecutive same-day groups (local time).
  * Grouping runs over every loaded page, so a day that spans two pages still
  * ends up as one group.
+ *
+ * Assumes the API returns entries newest-first. Only *consecutive* same-day
+ * entries are merged, so out-of-order data would split a day into several groups.
  */
 export function groupByDay(
   entries: IncomingDocumentStatusHistory[],
@@ -54,6 +57,12 @@ export function groupByDay(
  * The date range comes from `DateRangeFilter`, which only ever reports a
  * complete range or an empty one, so there is no half-filled state to manage
  * and the API never receives a start date without an end date.
+ *
+ * Time zones: the range is a local-calendar "YYYY-MM-DD" pair, and the day
+ * groups and entry times are also rendered in local time. The backend must
+ * therefore read `startDate`/`endDate` as whole days in the user's zone
+ * (not UTC), otherwise entries near midnight can fall on a different day than
+ * the filter implies.
  */
 export function useStatusHistoryTab(incomingDocumentId: string) {
   const [dateRange, setDateRange] = useState<DateRange>(EMPTY_RANGE);
@@ -105,6 +114,17 @@ export function useStatusHistoryTab(incomingDocumentId: string) {
   /** True while a date range is applied to the list. */
   const hasActiveFilters = hasRange(dateRange);
 
+  /**
+   * The change that put the document in its current status, or `undefined`
+   * when it can't be known. It is only known on the unfiltered list, because a
+   * filtered list may not include the newest change. Decided here, next to the
+   * ordering assumption, so the view only has to compare ids.
+   *
+   * Relies on the API returning entries newest-first (same assumption as
+   * `groupByDay`): the first loaded entry is then the newest one.
+   */
+  const latestId = hasActiveFilters ? undefined : items[0]?.id;
+
   const fullError = query.isError && items.length === 0;
 
   // The toolbar stays put while a filter change reloads the list. It's hidden
@@ -123,6 +143,8 @@ export function useStatusHistoryTab(incomingDocumentId: string) {
     items,
     /** Entries grouped by day, newest day first. */
     groups,
+    /** Id of the entry to badge as "Latest", or `undefined` (see above). */
+    latestId,
     /** True while the previous results are shown during a refetch (date range change). */
     isPlaceholderData: query.isPlaceholderData,
     hasMore: Boolean(hasNextPage),

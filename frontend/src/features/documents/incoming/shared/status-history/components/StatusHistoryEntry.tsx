@@ -8,9 +8,9 @@ import type { IncomingDocumentStatusHistory } from "../../types/incoming-documen
 interface StatusHistoryEntryProps {
   entry: IncomingDocumentStatusHistory;
   /**
-   * True for the newest change on the unfiltered list, i.e. the change that put
-   * the document in its current status. The tab only sets it when no date range
-   * is applied, because a filtered list may not include the newest change.
+   * True for the change that put the document in its current status. The tab
+   * decides this (see `latestId` in `useStatusHistoryTab`); the entry only
+   * renders the badge.
    */
   isLatest?: boolean;
 }
@@ -34,6 +34,12 @@ const STATUS_TEXT: Record<IncomingDocumentStatus, string> = {
   complete: "text-success-600 dark:text-success-400",
 };
 
+/**
+ * Shared by the real marker and the skeleton marker so both sit in exactly the
+ * same place. -left-[5.5px] centres the 10px marker on the 1px rail.
+ */
+const MARKER_BASE = "absolute -left-[5.5px] top-[5px] h-2.5 w-2.5 rounded-full";
+
 const timeFormat = new Intl.DateTimeFormat("en-US", {
   hour: "numeric",
   minute: "2-digit",
@@ -43,7 +49,7 @@ const timeFormat = new Intl.DateTimeFormat("en-US", {
  * Reading order, one sentence per entry:
  *   1. WHO + WHAT   "Maria Cruz changed status from Pending to [Ongoing]"
  *   2. WHEN + ROLE  "Records Officer · 8:14 AM"   (the date is in the day header)
- *   3. WHY          remarks, labelled "Reason for rollback" on rollbacks
+ *   3. WHY          remarks
  *
  * Type scale (two steps only):
  *   text-theme-sm  primary   the sentence, the new status (semibold), remarks
@@ -69,10 +75,10 @@ export default function StatusHistoryEntry({
 
   return (
     <li className="relative pb-5 pl-5 last:pb-0 sm:pl-6">
-      {/* Marker, coloured by the new status. -left-[5.5px] centres the 10px marker on the 1px rail. */}
+      {/* Marker, coloured by the new status. */}
       <span
         aria-hidden="true"
-        className={`absolute -left-[5.5px] top-[5px] h-2.5 w-2.5 rounded-full ${MARKER_COLOR[entry.status_to]}`}
+        className={`${MARKER_BASE} ${MARKER_COLOR[entry.status_to]}`}
       />
 
       <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-theme-sm">
@@ -88,7 +94,7 @@ export default function StatusHistoryEntry({
           {STATUS_LABEL[entry.status_from]}
         </span>
         <span className="text-gray-500 dark:text-gray-400">to</span>
-        <span className={`text-theme-xs font-medium ${STATUS_TEXT[entry.status_to]}`}>
+        <span className={`font-semibold ${STATUS_TEXT[entry.status_to]}`}>
           {STATUS_LABEL[entry.status_to]}
         </span>
 
@@ -120,7 +126,7 @@ export default function StatusHistoryEntry({
       {entry.remarks && (
         <div className="mt-2">
           <p className="mb-1.5 text-theme-xs font-medium uppercase tracking-wide text-gray-400 dark:text-gray-500">
-            Remarks
+            {rollback ? "Reason for rollback" : "Remarks"}
           </p>
           <p className="wrap-break-word whitespace-pre-line rounded-lg bg-gray-50 px-3 py-2.5 text-theme-sm text-gray-800 dark:bg-white/3 dark:text-white/90">
             {entry.remarks}
@@ -131,10 +137,17 @@ export default function StatusHistoryEntry({
   );
 }
 
-/** Same shape as StatusHistoryEntry so the layout doesn't jump when data arrives. */
+/**
+ * Same shape as StatusHistoryEntry (including the rail marker) so the layout
+ * doesn't jump when data arrives.
+ */
 export function StatusHistoryEntrySkeleton() {
   return (
-    <div className="space-y-1 pb-5 pl-5 last:pb-0 sm:pl-6">
+    <div className="relative space-y-1 pb-5 pl-5 last:pb-0 sm:pl-6">
+      <span
+        aria-hidden="true"
+        className={`${MARKER_BASE} bg-gray-200 dark:bg-white/10`}
+      />
       <Skeleton width="70%" height={20} />
       <Skeleton width={120} height={16} />
     </div>

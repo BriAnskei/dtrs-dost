@@ -1,5 +1,5 @@
 import { FileText, History, ListChecks, type LucideIcon } from "lucide-react";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { useParams, useSearchParams } from "react-router";
 import { useIncomingDocumentFile } from "../../shared/hooks/api/use-incoming-document-file";
 import type { DivisionAssignmentProgress } from "../overview/components/DivisionProgressCard";
@@ -51,6 +51,12 @@ export function useDivisionIncomingDocumentDetailsPage() {
     [setSearchParams],
   );
 
+  // Change-status modal. The page mounts the modal only while this is true,
+  // so the modal's own form state resets on every open.
+  const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
+  const openStatusModal = useCallback(() => setIsStatusModalOpen(true), []);
+  const closeStatusModal = useCallback(() => setIsStatusModalOpen(false), []);
+
   const detailsQuery = useDivisionIncomingDocumentDetails({
     incomingDocumentId,
   });
@@ -82,6 +88,11 @@ export function useDivisionIncomingDocumentDetailsPage() {
       isLoading: fileQuery.isLoading,
       isError: fileQuery.isError,
       retry: () => fileQuery.refetch(),
+    },
+    statusModal: {
+      isOpen: isStatusModalOpen,
+      open: openStatusModal,
+      close: closeStatusModal,
     },
   };
 }

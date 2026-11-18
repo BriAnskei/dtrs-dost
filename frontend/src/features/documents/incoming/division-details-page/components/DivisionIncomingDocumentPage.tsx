@@ -1,20 +1,18 @@
 import PageMeta from "../../../../../components/common/PageMeta";
 import DetailsPageHeader from "../../detials-page/components/DetialsPageHeader";
 import DetailsPageSkeleton from "../../detials-page/components/DetialsPageSkeleton";
-import TabPlaceholder from "../../detials-page/components/TabPlaceHolder";
 import { panelDomId, tabDomId } from "../../detials-page/constant";
+import ChangeStatusModal from "../../shared/component/modal/ChangeStatusModal";
+import StatusHistoryTab from "../../shared/status-history/components/StatusHistoryTab";
 import DivisionAssignmentsTab from "../assignment/components/DivisionAssignmentTab";
 import { DIVISION_BACK_PATH } from "../contants";
-import {
-  DIVISION_DETAIL_TABS,
-  useDivisionIncomingDocumentDetailsPage,
-} from "../hooks/use-division-incoming-document-details-page";
+import { useDivisionIncomingDocumentDetailsPage } from "../hooks/use-division-incoming-document-details-page";
 import DivisionOverviewTab from "../overview/components/DivisionOverviewTab";
 import DivisionDetailsErrorState from "./DivisionDetailsErrorState";
 import DivisionDetailsTabs from "./DivisionDetailsTabs";
 
 export default function DivisionIncomingDocumentDetailsPage() {
-  const { tab, setTab, doc, trackingNo, isLoading, isError, retry, progress, file } =
+  const { tab, setTab, doc, trackingNo, isLoading, retry, progress, file, statusModal } =
     useDivisionIncomingDocumentDetailsPage();
 
   return (
@@ -27,7 +25,9 @@ export default function DivisionIncomingDocumentDetailsPage() {
       <div className="space-y-4">
         {isLoading ? (
           <DetailsPageSkeleton />
-        ) : isError || !doc ? (
+        ) : !doc ? (
+          // Keyed on `doc`, not `isError`: a failed background refetch keeps the
+          // cached document on screen instead of unmounting the page and modal.
           <DivisionDetailsErrorState onRetry={retry} />
         ) : (
           <>
@@ -37,6 +37,7 @@ export default function DivisionIncomingDocumentDetailsPage() {
                 subject={doc.subject}
                 status={doc.status}
                 backPath={DIVISION_BACK_PATH}
+                onChangeStatus={statusModal.open}
               />
               <DivisionDetailsTabs activeTab={tab} onChange={setTab} />
             </div>
@@ -53,11 +54,19 @@ export default function DivisionIncomingDocumentDetailsPage() {
               ) : tab === "assignments" ? (
                 <DivisionAssignmentsTab incomingDocumentId={doc.id} />
               ) : (
-                <TabPlaceholder
-                  label={DIVISION_DETAIL_TABS.find((t) => t.id === tab)?.label ?? ""}
-                />
+                <StatusHistoryTab incomingDocumentId={doc.id} />
               )}
             </div>
+
+            {/* Mounted only while open so the form state resets on every open. */}
+            {statusModal.isOpen && (
+              <ChangeStatusModal
+                incomingDocumentId={doc.id}
+                trackingNo={trackingNo ?? ""}
+                currentStatus={doc.status}
+                onClose={statusModal.close}
+              />
+            )}
           </>
         )}
       </div>

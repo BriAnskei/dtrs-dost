@@ -12,9 +12,9 @@ interface DetailsTabsProps {
 
 /**
  * Tabs that are a record of what happened (audit), not working tabs. They sit
- * at the far right of the bar, behind a divider, so they read as separate from
- * the transaction tabs (Routed Divisions, Action Assignments). Keep these last
- * in DETAIL_TABS so the visual order matches the keyboard order.
+ * at the far right of the bar so they read as separate from the transaction
+ * tabs (Routed Divisions, Action Assignments). Keep these last in DETAIL_TABS
+ * so the visual order matches the keyboard order.
  */
 const AUDIT_TAB_IDS: readonly DetailTabId[] = ["status-history"];
 
@@ -49,20 +49,17 @@ export default function DetailsTabs({ activeTab, onChange }: DetailsTabsProps) {
           const active = tab.id === activeTab;
           const Icon = tab.icon;
           const previous = index > 0 ? DETAIL_TABS[index - 1] : undefined;
-          // First audit tab: `ml-auto` on the divider pushes it and the audit
-          // tabs after it to the right edge. On narrow screens, where the bar
-          // scrolls, it simply sits between the two groups.
-          const startsAuditGroup = isAuditTab(tab.id) && !(previous && isAuditTab(previous.id));
+          // First audit tab: `ml-auto` pushes it and the audit tabs after it
+          // to the right edge. On narrow screens, where the bar scrolls, it
+          // simply sits after the working tabs.
+          const startsAuditGroup =
+            isAuditTab(tab.id) && !(previous && isAuditTab(previous.id));
 
           return (
-            <div key={tab.id} className={startsAuditGroup ? "ml-auto flex gap-1" : "flex"}>
-              {startsAuditGroup && (
-                <span
-                  role="presentation"
-                  aria-hidden="true"
-                  className="mx-1 my-2 w-px shrink-0 self-stretch bg-gray-200 dark:bg-white/10"
-                />
-              )}
+            <div
+              key={tab.id}
+              className={startsAuditGroup ? "ml-auto flex gap-1" : "flex"}
+            >
               <button
                 ref={(el) => {
                   tabRefs.current[index] = el;

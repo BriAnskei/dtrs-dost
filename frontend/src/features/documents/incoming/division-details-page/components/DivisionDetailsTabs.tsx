@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { type KeyboardEvent, useRef } from "react";
 import { panelDomId, tabDomId } from "../../detials-page/constant";
 import {
   DIVISION_DETAIL_TABS,
@@ -9,6 +9,13 @@ interface DivisionDetailsTabsProps {
   activeTab: DivisionDetailTabId;
   onChange: (tab: DivisionDetailTabId) => void;
 }
+
+/**
+ * Tabs that sit at the far right of the tab bar, apart from the document's
+ * working tabs. They keep their place in DIVISION_DETAIL_TABS (last), so the
+ * visual order, the DOM order and the arrow-key order all stay the same.
+ */
+const PUSHED_RIGHT: ReadonlySet<DivisionDetailTabId> = new Set(["status-history"]);
 
 export default function DivisionDetailsTabs({
   activeTab,
@@ -56,6 +63,8 @@ export default function DivisionDetailsTabs({
               onClick={() => onChange(tab.id)}
               onKeyDown={(e) => handleKeyDown(e, index)}
               className={`inline-flex items-center gap-2 whitespace-nowrap border-b-2 px-4 py-1.5 text-theme-sm font-medium transition focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-secondary/40 ${
+                PUSHED_RIGHT.has(tab.id) ? "ml-auto" : ""
+              } ${
                 active
                   ? "border-primary text-primary dark:border-secondary dark:text-secondary"
                   : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
