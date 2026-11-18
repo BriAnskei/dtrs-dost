@@ -10,6 +10,16 @@ interface DetailsTabsProps {
   onChange: (tab: DetailTabId) => void;
 }
 
+/**
+ * Tabs that are a record of what happened (audit), not working tabs. They sit
+ * at the far right of the bar, behind a divider, so they read as separate from
+ * the transaction tabs (Routed Divisions, Action Assignments). Keep these last
+ * in DETAIL_TABS so the visual order matches the keyboard order.
+ */
+const AUDIT_TAB_IDS: readonly DetailTabId[] = ["status-history"];
+
+const isAuditTab = (id: DetailTabId) => AUDIT_TAB_IDS.includes(id);
+
 export default function DetailsTabs({ activeTab, onChange }: DetailsTabsProps) {
   const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
@@ -38,29 +48,43 @@ export default function DetailsTabs({ activeTab, onChange }: DetailsTabsProps) {
         {DETAIL_TABS.map((tab, index) => {
           const active = tab.id === activeTab;
           const Icon = tab.icon;
+          const previous = index > 0 ? DETAIL_TABS[index - 1] : undefined;
+          // First audit tab: `ml-auto` on the divider pushes it and the audit
+          // tabs after it to the right edge. On narrow screens, where the bar
+          // scrolls, it simply sits between the two groups.
+          const startsAuditGroup = isAuditTab(tab.id) && !(previous && isAuditTab(previous.id));
+
           return (
-            <button
-              key={tab.id}
-              ref={(el) => {
-                tabRefs.current[index] = el;
-              }}
-              id={tabDomId(tab.id)}
-              type="button"
-              role="tab"
-              aria-selected={active}
-              aria-controls={panelDomId(tab.id)}
-              tabIndex={active ? 0 : -1}
-              onClick={() => onChange(tab.id)}
-              onKeyDown={(e) => handleKeyDown(e, index)}
-              className={`inline-flex items-center gap-2 whitespace-nowrap border-b-2 px-4 py-1.5 text-theme-sm font-medium transition focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-secondary/40 ${
-                active
-                  ? "border-primary text-primary dark:border-secondary dark:text-secondary"
-                  : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-              }`}
-            >
-              <Icon className="size-4 shrink-0" aria-hidden="true" />
-              {tab.label}
-            </button>
+            <div key={tab.id} className={startsAuditGroup ? "ml-auto flex gap-1" : "flex"}>
+              {startsAuditGroup && (
+                <span
+                  role="presentation"
+                  aria-hidden="true"
+                  className="mx-1 my-2 w-px shrink-0 self-stretch bg-gray-200 dark:bg-white/10"
+                />
+              )}
+              <button
+                ref={(el) => {
+                  tabRefs.current[index] = el;
+                }}
+                id={tabDomId(tab.id)}
+                type="button"
+                role="tab"
+                aria-selected={active}
+                aria-controls={panelDomId(tab.id)}
+                tabIndex={active ? 0 : -1}
+                onClick={() => onChange(tab.id)}
+                onKeyDown={(e) => handleKeyDown(e, index)}
+                className={`inline-flex items-center gap-2 whitespace-nowrap border-b-2 px-4 py-1.5 text-theme-sm font-medium transition focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-secondary/40 ${
+                  active
+                    ? "border-primary text-primary dark:border-secondary dark:text-secondary"
+                    : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                }`}
+              >
+                <Icon className="size-4 shrink-0" aria-hidden="true" />
+                {tab.label}
+              </button>
+            </div>
           );
         })}
       </div>

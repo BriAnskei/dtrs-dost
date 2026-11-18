@@ -1,18 +1,15 @@
 import PageMeta from "../../../../../components/common/PageMeta";
 import ChangeStatusModal from "../../shared/component/modal/ChangeStatusModal";
+import StatusHistoryTab from "../../shared/status-history/components/status-history-tab";
 import ActionAssignmentsTab from "../assignment/components/ActionAssignmentsTab";
 import { panelDomId, tabDomId } from "../constant";
-import {
-  DETAIL_TABS,
-  useIncomingDocumentDetailsPage,
-} from "../hooks/use-incoming-document-details-page";
+import { useIncomingDocumentDetailsPage } from "../hooks/use-incoming-document-details-page";
 import OverviewTab from "../overview/component/OverviewTab";
 import RoutedDivisionsTab from "../routed-division/components/RoutedDivisionsTab";
 import DetailsErrorState from "./DetialsErrorState";
 import DetailsPageHeader from "./DetialsPageHeader";
 import DetailsPageSkeleton from "./DetialsPageSkeleton";
 import DetailsTabs from "./DetialsTabs";
-import TabPlaceholder from "./TabPlaceHolder";
 
 export default function IncomingDocumentDetailsPage() {
   const {
@@ -59,9 +56,7 @@ export default function IncomingDocumentDetailsPage() {
               ) : tab === "action-assignments" ? (
                 <ActionAssignmentsTab incomingDocumentId={doc.id} />
               ) : (
-                <TabPlaceholder
-                  label={DETAIL_TABS.find((t) => t.id === tab)?.label ?? ""}
-                />
+                <StatusHistoryTab incomingDocumentId={doc.id} />
               )}
             </div>
 

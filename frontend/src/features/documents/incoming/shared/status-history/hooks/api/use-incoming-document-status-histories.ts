@@ -1,6 +1,6 @@
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { IncomingStatusService } from "../../../service/incoming-status-service";
-import type { IncomingDocumentStatusHistoryParams } from "../../types/incoming-document-status-history.types";
+import { IncomingStatusService } from "../../../../service/incoming-status-service";
+import type { IncomingDocumentStatusHistoryParams } from "../../../types/incoming-document-status-history.types";
 
 type StatusHistoryFilters = Pick<
   IncomingDocumentStatusHistoryParams,
